@@ -1,0 +1,12 @@
+.DS_Store
+build/
+cmake-build-*/
+compile_commands.json
+.cache/
+
+# test data — fetched, never committed (files are 3 MB – 1.4 GB)
+data/
+*.pcap
+*.pcap.gz
+*.pcapng
+*.zst
