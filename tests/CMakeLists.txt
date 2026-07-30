@@ -44,4 +44,5 @@ dfr_add_test_suite(dfr_core_tests SOURCES
 
 dfr_add_test_suite(dfr_wire_tests SOURCES
   wire/moldudp64_test.cpp
+  wire/iextp_test.cpp
 )
