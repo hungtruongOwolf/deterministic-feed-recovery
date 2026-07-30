@@ -44,6 +44,11 @@ dfr_add_test_suite(dfr_core_tests SOURCES
   core/rng_draws_test.cpp
 )
 
+dfr_add_test_suite(dfr_capture_tests SOURCES
+  capture/frame_test.cpp
+  capture/ethernet_test.cpp
+)
+
 # One suite per protocol, one file per concept within it.
 dfr_add_test_suite(dfr_moldudp64_tests SOURCES
   wire/moldudp64_header_test.cpp
