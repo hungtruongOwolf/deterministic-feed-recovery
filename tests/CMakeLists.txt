@@ -67,6 +67,9 @@ dfr_add_test_suite(dfr_recovery_tests SOURCES
   recovery/channel_test.cpp
   recovery/gap_tracker_test.cpp
   recovery/gap_tracker_reset_test.cpp
+  recovery/retransmit_policy_test.cpp
+  recovery/requester_test.cpp
+  recovery/requester_chunking_test.cpp
 )
 
 # One suite per protocol, one file per concept within it.

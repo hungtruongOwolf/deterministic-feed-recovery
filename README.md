@@ -3,11 +3,11 @@
 A seeded fault injector and a recovery library for exchange market-data feeds.
 
 **Status: `dfr::core`, `dfr::wire`, `dfr::capture` and `dfr::chaos` are
-implemented and tested. `dfr::recovery` is in progress — gap detection and
-tracking are done, retransmission and A/B arbitration are not. `dfr::venue` is not
-written yet.**
+implemented and tested. `dfr::recovery` is in progress — gap detection,
+tracking and retransmission requests are done, A/B arbitration and snapshot
+reconstruction are not. `dfr::venue` is not written yet.**
 
-357 tests pass under four configurations — assertions at paranoid, fast and off,
+403 tests pass under four configurations — assertions at paranoid, fast and off,
 and AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors.
 
 ## What this is meant to be
