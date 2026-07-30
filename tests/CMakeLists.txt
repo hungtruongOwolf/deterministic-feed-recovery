@@ -39,4 +39,5 @@ dfr_add_test_suite(dfr_core_tests SOURCES
   core/byte_order_test.cpp
   core/packet_view_test.cpp
   core/clock_test.cpp
+  core/rng_test.cpp
 )
