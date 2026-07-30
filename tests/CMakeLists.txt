@@ -48,6 +48,8 @@ dfr_add_test_suite(dfr_capture_tests SOURCES
   capture/frame_test.cpp
   capture/ethernet_test.cpp
   capture/pcap_test.cpp
+  capture/pcapng_timestamp_test.cpp
+  capture/pcapng_reader_test.cpp
 )
 
 # One suite per protocol, one file per concept within it.
