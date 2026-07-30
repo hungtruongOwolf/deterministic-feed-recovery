@@ -6,6 +6,15 @@ project(dfr
   LANGUAGES CXX
 )
 
+# Applies to subprojects too, which matters: Catch2 defaults itself to C++14,
+# and in C++14 it omits the definition of StringMaker<std::string_view> while
+# still declaring it. A C++20 test translation unit then fails to link against
+# a symbol that was never emitted. Setting the standard here rather than only
+# on our own targets keeps the whole build on one language version.
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # ---------------------------------------------------------------------------
 # Options
 # ---------------------------------------------------------------------------
