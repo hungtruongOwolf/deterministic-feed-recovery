@@ -80,6 +80,12 @@ enum class error : std::uint8_t {
   // completed. Detecting this is what separates a correct client from one that
   // silently loses the range it could not hold.
   recovery_buffer_overflow,
+  // Two redundant lines carried different content for the same sequence number.
+  // Fatal, and not because either copy is necessarily wrong: A/B arbitration
+  // rests on the assumption that the lines are identical by construction, so
+  // once they are not, neither copy can be trusted and preferring one silently
+  // is how a receiver ends up confidently wrong.
+  lines_diverged,
 
   // ---- usage: a programmer error that is reported rather than asserted ---
   // Reserved for boundaries where a value must be returned because the caller
@@ -109,6 +115,7 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
     case error::snapshot_behind_buffer:
     case error::retransmit_window_exceeded:
     case error::recovery_buffer_overflow:
+    case error::lines_diverged:
     case error::end_of_session:
       return true;
 
@@ -179,6 +186,7 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
     case error::snapshot_behind_buffer:     return "snapshot_behind_buffer";
     case error::snapshot_stale:             return "snapshot_stale";
     case error::recovery_buffer_overflow:   return "recovery_buffer_overflow";
+    case error::lines_diverged:             return "lines_diverged";
     case error::invalid_argument:           return "invalid_argument";
     case error::capacity_exceeded:          return "capacity_exceeded";
     case error::not_supported:              return "not_supported";
@@ -231,6 +239,8 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
       return "snapshot is too old to be worth applying";
     case error::recovery_buffer_overflow:
       return "the recovery buffer filled before the snapshot completed";
+    case error::lines_diverged:
+      return "redundant lines carried different content for the same sequence";
     case error::invalid_argument:
       return "argument is outside its documented domain";
     case error::capacity_exceeded:

@@ -43,6 +43,7 @@ const std::set<dfr::error> kFatalErrors{
     dfr::error::snapshot_behind_buffer,
     dfr::error::retransmit_window_exceeded,
     dfr::error::recovery_buffer_overflow,
+    dfr::error::lines_diverged,
     dfr::error::end_of_session,
 };
 
