@@ -1,0 +1,79 @@
+# Checks are chosen to enforce docs/STYLE.md and docs/DESIGN.md, not to enable
+# everything available. Each disabled check below has a reason.
+Checks: >
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  concurrency-*,
+  cppcoreguidelines-*,
+  misc-*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -misc-non-private-member-variables-in-classes,
+  -modernize-use-trailing-return-type,
+  -readability-magic-numbers,
+  -readability-identifier-length
+
+# Rationale for the exclusions:
+#
+#   bugprone-easily-swappable-parameters
+#     Wire decoders legitimately take several same-typed integers. The real
+#     mitigation is TIGER_STYLE's "a function taking two u64 must use an
+#     options struct", which is a review rule, not a lint.
+#
+#   cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers
+#     Protocol constants are magic numbers by nature. A MoldUDP64 header is 20
+#     bytes because the spec says so. They are pinned by static_assert instead.
+#
+#   cppcoreguidelines-pro-type-reinterpret-cast
+#     cppcoreguidelines-pro-bounds-pointer-arithmetic
+#     A flyweight over a wire buffer is exactly a reinterpret_cast plus pointer
+#     arithmetic. The safety comes from routing every one through a single
+#     bounds-checked accessor, which is the design in docs/DESIGN.md section 1,
+#     not from banning the cast.
+#
+#   modernize-use-trailing-return-type
+#     Cosmetic, and inconsistent with the standard library spelling we match.
+#
+#   readability-identifier-length
+#     Rejects `i` and `n`. TIGER_STYLE bans abbreviating *variable names*, not
+#     conventional loop counters.
+
+WarningsAsErrors: ''
+HeaderFilterRegex: 'include/dfr/.*'
+FormatStyle: file
+
+CheckOptions:
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: lower_case
+  - key: readability-identifier-naming.StructCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumCase
+    value: lower_case
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: '_'
+  - key: readability-identifier-naming.ProtectedMemberSuffix
+    value: '_'
+  - key: readability-identifier-naming.GlobalConstantPrefix
+    value: 'k'
+  - key: readability-identifier-naming.ConstexprVariablePrefix
+    value: 'k'
+  - key: readability-identifier-naming.MacroDefinitionPrefix
+    value: 'DFR_'
+  - key: readability-identifier-naming.TemplateParameterCase
+    value: CamelCase

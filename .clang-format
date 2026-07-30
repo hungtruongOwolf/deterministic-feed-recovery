@@ -1,0 +1,17 @@
+# Google style with a 100-column limit.
+#
+# 100 rather than 80 because TIGER_STYLE's rationale applies: it is "just enough
+# to fit two copies of the code side-by-side", which is what a diff review needs.
+BasedOnStyle: Google
+Standard: c++20
+ColumnLimit: 100
+IndentWidth: 2
+AccessModifierOffset: -1
+PointerAlignment: Left
+DerivePointerAlignment: false
+AllowShortFunctionsOnASingleLine: Inline
+AlwaysBreakTemplateDeclarations: Yes
+IncludeBlocks: Preserve
+SortIncludes: CaseSensitive
+IndentPPDirectives: AfterHash
+SpaceAfterCStyleCast: true

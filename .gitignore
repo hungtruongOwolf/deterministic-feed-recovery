@@ -10,3 +10,7 @@ data/
 *.pcap.gz
 *.pcapng
 *.zst
+
+# CMake user-local presets. This is where machine-specific workarounds belong;
+# CMake's own documentation says it should not be committed.
+CMakeUserPresets.json
