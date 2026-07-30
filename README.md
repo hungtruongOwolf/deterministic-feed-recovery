@@ -73,3 +73,5 @@ without synthesising the transport first — at which point the test exercises t
 - `BUILD-GUIDE.md` — data sources, protocol specs, test targets, determinism hazards,
   learning path.
 - `LUAN-GIAI-TIENG-VIET.md` — the same reasoning chain in Vietnamese.
+- `docs/STYLE.md` — house rules for comments, assertions, README and commits, calibrated against
+  measured comment and assertion density in Linux, SQLite, TigerBeetle, simdjson, quill and others.
