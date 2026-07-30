@@ -61,6 +61,11 @@ dfr_add_test_suite(dfr_chaos_tests SOURCES
   chaos/oracle_test.cpp
 )
 
+dfr_add_test_suite(dfr_recovery_tests SOURCES
+  recovery/gap_test.cpp
+  recovery/gap_set_test.cpp
+)
+
 # One suite per protocol, one file per concept within it.
 dfr_add_test_suite(dfr_moldudp64_tests SOURCES
   wire/moldudp64_header_test.cpp
