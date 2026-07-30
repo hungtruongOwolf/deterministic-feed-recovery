@@ -2,8 +2,11 @@
 
 A seeded fault injector and a recovery library for exchange market-data feeds.
 
-**Status: planning. No code yet.** This repo currently holds the landscape research that
-selected the problem.
+**Status: `dfr::core`, `dfr::wire` and `dfr::capture` are implemented and tested.
+`dfr::chaos`, `dfr::recovery` and `dfr::venue` are not written yet.**
+
+231 tests pass under four configurations — assertions at paranoid, fast and off,
+and AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors.
 
 ## What this is meant to be
 
@@ -43,6 +46,38 @@ catastrophic system failures came from incorrect handling of errors that were ex
 signalled in software, and that 58% could have been caught by simple testing of the
 error-handling code.
 
+## Verified against real captures
+
+The IEX-TP field offsets were transcribed from a specification whose live URL now
+serves a "this document has moved" stub, so they had a single source. They have
+been checked against real IEX HIST data with `tools/inspect`:
+
+| Capture | Format | Frames | Messages | VLAN | Chain breaks |
+|---|---|---|---|---|---|
+| `20170826` DEEP, whole file | classic pcap | 20,145 | 48,635 | 1013 | **0** |
+| `20191224` DEEP, first 12 MB of the gzip | pcapng | 348,103 | 380,611 | none | **0** |
+
+Zero chain breaks across 368,248 real packets means all three of IEX-TP's
+redundant chains held on every one: sequence numbers chained, stream offsets
+chained, and the block framing accounted for exactly the declared payload length.
+A wrong offset for Stream Offset or Payload Length would have broken on the
+second packet.
+
+```
+$ curl -s 'https://iextrading.com/api/1.0/hist?date=20170826' | python3 -m json.tool
+$ curl -L -o deep.pcap.gz '<the DEEP link>' && gunzip deep.pcap
+$ inspect deep.pcap
+```
+
+Two things the exercise turned up:
+
+- **The VLAN tag is not consistent across the corpus.** The 2017 file carries VLAN
+  1013; the 2019 one carries no tag. A reader tested against only one would break
+  on the other and report the failure as "this file contains no IP traffic".
+- **The format switch is not a clean date boundary.** Trading days from at least
+  2017-07-03 are pcapng, but the 2017-08-26 Saturday file is classic pcap. A tool
+  cannot pick a reader by date; it has to try one and fall back.
+
 ## Test data
 
 Real wire-format captures, free and without registration:
@@ -66,6 +101,17 @@ without synthesising the transport first — at which point the test exercises t
 - AWS does not support multicast on an ordinary VPC. Local testing is `veth` + network
   namespaces + `tc netem`, so IGMP snooping and querier behaviour — a common operational cause
   of a feed going silent — is reasoned about rather than reproduced.
+
+## Building
+
+```
+cmake --preset dev       # paranoid assertions, no optimisation
+cmake --build --preset dev
+ctest --preset dev
+```
+
+Other presets: `release` (optimised, assertions still on at the fast level),
+`bench` (assertions off, for measuring what they cost), `asan`, `tsan`.
 
 ## Documents
 

@@ -29,6 +29,7 @@ set(DFR_ASSERTIONS "fast" CACHE STRING "Assertion level: off, fast, or paranoid"
 set_property(CACHE DFR_ASSERTIONS PROPERTY STRINGS off fast paranoid)
 
 option(DFR_BUILD_TESTS      "Build the test suite"                      ${PROJECT_IS_TOP_LEVEL})
+option(DFR_BUILD_TOOLS      "Build the command-line tools"               ${PROJECT_IS_TOP_LEVEL})
 option(DFR_WARNINGS_AS_ERRORS "Treat compiler warnings as errors"        ${PROJECT_IS_TOP_LEVEL})
 option(DFR_RECORD_CHOICES   "Compile in the per-draw RNG choice trace"   ON)
 
@@ -125,6 +126,10 @@ if(DFR_BUILD_TESTS)
   add_subdirectory(tests)
 endif()
 
+if(DFR_BUILD_TOOLS)
+  add_subdirectory(tools)
+endif()
+
 # ---------------------------------------------------------------------------
 # Install / export, so the library is genuinely embeddable rather than
 # only buildable in place.
@@ -163,4 +168,5 @@ if(PROJECT_IS_TOP_LEVEL)
   message(STATUS "  assertions : ${DFR_ASSERTIONS}")
   message(STATUS "  sanitizer  : ${DFR_SANITIZER}")
   message(STATUS "  tests      : ${DFR_BUILD_TESTS}")
+  message(STATUS "  tools      : ${DFR_BUILD_TOOLS}")
 endif()

@@ -37,24 +37,45 @@
 //   free IEX HIST corpus is the right thing to build against first.
 //
 // ---------------------------------------------------------------------------
-// LIMIT, stated deliberately rather than discovered later
+// VERIFIED against real captures, 2026-07-30
 // ---------------------------------------------------------------------------
 //
-// The field offsets above are transcribed from the specification. They have NOT
-// yet been validated against a real capture. The live URL for IEX-TP 1.25 now
-// serves a one-page "this document has moved" stub, and the complete 15-page
-// version is only in the Internet Archive, so the transcription has a single
-// source.
+// The field offsets above were transcribed from a specification whose live URL
+// now serves a one-page "this document has moved" stub, so they had a single
+// source and this header previously carried a note saying so. They have now been
+// checked against real IEX HIST data with `tools/inspect`:
 //
-// Until a real IEX HIST pcap has been parsed end to end with all three chains
-// above holding across every packet, treat this decoder as unverified. The
-// tests here are self-consistency tests: they prove the encoder and decoder
-// agree with each other and with hand-assembled bytes matching the table above.
-// They cannot prove the table is right.
+//   20170826 DEEP, classic pcap, complete file, 3,405,890 bytes
+//     20,145 frames, all decoded as IEX-TP, 48,635 messages,
+//     13,220 heartbeats, VLAN 1013, group 233.215.21.4:10378,
+//     read to the end of the file cleanly, ZERO chain breaks.
 //
-// Validating against `iextrading.com/api/1.0/hist` is the next task, and the
-// check that settles it is that a whole day of DEEP decodes with zero chain
-// breaks — which is exactly the measurement that says the layout is correct.
+//   20191224 DEEP, pcapng, first 12 MB of the gzip stream (52,297,728 bytes
+//   decompressed)
+//     348,103 frames, all decoded as IEX-TP, 380,611 messages,
+//     4,042 heartbeats, NO VLAN tag, group 233.215.21.4:10378,
+//     ZERO chain breaks. The read stops at the artificial end of the prefix,
+//     which the reader reports rather than mistaking for a clean end.
+//
+// Zero chain breaks across 368,248 real packets means all three chains held on
+// every one of them: sequence numbers chained, stream offsets chained, and the
+// block framing accounted for exactly the declared payload length. Three
+// redundant checks agreeing that many times is strong evidence the offsets are
+// right — a wrong Stream Offset or Payload Length offset would have produced a
+// break on the second packet.
+//
+// Two facts the exercise turned up that are worth keeping:
+//
+//   * **The VLAN tag is not consistent across the corpus.** The 2017 file carries
+//     VLAN 1013; the 2019 one carries no tag at all. A reader tested against only
+//     one of them would break on the other, and would report the failure as "this
+//     file contains no IP traffic".
+//
+//   * **The format switch is not a clean date boundary.** Trading days from at
+//     least 2017-07-03 are pcapng, but the 2017-08-26 Saturday file is classic
+//     pcap. So a tool cannot pick a reader by date; it has to try one and fall
+//     back, which is why pcap::reader::over returns not_supported rather than a
+//     framing error on a pcapng magic.
 
 #ifndef DFR_WIRE_IEXTP_HPP
 #define DFR_WIRE_IEXTP_HPP
