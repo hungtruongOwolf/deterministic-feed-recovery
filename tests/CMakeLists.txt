@@ -38,11 +38,22 @@ dfr_add_test_suite(dfr_core_tests SOURCES
   core/result_test.cpp
   core/byte_order_test.cpp
   core/packet_view_test.cpp
+  core/mutable_packet_view_test.cpp
   core/clock_test.cpp
-  core/rng_test.cpp
+  core/rng_engine_test.cpp
+  core/rng_draws_test.cpp
 )
 
-dfr_add_test_suite(dfr_wire_tests SOURCES
-  wire/moldudp64_test.cpp
-  wire/iextp_test.cpp
+# One suite per protocol, one file per concept within it.
+dfr_add_test_suite(dfr_moldudp64_tests SOURCES
+  wire/moldudp64_header_test.cpp
+  wire/moldudp64_cursor_test.cpp
+  wire/moldudp64_encode_test.cpp
+)
+
+dfr_add_test_suite(dfr_iextp_tests SOURCES
+  wire/iextp_header_test.cpp
+  wire/iextp_cursor_test.cpp
+  wire/iextp_chain_test.cpp
+  wire/iextp_encode_test.cpp
 )

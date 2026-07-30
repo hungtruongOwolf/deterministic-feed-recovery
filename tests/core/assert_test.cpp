@@ -1,4 +1,5 @@
 #include <dfr/core/assert.hpp>
+#include <dfr/core/invariant_guard.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 

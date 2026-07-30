@@ -80,6 +80,40 @@ is cheap and visibly better than the references.
 
 ---
 
+## 1.10 File size and seams
+
+**One header, one concept. Target 200 lines; treat 300 as a smell and 400 as a
+defect.**
+
+Not an arbitrary limit — the reason is the same one TIGER_STYLE gives for its
+70-line function rule: *"There's a sharp discontinuity between a function fitting
+on a screen, and having to scroll."* The same discontinuity applies to finding
+the thing you came for in a file. A 600-line header means the reader scrolls past
+four unrelated concepts to reach the fifth, and a reviewer cannot tell which
+parts of a diff belong together.
+
+The split goes at a **seam**, never at a line count. A seam is a place where two
+things could be understood, tested and changed independently:
+
+- a wire protocol splits into constants / header / cursor / encoder, because a
+  reader fixing a decode bug never needs the encoder
+- a view type splits from its mutable twin, because the read path and the write
+  path have different callers
+- a cohesive vocabulary type does **not** split just because it is long.
+  `result<T>` is 390 lines and stays one file: every line of it is the same
+  concept, and separating the monadic operations from the class they belong to
+  would make both halves harder to read.
+
+Where a directory replaces a header, keep an umbrella header of the same name
+that includes the parts. Existing `#include <dfr/wire/moldudp64.hpp>` must keep
+working, and a caller who wants only the constants should be able to include only
+those.
+
+The same rule applies to tests, with the same seam: one test file per concept,
+and shared fixtures in a `support/` header rather than copied.
+
+---
+
 ## 2. Assertions
 
 The discipline, with measured targets:
