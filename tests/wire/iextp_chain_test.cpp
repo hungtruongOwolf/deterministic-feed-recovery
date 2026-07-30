@@ -150,3 +150,36 @@ TEST_CASE("a broken offset chain is caught when the sequence chain is intact",
   CHECK(broken.error_code() == dfr::error::message_length_mismatch);
 }
 
+TEST_CASE("an offset break resynchronises both chains, not just the offset",
+          "[wire][iextp][oracle][regression]") {
+  // Found by tests/chaos/oracle_test.cpp's reasoning rather than by its run: the
+  // oracle's second opinion is valid only because *every* path through observe()
+  // resynchronises from the packet it just saw, so a report is a statement about
+  // one adjacent pair and nothing more. Reading the paths to justify that claim
+  // showed the offset-mismatch path updating the offset expectation and leaving the
+  // sequence expectation stale.
+  //
+  // The consequence is one wrong report per break, in the direction that is hardest
+  // to notice: a spurious gap on the *next* packet, blamed on a packet that was
+  // perfectly correct. A receiver would request a retransmit it does not need.
+  iex::chain_checker checker;
+  const iex::header first{
+      .payload_length = 10, .message_count = 2, .stream_offset = 0,
+      .first_sequence = 1};
+  REQUIRE(checker.observe(first).has_value());
+
+  const iex::header offset_wrong{.payload_length = 10,
+                                 .message_count = 2,
+                                 .stream_offset = 999,  // should be 10
+                                 .first_sequence = 3};  // chains correctly
+  REQUIRE(checker.observe(offset_wrong).error_code() ==
+          dfr::error::message_length_mismatch);
+
+  // Chains correctly from the packet before it, on both chains.
+  const iex::header after{.payload_length = 10,
+                          .message_count = 2,
+                          .stream_offset = 1'009,
+                          .first_sequence = 5};
+  CHECK(checker.observe(after).has_value());
+}
+

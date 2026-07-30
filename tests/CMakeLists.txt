@@ -58,6 +58,7 @@ dfr_add_test_suite(dfr_chaos_tests SOURCES
   chaos/schedule_generate_test.cpp
   chaos/injector_test.cpp
   chaos/injector_damage_test.cpp
+  chaos/oracle_test.cpp
 )
 
 # One suite per protocol, one file per concept within it.

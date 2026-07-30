@@ -36,45 +36,34 @@ class chain_checker {
 
   // Feeds one packet's header. Returns the first inconsistency found, if any.
   //
-  // The first packet establishes the chain rather than being checked against
-  // nothing, so a receiver that joins a live feed mid-session does not report a
-  // spurious error on its first packet.
+  // Detection and resynchronisation are deliberately separate: inconsistency() is
+  // const and decides nothing else, and the expectation is then rebuilt from this
+  // packet unconditionally, on every path, exactly once. That structure carries an
+  // invariant the rest of the library depends on — **a report is a statement about
+  // one adjacent pair of packets and nothing more** — which is what lets
+  // tests/chaos/oracle_test.cpp count breaks independently and demand the numbers
+  // match.
+  //
+  // Writing it as four returns, each doing its own resynchronisation, is how this
+  // was written first, and one of the four forgot the sequence expectation. The
+  // consequence was a spurious gap on the packet *after* an offset break — blamed
+  // on a packet that was perfectly correct, and enough to make a receiver ask for a
+  // retransmit it did not need. Structure, not vigilance.
   [[nodiscard]] constexpr result<void> observe(const header& value) noexcept {
-    if (!started_) {
-      started_ = true;
-      session_ = value.session;
-      expected_sequence_ = value.next_sequence();
-      expected_offset_ = value.next_stream_offset();
-      return ok();
-    }
+    const error found = inconsistency(value);
 
-    if (value.session != session_) DFR_UNLIKELY {
-      // Fatal: every sequence number and stream offset held refers to the old
-      // session.
-      session_ = value.session;
-      expected_sequence_ = value.next_sequence();
-      expected_offset_ = value.next_stream_offset();
-      return error::session_changed;
-    }
-
-    if (value.first_sequence != expected_sequence_) DFR_UNLIKELY {
-      const bool behind = value.first_sequence < expected_sequence_;
-      // Resynchronise either way, so one gap does not produce an error on every
-      // subsequent packet.
-      expected_sequence_ = value.next_sequence();
-      expected_offset_ = value.next_stream_offset();
-      return behind ? error::sequence_regressed : error::sequence_gap;
-    }
-
-    if (value.stream_offset != expected_offset_) DFR_UNLIKELY {
-      // Sequence numbers chained correctly and byte offsets did not. Neither
-      // check alone would have found this.
-      expected_offset_ = value.next_stream_offset();
-      return error::message_length_mismatch;
-    }
-
+    // The first packet establishes the chain rather than being checked against
+    // nothing, so a receiver joining a live feed mid-session does not report a
+    // spurious error on its first packet. Resynchronising after a break serves the
+    // same end: one gap must not produce an error on every packet that follows.
+    started_ = true;
+    session_ = value.session;
     expected_sequence_ = value.next_sequence();
     expected_offset_ = value.next_stream_offset();
+
+    if (found != error::ok) DFR_UNLIKELY {
+      return found;
+    }
     return ok();
   }
 
@@ -87,6 +76,34 @@ class chain_checker {
   }
 
  private:
+  // Which chain, if any, this packet breaks. Const and side-effect free, so the
+  // three rules can be read as three rules.
+  //
+  // The order matters and is not arbitrary. A session change is checked first
+  // because it makes both other checks meaningless: every sequence number and
+  // stream offset held refers to the old session. The offset check comes last
+  // because it is the one with no counterpart in MoldUDP64 — reaching it means the
+  // sequence numbers chained perfectly and the byte positions did not, which is
+  // what a corrupted Payload Length looks like and what neither check alone can
+  // see.
+  [[nodiscard]] constexpr error inconsistency(const header& value) const noexcept {
+    if (!started_) {
+      return error::ok;
+    }
+    if (value.session != session_) DFR_UNLIKELY {
+      return error::session_changed;
+    }
+    if (value.first_sequence != expected_sequence_) DFR_UNLIKELY {
+      return value.first_sequence < expected_sequence_
+                 ? error::sequence_regressed
+                 : error::sequence_gap;
+    }
+    if (value.stream_offset != expected_offset_) DFR_UNLIKELY {
+      return error::message_length_mismatch;
+    }
+    return error::ok;
+  }
+
   std::uint64_t expected_sequence_{0};
   std::int64_t expected_offset_{0};
   std::uint32_t session_{0};
