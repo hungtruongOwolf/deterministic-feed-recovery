@@ -25,6 +25,9 @@ function(dfr_add_test_suite name)
   cmake_parse_arguments(ARG "" "" "SOURCES" ${ARGN})
   add_executable(${name} ${ARG_SOURCES})
   target_link_libraries(${name} PRIVATE dfr::dfr dfr_dev_flags Catch2::Catch2WithMain)
+  # So that a test can include "support/death_test.hpp" regardless of which
+  # subdirectory it lives in.
+  target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   catch_discover_tests(${name})
 endfunction()
 
@@ -35,4 +38,5 @@ dfr_add_test_suite(dfr_core_tests SOURCES
   core/result_test.cpp
   core/byte_order_test.cpp
   core/packet_view_test.cpp
+  core/clock_test.cpp
 )
