@@ -1,23 +1,27 @@
-# feedfault
+# deterministic-feed-recovery
 
-Deterministic fault injection and recovery for exchange market-data feeds.
+A seeded fault injector and a recovery library for exchange market-data feeds.
 
 **Status: planning. No code yet.** This repo currently holds the landscape research that
 selected the problem.
 
 ## What this is meant to be
 
-Three components, built in this order:
+Three components under the namespace `dfr`, built in this order:
 
-1. **`chaos`** — a seeded, protocol-aware fault injector for MoldUDP64 / IEX-TP multicast
+1. **`dfr::chaos`** — a seeded, protocol-aware fault injector for MoldUDP64 / IEX-TP multicast
    streams. Burst loss, reordering, duplication, A/B line divergence, sequence resets,
    snapshot/incremental races. A deterministic function of `(seed, packet_index)`, so any
    failure replays exactly.
-2. **`recovery`** — a client library that survives all of the above: gap detection,
+2. **`dfr::recovery`** — a client library that survives all of the above: gap detection,
    retransmission requests, snapshot-based book reconstruction, A/B arbitration, NAK
    suppression.
-3. **`mock-exchange`** — a venue that speaks the real wire protocols, so `recovery` can be
-   tested against something that behaves like an exchange rather than a stub.
+3. **`dfr::venue`** — a mock exchange that speaks the real wire protocols, so `dfr::recovery`
+   can be tested against something that behaves like an exchange rather than a stub.
+
+"Deterministic" here is a constraint on the implementation, not a claim about its quality: no
+wall clock, no unseeded randomness, no pointer-derived ordering, and a single-threaded core, so
+that a failing run is reproducible from a seed plus a build fingerprint.
 
 ## Why this problem
 
