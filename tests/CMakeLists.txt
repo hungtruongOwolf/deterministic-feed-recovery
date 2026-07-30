@@ -52,6 +52,10 @@ dfr_add_test_suite(dfr_capture_tests SOURCES
   capture/pcapng_reader_test.cpp
 )
 
+dfr_add_test_suite(dfr_chaos_tests SOURCES
+  chaos/schedule_test.cpp
+)
+
 # One suite per protocol, one file per concept within it.
 dfr_add_test_suite(dfr_moldudp64_tests SOURCES
   wire/moldudp64_header_test.cpp
