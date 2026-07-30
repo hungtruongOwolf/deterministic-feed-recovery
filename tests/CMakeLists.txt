@@ -33,4 +33,6 @@ dfr_add_test_suite(dfr_core_tests SOURCES
   core/assert_test.cpp
   core/error_test.cpp
   core/result_test.cpp
+  core/byte_order_test.cpp
+  core/packet_view_test.cpp
 )
