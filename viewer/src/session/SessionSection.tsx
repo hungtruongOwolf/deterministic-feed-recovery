@@ -48,6 +48,7 @@ export function SessionSection({ trace, settings, onChange, live }: Props) {
             type="number"
             min={1}
             max={12}
+            aria-label="how many orders the client sends"
             value={settings.orders}
             disabled={!live}
             onChange={(e) =>
@@ -63,6 +64,7 @@ export function SessionSection({ trace, settings, onChange, live }: Props) {
             min={0}
             max={200}
             step={20}
+            aria-label="how many shares of the first order are filled"
             value={settings.fill}
             disabled={!live}
             onChange={(e) =>

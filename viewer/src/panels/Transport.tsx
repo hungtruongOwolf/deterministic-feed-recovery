@@ -16,20 +16,21 @@ export function Transport({ playback, beats, caption }: Props) {
   return (
     <div className="transport">
       <div className="transport__row">
-        <button className="transport__key" onClick={playback.restart} title="Back to the start">
+        <button className="transport__key" onClick={playback.restart} title="Back to the start" aria-label="Back to the start">
           ⏮
         </button>
-        <button className="transport__key" onClick={() => playback.step(-1)} title="Previous step">
+        <button className="transport__key" onClick={() => playback.step(-1)} title="Previous step" aria-label="Previous step">
           ◀
         </button>
         <button
           className="transport__key transport__key--main"
           onClick={playback.toggle}
           title={playback.playing ? "Pause" : "Play"}
+          aria-label={playback.playing ? "Pause" : "Play"}
         >
           {playback.playing ? "❙❙" : "▶"}
         </button>
-        <button className="transport__key" onClick={() => playback.step(1)} title="Next step">
+        <button className="transport__key" onClick={() => playback.step(1)} title="Next step" aria-label="Next step">
           ▶
         </button>
 
@@ -39,6 +40,8 @@ export function Transport({ playback, beats, caption }: Props) {
               key={rate}
               className={`transport__speed ${playback.speed === rate ? "is-on" : ""}`}
               onClick={() => playback.setSpeed(rate)}
+              aria-label={`play at ${rate} times speed`}
+              aria-pressed={playback.speed === rate}
             >
               {rate}×
             </button>

@@ -13,9 +13,14 @@
   --page-sunk: #e7e0d2;
   --ink: #1b1a17;
   --ink-soft: #6d675c;
-  --ink-faint: #9d968a;
-  --rule: #cfc7b5;
-  --rule-strong: #a49b87;
+  --ink-faint: #716a5e; /* 4.54:1 on the paper — WCAG AA for body text. It was #9d968a at 2.49:1, which is under even the large-text threshold, and it carries hints, notes and captions. Measured, not chosen. */
+  --rule: #cfc7b5; /* 1.43:1, and deliberately below the 3:1 non-text minimum.
+     WCAG's non-text rule applies to boundaries a user must *perceive to operate* something. This is the hairline
+     of a drawing sheet — the interior rules of a table, the fold separators — and every one of them separates
+     content that is itself readable at 4.5:1 or better. Nothing here depends on seeing the line.
+     The frame and the rails, which do carry meaning, use --rule-strong at 3.01:1.
+     Stated rather than left as an oversight, because the next person to measure it should find the reasoning. */
+  --rule-strong: #92876f; /* 3.01:1 — the non-text minimum, since this draws the sheet frame and the rails. Was 2.34:1. */
 
   --fault: #a8452c;         /* something was done to the stream */
   --recovery: #2b59d1;      /* something is being repaired */
@@ -57,51 +62,15 @@ h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 0.13em; color: 
 .sheet__block-title { font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em; fill: var(--ink); }
 .sheet__block-sub { font-family: var(--mono); font-size: 9px; fill: var(--ink-soft); }
 .sheet__block-legend { font-family: var(--mono); font-size: 8.5px; fill: var(--ink-soft); }
-.sheet__swatch { stroke: var(--rule-strong); stroke-width: 0.5; }
 
 /* ------------------------------------------------------------- rails, nodes */
 
 .rail line { stroke: var(--rule); stroke-width: 0.8; }
-.rail--data line { stroke-dasharray: none; stroke: var(--rule-strong); }
-.rail--request line, .rail--snapshot line { stroke-dasharray: 3 4; }
-.rail__label { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.13em; fill: var(--ink-faint); }
-
-.node__plate { fill: var(--page); stroke: var(--rule-strong); stroke-width: 0.8; }
-.node__title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; fill: var(--ink); }
-.node__sub { font-family: var(--mono); font-size: 8.5px; fill: var(--ink-soft); }
-.node__stem { stroke: var(--rule); stroke-width: 0.6; }
 
 .cell rect { fill: var(--page); stroke: var(--rule); stroke-width: 0.7; }
 .cell text { font-family: var(--mono); font-size: 8.5px; fill: var(--ink-faint); }
 .cell--on rect { fill: var(--ink); stroke: var(--ink); }
 .cell--on text { fill: var(--page); }
-
-/* ----------------------------------------------------------------- packets */
-
-.glyph__body { fill: var(--page); stroke: var(--ink); stroke-width: 1.1; }
-.glyph__body--wide { stroke-dasharray: 2 2; }
-.glyph__body--twin { fill: none; stroke-dasharray: 2 2; }
-.glyph__label { font-family: var(--mono); font-size: 8.5px; fill: var(--ink-soft); }
-.glyph__burst line { stroke: var(--fault); stroke-width: 1.4; }
-
-.glyph--quiet .glyph__body { stroke: var(--ink-faint); }
-.glyph--fault .glyph__body { stroke: var(--fault); }
-.glyph--fault .glyph__label { fill: var(--fault); }
-.glyph--repair .glyph__body { stroke: var(--recovery); }
-.glyph--repair .glyph__label { fill: var(--recovery); }
-.glyph--fatal .glyph__body { stroke: var(--unfillable); fill: #f6e6e3; }
-.glyph--fatal .glyph__label { fill: var(--unfillable); }
-
-/* ------------------------------------------------------------ message axis */
-
-.band__label, .band__scale { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.13em; fill: var(--ink-faint); }
-.band__outline { fill: none; stroke: var(--rule-strong); stroke-width: 0.8; }
-.band__delivered { fill: var(--ink); opacity: 0.82; }
-.band__hole { fill: var(--unfillable); }
-.band__hole-label { font-family: var(--mono); font-size: 8px; fill: var(--unfillable); }
-.band__mark { stroke: var(--recovery); stroke-width: 1.1; }
-.band__mark-label { font-family: var(--mono); font-size: 8.5px; fill: var(--recovery); }
-.band__more { font-family: var(--mono); font-size: 8px; fill: var(--unfillable); }
 
 /* ---------------------------------------------------------------- controls */
 
@@ -128,8 +97,6 @@ th { font-family: var(--mono); font-weight: 400; font-size: 10px; text-transform
 td.num, th.num { text-align: right; padding-right: 0; }
 
 .tag { font-family: var(--mono); font-size: 10.5px; border: 1px solid var(--rule-strong); padding: 0 5px; white-space: nowrap; }
-.tag--fault { border-color: var(--fault); color: var(--fault); }
-.tag--recovery { border-color: var(--recovery); color: var(--recovery); }
 .tag--bad { border-color: var(--unfillable); color: var(--unfillable); background: #f7e9e7; }
 .tag--good { border-color: var(--healthy); color: var(--healthy); }
 

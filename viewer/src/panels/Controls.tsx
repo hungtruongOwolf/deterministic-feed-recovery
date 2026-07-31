@@ -153,6 +153,10 @@ function Choice({
             className={`choice__option ${option.on ? "is-on" : ""}`}
             disabled={!live}
             onClick={option.choose}
+            // The visible text is an expression, so a screen reader gets nothing from the markup. The label says
+            // which control it belongs to as well as which value, because "typical" alone answers no question.
+            aria-label={`${label}: ${option.label}`}
+            aria-pressed={option.on}
           >
             {option.label}
           </button>

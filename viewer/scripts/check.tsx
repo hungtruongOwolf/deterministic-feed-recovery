@@ -16,7 +16,7 @@
 // It cannot tell whether the result looks good. Nothing without eyes can, and that limit is stated here
 // rather than implied.
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { parseTrace } from "../src/model/trace";
 import { buildStory } from "../src/model/story";
@@ -648,6 +648,108 @@ console.log("\nthe reader's language");
 //
 // What is counted is what a reader sees *before opening anything*. Folded detail is not a cost — it is the
 // mechanism that made the cut possible — so the bodies of <details> are removed before counting.
+
+console.log("\nkeyboard and assistive technology");
+
+{
+  // Symbol-only buttons. `⏮ ◀ ❙❙ ▶` read as nothing to a screen reader, and `title` is not reliably announced — so
+  // the transport was a row of unlabelled controls. Measured rather than assumed, because "it looks obvious" is
+  // exactly the reasoning that produces this.
+  const tsx = ["panels", "stage", "session", "ui"].flatMap((dir) =>
+    readdirSync(`src/${dir}`)
+      .filter((f) => f.endsWith(".tsx"))
+      .map((f) => readFileSync(`src/${dir}/${f}`, "utf8")),
+  );
+  const all = [readFileSync("src/App.tsx", "utf8"), ...tsx].join("\n");
+
+  // Every <button> whose children are only symbols or whitespace needs an aria-label.
+  const buttons = [...all.matchAll(/<button\b([\s\S]*?)>([\s\S]*?)<\/button>/g)];
+  const unlabelled = buttons.filter((m) => {
+    const attributes = m[1] ?? "";
+    const text = (m[2] ?? "").replace(/\{[^}]*\}/g, "").replace(/&nbsp;/g, " ");
+    const hasWords = /[a-z]{3}/i.test(text);
+    return !hasWords && !/aria-label/.test(attributes);
+  });
+  check(
+    unlabelled.length === 0,
+    `every one of the ${buttons.length} buttons is labelled by its text or by aria-label`,
+  );
+
+  // Every input the reader types into needs one too, since the visible label is a sibling span rather than a <label
+  // for=>.
+  const inputs = [...all.matchAll(/<input\b([\s\S]*?)\/>/g)];
+  const bare = inputs.filter((m) => !/aria-label|type="checkbox"/.test(m[1] ?? ""));
+  check(bare.length === 0, `every one of the ${inputs.length} inputs is labelled`);
+}
+
+console.log("\nthe stylesheet");
+
+{
+  // Colour contrast, measured. `--ink-faint` shipped at 2.49:1 while carrying hints, notes and captions — under
+  // WCAG AA's 4.5:1 for body text and under even the 3:1 large-text threshold. A lot of the page's explanation was
+  // effectively unreadable, and nothing in the build said so.
+  //
+  // Asserted here so the next person adjusting the palette for looks finds out immediately.
+  const theme = readFileSync("src/ui/theme.css", "utf8");
+  const colours = new Map(
+    [...theme.matchAll(/--([a-z-]+):\s*(#[0-9a-fA-F]{6})/g)].map((m) => [m[1]!, m[2]!]),
+  );
+  const channel = (v: number) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  const luminance = (hex: string) => {
+    const [r, g, b] = [1, 3, 5].map((i) => channel(parseInt(hex.slice(i, i + 2), 16) / 255));
+    return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+  };
+  const page = luminance(colours.get("page") ?? "#ffffff");
+  const ratio = (hex: string) => {
+    const other = luminance(hex);
+    return (Math.max(page, other) + 0.05) / (Math.min(page, other) + 0.05);
+  };
+
+  // Everything that carries text. `--rule` is exempt and says why in the stylesheet: it is the hairline of a
+  // drawing sheet, and nothing depends on perceiving it.
+  const textColours = ["ink", "ink-soft", "ink-faint", "healthy", "fault", "recovery", "unfillable"];
+  for (const name of textColours) {
+    const hex = colours.get(name);
+    if (hex === undefined) {
+      continue;
+    }
+    check(ratio(hex) >= 4.5, `--${name} is ${ratio(hex).toFixed(2)}:1 on the paper (AA needs 4.5)`);
+  }
+  const strong = colours.get("rule-strong");
+  check(
+    strong !== undefined && ratio(strong) >= 3,
+    `--rule-strong is ${strong === undefined ? "missing" : ratio(strong).toFixed(2)}:1 (non-text needs 3.0)`,
+  );
+}
+
+{
+  // Twenty-one percent of the stylesheet was rules for components deleted in earlier rewrites — whole blocks for a
+  // `glyph`, a `band` and a `node` that no longer exist. Dead CSS is invisible: it costs bytes, it makes the file
+  // unreadable, and grepping for a class name finds a definition that governs nothing.
+  //
+  // Dynamic class names are accounted for. `act--${tone}` means `.act--fault` is alive even though the literal never
+  // appears, so a checker that only looked for literals would delete working styles.
+  const css = ["theme", "layout"].map((n) => readFileSync(`src/ui/${n}.css`, "utf8")).join("\n");
+  const sources = [
+    "src/App.tsx",
+    ...["panels", "stage", "session", "ui", "model", "anim"].flatMap((dir) =>
+      readdirSync(`src/${dir}`)
+        .filter((f) => f.endsWith(".tsx") || f.endsWith(".ts"))
+        .map((f) => `src/${dir}/${f}`),
+    ),
+  ]
+    .map((f) => readFileSync(f, "utf8"))
+    .join("\n");
+
+  const classes = [...new Set([...css.matchAll(/^\.([a-z][a-zA-Z0-9_-]*)/gm)].map((m) => m[1]!))];
+  const dead = classes.filter((name) => {
+    if (sources.includes(name)) return false;
+    const base = name.split("--")[0]!;
+    if (name.includes("--") && new RegExp(`${base}--\\$\\{`).test(sources)) return false;
+    return !new RegExp(`${base}__\\$\\{`).test(sources);
+  });
+  check(dead.length === 0, `every one of the ${classes.length} CSS classes is referenced${dead.length > 0 ? `; dead: ${dead.join(", ")}` : ""}`);
+}
 
 console.log("\nthe page's weight");
 
