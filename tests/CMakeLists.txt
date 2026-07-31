@@ -82,6 +82,14 @@ dfr_add_test_suite(dfr_trace_tests SOURCES
   trace/recorder_test.cpp
 )
 
+# The one suite that starts threads. Kept separate so a caller can run everything else without them, and so
+# the tsan preset has an obvious target.
+dfr_add_test_suite(dfr_concurrent_tests SOURCES
+  concurrent/spsc_ring_test.cpp
+)
+find_package(Threads REQUIRED)
+target_link_libraries(dfr_concurrent_tests PRIVATE Threads::Threads)
+
 dfr_add_test_suite(dfr_venue_tests SOURCES
   venue/publisher_test.cpp
   venue/moldudp64_publisher_test.cpp
