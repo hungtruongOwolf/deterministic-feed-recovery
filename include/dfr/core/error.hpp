@@ -102,6 +102,10 @@ enum class error : std::uint8_t {
   invalid_argument,
   capacity_exceeded,
   not_supported,
+  // A session-layer operation on a session that has not logged in, or has
+  // ended. Reported rather than asserted because the caller is often a
+  // matching engine racing a logout, which is a situation rather than a bug.
+  session_not_established,
 
   // Not an error. Keep last; used to size tables and to bound iteration.
   count_
@@ -145,6 +149,7 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
     case error::invalid_argument:
     case error::capacity_exceeded:
     case error::not_supported:
+    case error::session_not_established:
       return false;
 
     case error::count_:
@@ -200,6 +205,7 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
     case error::invalid_argument:           return "invalid_argument";
     case error::capacity_exceeded:          return "capacity_exceeded";
     case error::not_supported:              return "not_supported";
+    case error::session_not_established:    return "session_not_established";
     case error::count_:                     return "count_";
   }
   return "<unknown error>";
@@ -259,6 +265,8 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
       return "a fixed-capacity structure is full";
     case error::not_supported:
       return "this build does not support the requested operation";
+    case error::session_not_established:
+      return "the session has not logged in, or has ended";
     case error::count_:
       return "not an error";
   }

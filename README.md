@@ -7,15 +7,28 @@ function of its seed, so a failure is a number somebody else can type in and see
 
 **[Watch a run →](https://hungtruongowolf.github.io/deterministic-feed-recovery/)**
 
-**Status: `dfr::core`, `dfr::wire`, `dfr::capture` and `dfr::chaos` are
-implemented and tested. `dfr::recovery` is implemented and tested — arbitration, gap tracking,
-retransmission and snapshot recovery, composed into one poll-driven client, with an
-end-to-end oracle over both synthetic and real captures. `dfr::wire` covers MoldUDP64, IEX-TP,
-SoupBinTCP and OUCH 4.2. `dfr::venue` is in progress — the publisher and the retransmit and snapshot
-facilities are done, OUCH order entry is not.**
+## Status
 
-658 tests pass under four configurations — assertions at paranoid, fast and off,
-and AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors.
+All seven namespaces are implemented and tested.
+
+| | what it is | state |
+|---|---|---|
+| `dfr::core` | `result<T>`, errors, views, injected clocks | done |
+| `dfr::wire` | MoldUDP64, IEX-TP, SoupBinTCP 3.00, OUCH 4.2 | done |
+| `dfr::capture` | pcap reading, replayed against real IEX HIST files | done |
+| `dfr::chaos` | seeded, protocol-aware fault injection | done |
+| `dfr::recovery` | arbitration, gap tracking, retransmission, snapshot recovery, one poll-driven client | done |
+| `dfr::venue` | market-data publisher, retransmit and snapshot facilities, OUCH order entry over a SoupBinTCP session | done |
+| `dfr::trace` | recording a run as JSONL, and the viewer that reads it | done |
+
+**676 tests pass under four configurations** — assertions at paranoid, fast and off, and
+AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors, on Apple Clang locally and
+Linux Clang in CI. There is an end-to-end oracle over both synthetic streams and real captures.
+
+Not built, on purpose: a matching engine. Matching is the part 1,071 other C++ repositories already
+implement; what is missing from the open-source world is the protocol behaviour *around* it, so executions
+are driven by the caller and the host's job is to keep the accounting straight and emit the right messages.
+See `include/dfr/venue/order_entry.hpp` for the argument.
 
 ## What this is meant to be
 
