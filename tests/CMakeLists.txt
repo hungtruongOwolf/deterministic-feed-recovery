@@ -86,6 +86,8 @@ dfr_add_test_suite(dfr_venue_tests SOURCES
   venue/publisher_test.cpp
   venue/retransmit_facility_test.cpp
   venue/snapshot_facility_test.cpp
+  venue/order_entry_test.cpp
+  venue/order_replace_test.cpp
 )
 
 # Spans chaos, wire and recovery on purpose: the properties it checks are exactly the ones

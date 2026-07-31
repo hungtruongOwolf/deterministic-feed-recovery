@@ -9,7 +9,7 @@ end-to-end oracle over both synthetic and real captures. `dfr::wire` covers Mold
 SoupBinTCP and OUCH 4.2. `dfr::venue` is in progress — the publisher and the retransmit and snapshot
 facilities are done, OUCH order entry is not.**
 
-630 tests pass under four configurations — assertions at paranoid, fast and off,
+652 tests pass under four configurations — assertions at paranoid, fast and off,
 and AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors.
 
 ## What this is meant to be
@@ -24,7 +24,8 @@ Three components under the namespace `dfr`, built in this order:
    retransmission requests, snapshot-based book reconstruction, A/B arbitration, NAK
    suppression.
 3. **`dfr::venue`** — a mock exchange that speaks the real wire protocols, so `dfr::recovery`
-   can be tested against something that behaves like an exchange rather than a stub.
+   can be tested against something that behaves like an exchange rather than a stub. Market data
+   out over IEX-TP, retransmission and snapshots that can refuse, and OUCH 4.2 order entry in.
 
 "Deterministic" here is a constraint on the implementation, not a claim about its quality: no
 wall clock, no unseeded randomness, no pointer-derived ordering, and a single-threaded core, so
