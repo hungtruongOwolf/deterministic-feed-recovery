@@ -44,10 +44,33 @@
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 #include <random>
 #include <span>
 
 namespace dfr::inline v1 {
+
+namespace detail {
+
+// A conversion that is a cast only when the types differ.
+//
+// `static_cast<std::size_t>` on a `std::uint64_t` is a no-op on LP64, where the
+// two are the same type, and necessary on a 32-bit target where they are not.
+// GCC's -Wuseless-cast — which this project enables deliberately — is right on
+// the first platform and wrong on the second, so the choice is made at compile
+// time instead of being argued about.
+template <typename To, typename From>
+[[nodiscard]] constexpr To narrowed(From value) noexcept {
+  if constexpr (std::is_same_v<To, From>) {
+    return value;
+  } else {
+    return static_cast<To>(value);
+  }
+}
+
+}  // namespace detail
+
+using detail::narrowed;
 
 // ---------------------------------------------------------------------------
 // prng
@@ -165,7 +188,7 @@ class prng {
   // A valid index into a container of `count` elements.
   [[nodiscard]] constexpr std::size_t index(std::size_t count) noexcept {
     DFR_ASSERT(count > 0, "index() into an empty container has no result");
-    return static_cast<std::size_t>(below(static_cast<std::uint64_t>(count)));
+    return narrowed<std::size_t>(below(narrowed<std::uint64_t>(count)));
   }
 
   // True with probability `p`.
@@ -203,7 +226,7 @@ class prng {
       return;
     }
     for (std::size_t i = items.size() - 1; i > 0; --i) {
-      const std::size_t j = static_cast<std::size_t>(below(i + 1));
+      const std::size_t j = narrowed<std::size_t>(below(i + 1));
       if (i != j) {
         using std::swap;
         swap(items[i], items[j]);

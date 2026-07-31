@@ -170,30 +170,34 @@ namespace dfr::inline v1 {
 // ---------------------------------------------------------------------------
 // Cache line size
 //
-// std::hardware_destructive_interference_size is the standard answer and is
-// available here, but it is a compile-time constant baked into the standard
-// library rather than a property of the machine running the binary, and libc++
-// on Apple Silicon reports 64 while the M-series L2 line is 128. Padding to
-// too small a value silently reintroduces false sharing, so we take the larger
-// of the two on arm64.
+// std::hardware_destructive_interference_size is the standard answer and this
+// header used to take it, widened on Apple arm64 because libc++ reports 64
+// while the M-series L2 line is 128.
 //
-// This is the same hazard that makes rigtorp's MPMCQueue exclude Apple from
-// using the standard constant at all (MPMCQueue.h:43); we prefer over-padding
-// to guessing.
-// ---------------------------------------------------------------------------
+// It is no longer used at all, and GCC is the reason — it warns on any use of
+// the constant (-Winterference-size), because **its value is part of the ABI**:
+// two translation units built with different GCC versions can disagree about
+// how wide a padded member is, and in a lock-free structure that is a layout
+// mismatch rather than a performance question. A constant whose value depends
+// on which compiler saw the header is not a property of the machine.
+//
+// So the sizes below are literals per architecture. That is what rigtorp's
+// MPMCQueue does (MPMCQueue.h:43), it is what the comment above always argued
+// for, and following the argument to its conclusion removes the dependency
+// instead of documenting it.
+//
+// Over-padding costs bytes. Under-padding silently reintroduces false sharing,
+// which is measured at 10-25% in docs/CONCURRENCY.md and is invisible in a
+// profile. The asymmetry decides every case here.
 
-#if defined(__cpp_lib_hardware_interference_size)
-inline constexpr std::size_t kStdInterferenceSize =
-    std::hardware_destructive_interference_size;
+#if defined(__aarch64__) || defined(__arm64__)
+// 128 on every arm64 target, not only Apple's: the M-series L2 line is 128, and
+// a Graviton or a Neoverse pads to 64 usefully but never harmfully at 128.
+inline constexpr std::size_t kCacheLineSize = 128;
 #else
-inline constexpr std::size_t kStdInterferenceSize = 64;
-#endif
-
-#if defined(__APPLE__) && (defined(__aarch64__) || defined(__arm64__))
-inline constexpr std::size_t kCacheLineSize =
-    kStdInterferenceSize < 128 ? 128 : kStdInterferenceSize;
-#else
-inline constexpr std::size_t kCacheLineSize = kStdInterferenceSize;
+// 64 on x86-64 and as the default. A target with a wider line pads too little
+// here, so this is the one line to change when one appears.
+inline constexpr std::size_t kCacheLineSize = 64;
 #endif
 
 static_assert(kCacheLineSize >= 64,

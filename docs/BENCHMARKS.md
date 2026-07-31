@@ -109,9 +109,20 @@ GCC versions, which is precisely the sort of thing a cache-line constant in a lo
 silently inheriting. `spsc_ring.hpp` already falls back to a literal 64 when the standard constant is absent;
 what it does *not* yet do is prefer the literal even when the constant exists.
 
-**Not fixed, and stated rather than hidden.** A GCC job is the honest next step — the local machine has no real
-GCC (Apple Clang answers to `g++`), so adding one would mean committing a configuration nobody had run. Two
-compilers already catch what one cannot; a third would catch more, and this is the evidence for it.
+**Fixed, and the fix removed a dependency rather than silencing a warning.** GCC is right about
+`hardware_destructive_interference_size`: its value is part of the GCC ABI, so two translation units built with
+different GCC versions can disagree about how wide a padded member is — a layout mismatch in a lock-free
+structure, not a performance question. A constant whose value depends on which compiler saw the header is not a
+property of the machine, so `core/attributes.hpp` no longer uses it and states a literal per architecture: 128 on
+arm64, 64 elsewhere. That is what the comment beside it had always argued for and what rigtorp's MPMCQueue does.
+
+The two `-Wuseless-cast` findings were also real. `DFR_MAYBE` cast a bool to bool; it now uses a conditional,
+which converts and casts nothing. `rng::index` casts `uint64_t` to `size_t`, which is a no-op on LP64 and
+necessary on a 32-bit target — GCC is right on the first and wrong on the second, so a `narrowed<To>` helper makes
+the choice at compile time instead of leaving it to be argued about.
+
+**And there is now a GCC job**, because the local machine has no real GCC (Apple Clang answers to `g++`) and a
+warning nobody sees is a warning that comes back.
 
 ## Two measurement bugs worth recording
 

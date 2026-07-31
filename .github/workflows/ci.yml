@@ -114,6 +114,29 @@ jobs:
       - name: The hand-off runs and the ring refuses rather than overwriting
         run: ./build/o3-off/bench/handoff_bench --messages 400000
 
+  # A third compiler.
+  #
+  # This exists because an accidental GCC build found three real things Clang does not say: -Winterference-size
+  # on `std::hardware_destructive_interference_size`, whose value is part of the GCC ABI and therefore not a
+  # property of the machine, and two casts that are genuinely redundant. The local machine has no real GCC —
+  # Apple clang answers to `g++` — so this is the only place the third opinion exists, and a warning nobody
+  # sees is a warning that comes back.
+  gcc:
+    name: a third compiler disagrees, or does not
+    runs-on: ubuntu-24.04
+    env:
+      CC: gcc-14
+      CXX: g++-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure and build
+        run: |
+          cmake -S . -B build/gcc -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DDFR_ASSERTIONS=paranoid -DDFR_WARNINGS_AS_ERRORS=ON
+          cmake --build build/gcc -j 4
+      - name: Test
+        run: ctest --test-dir build/gcc --output-on-failure
+
   # Hostile bytes, with a real coverage-guided fuzzer.
   #
   # The committed corpus is real IEX packets, so every mutation starts from something that parses — which is

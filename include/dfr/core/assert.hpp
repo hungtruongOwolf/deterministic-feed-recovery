@@ -232,7 +232,11 @@ inline detail::assert_handler_fn set_assert_handler(
 // code. Its value is that it survives review and refactoring in a way a
 // comment does not: if the surrounding logic later makes the state impossible,
 // the DFR_MAYBE is the thing a reader asks about.
-#define DFR_MAYBE(cond) static_cast<void>(sizeof(decltype(static_cast<bool>(cond))))
+// `(cond) ? true : false` rather than `static_cast<bool>(cond)`: the cast is
+// redundant when the condition is already a bool, which GCC says out loud
+// (-Wuseless-cast, which this project enables on purpose). The conditional
+// contextually converts anything convertible to bool and casts nothing.
+#define DFR_MAYBE(cond) static_cast<void>(sizeof(decltype((cond) ? true : false)))
 
 // Control flow that must not be reachable.
 //
