@@ -140,9 +140,14 @@ TEST_CASE("a gap wider than the window is refused, not buffered without limit",
   const std::array<std::byte, 4> body{};
   const dfr::packet_view view{body.data(), body.size()};
 
-  // Eight ahead is the window; nine is beyond it. An unbounded buffer would turn a slow retransmit into memory
-  // growth nobody chose, so the producer says no and counts it.
-  CHECK(narrow.offer(9, 0, false, view));
+  // The window is eight, so sequences 2..8 can be held while 1 is missing and 9 cannot: a delivery exactly `Pending`
+  // ahead of `next_` would land on the slot `next_` is waiting for and overwrite it.
+  //
+  // That boundary was `>` rather than `>=` when this was written, and CI caught it on x86-64 while it passed here —
+  // arm64's timing never produced a reorder distance of exactly the window. So the exact boundary is asserted, not
+  // just a distance comfortably past it.
+  CHECK(narrow.offer(8, 0, false, view));
+  CHECK_FALSE(narrow.offer(9, 0, false, view));
   CHECK_FALSE(narrow.offer(100, 0, false, view));
-  CHECK(narrow.stats().refused == 1);
+  CHECK(narrow.stats().refused == 2);
 }

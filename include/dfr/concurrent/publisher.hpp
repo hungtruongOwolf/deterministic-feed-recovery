@@ -103,8 +103,14 @@ class publisher {
     }
 
     // Out of order: hold it until the sequence below arrives.
+    //
+    // `>=`, not `>`. The slot is `sequence % Pending`, so a delivery exactly `Pending` ahead lands on the same slot
+    // as the one `next_` is waiting for and overwrites it. That is an off-by-one I wrote and CI caught on x86-64
+    // while it passed on this arm64 machine — the timing there never produced a reorder distance of exactly the
+    // window. The paranoid assertion in drain_pending() is what turned it into an abort rather than a wrong book,
+    // which is the entire reason that assertion is there.
     const auto slot = sequence - next_;
-    if (slot > Pending) DFR_UNLIKELY {
+    if (slot >= Pending) DFR_UNLIKELY {
       ++stats_.refused;
       return false;
     }
