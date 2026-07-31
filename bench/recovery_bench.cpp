@@ -197,6 +197,17 @@ int main(int argc, char** argv) {
   const feed stream = publish(4'096);
   std::vector<bench::result> results;
 
+  // Repetitions, and why the headline figure is `best` rather than `p50`.
+  //
+  // The first three-configuration comparison produced a table where `fast` assertions were slower than
+  // `paranoid` and `paranoid` was faster than `off`. That is not a result, it is noise: the three builds ran
+  // back to back on a warming laptop and the run-to-run variance was larger than the effect being measured.
+  //
+  // Noise only ever *adds* time. So the minimum over many samples is the estimator that converges on what the
+  // code costs, and the percentiles describe what the machine did to it on the day. The table in
+  // docs/BENCHMARKS.md compares `best`; p50 and p99 are reported alongside because a tail nobody can see is
+  // a tail nobody accounts for.
+
   // ---- the wire ----------------------------------------------------------
 
   results.push_back(bench::measure(

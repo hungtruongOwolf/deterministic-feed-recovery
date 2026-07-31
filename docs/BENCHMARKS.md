@@ -20,33 +20,52 @@ JSON the viewer draws.
 
 ## The numbers
 
-Apple M-series laptop, single core, `-O3 -flto`, 400 samples per measurement. **Every figure moves on
-different hardware**; the ratios between them move much less.
+Apple M-series laptop, single core, `-O3 -flto`, 400 samples per measurement, four rounds with the three
+builds run in rotation, minimum per figure. Read from the committed `bench/results-*.json`.
 
-| operation | assertions off | fast | paranoid |
-|---|---|---|---|
-| decode an IEX-TP header | **1.9 ns** | 7.9 | 8.7 |
-| frame a MoldUDP64 packet and walk every message | **4.1 ns** | 8.1 | 7.4 |
-| gap-set arithmetic, per open or fill over 8 holes | **32.6 ns** | 35.8 | 41.0 |
-| ingest a packet end to end, clean feed | **51.3 ns** | 39.1 | 64.9 |
-| ingest with loss, and poll | **84.3 ns** | — | 112.3 |
-| allocations after initialisation | **0** | 0 | 0 |
+**Why the minimum, and why rotation.** Noise on a benchmark is one-sided: a scheduler preemption, a thermal
+ramp or a neighbouring process can only make an operation appear slower. Running one configuration to
+completion before the next lets a thermal ramp land entirely on one of them — which is exactly how an earlier
+table came out with `fast` assertions slower than `paranoid` and `paranoid` faster than `off`. That was not a
+result, it was the afternoon. Rotating spreads the machine's mood across all three and the minimum discards
+what is left.
 
-At 8 messages per packet, the clean-feed figure is roughly **19.5 million packets or 156 million messages a
+**Every figure moves on different hardware.** The ratios move far less, which is why the last column is the
+part worth quoting and the absolute nanoseconds are not.
+
+| operation | off | fast | paranoid | paranoid cost |
+|---|---|---|---|---|
+| decode an IEX-TP header | **0.98 ns** | 2.81 | 2.97 | **3.0×** |
+| frame and walk a MoldUDP64 packet | **2.20 ns** | 2.69 | 2.69 | **1.2×** |
+| gap-set arithmetic, a hole's whole life | **14.97 ns** | 13.35 | 15.30 | below the noise floor |
+| ingest with loss, and poll | **58.10 ns** | 58.51 | 59.08 | below the noise floor |
+| ingest a packet end to end | **41.02 ns** | 37.92 | 38.41 | below the noise floor |
+| allocations after initialisation | **0** | 0 | 0 | none |
+
+At 8 messages per packet, the clean-feed figure is roughly **24 million packets or 195 million messages a
 second on one core**, with no I/O in the loop.
 
-### What the assertion columns are for
+### What the assertion columns actually showed
 
-The comparison is the interesting part, and getting it honest took a correction. `dev` is `Debug` with
-paranoid assertions and `bench` is `Release` with them off, so comparing those two prices **two variables at
-once** — optimisation level and assertion level — and reports the total as though it were the cost of the
-assertions. It gave a 55× ratio on the header decode, which is a real number about nothing anybody would
-ship.
+The obvious comparison is the `dev` and `bench` presets, and it is wrong: `dev` is `Debug` and `bench` is
+`Release`, so it prices **two variables at once** and reports the sum as the cost of one. It gave a 55× ratio
+on the header decode — a real number about a configuration nobody would ship.
 
-The table above holds `-O3 -flto` fixed and moves only `DFR_ASSERTIONS`. Paranoid assertions cost about
-**4.6× on the tightest operation** and about **30% on the realistic hot path** — which is what you would
-expect, because the tight operation is almost entirely bounds checks and the hot path is mostly work the
-assertions do not touch. That is a number worth knowing before choosing what to ship.
+Holding `-O3 -flto` fixed and moving only `DFR_ASSERTIONS` gives a more interesting and much less flattering
+answer than the one I expected:
+
+- **On the tightest operation, paranoid assertions cost 3×.** Decoding a 40-byte header is almost entirely
+  bounds checks once the checks are on, so this is the shape to expect and the number is real.
+- **On the realistic hot path, they cost nothing measurable.** Ingesting a packet end to end, and ingesting
+  with loss and polling, differ by about 2% between assertions-off and assertions-paranoid — and the ordering
+  *flips* between rounds, which is the signature of a difference smaller than the noise. Claiming a 2%
+  improvement here would be claiming the weather.
+
+The engineering conclusion is the useful part, and it is not the one the 55× number pointed at: **the paranoid
+assertions can stay on in production on this path.** The work that dominates an ingest — arbitration, gap
+arithmetic, watermark bookkeeping — is work the assertions do not touch, so the paranoia is free where it
+matters and expensive only where the operation is nothing but checks. That is worth knowing, and no design
+document could have told me.
 
 ## What these numbers are
 
