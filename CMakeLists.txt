@@ -128,6 +128,10 @@ endif()
 
 if(DFR_BUILD_TOOLS)
   add_subdirectory(tools)
+
+  # Benchmarks travel with the tools rather than behind their own switch: the point of them is the comparison
+  # between assertion levels, which needs the same target present in every preset.
+  add_subdirectory(bench)
 endif()
 
 # ---------------------------------------------------------------------------
