@@ -1,31 +1,17 @@
 // A recovery client: the four components wired together into one poll-driven object.
 //
-// arbiter → gap_tracker → requester, with a replay_buffer standing by for the snapshot
-// path. Each of those is independently testable and independently useful; this is the
-// object that gives them one order and one state.
+// arbiter → gap_tracker → requester, with a replay_buffer standing by for the snapshot path.
+// Each of those is independently testable and independently useful; this is the object that
+// gives them one order and one state.
 //
-// One client per channel
-// ---------------------
-// Not per venue and not per process. Recovery state, retransmit servers and snapshot
-// facilities are all per-channel at the venues modelled, and a multi-channel client would
-// multiply a 64 KiB replay buffer by the channel count to no purpose. gap_tracker stays
-// multi-channel because a tool that only wants to *watch* many channels — tools/inspect,
-// for one — has no use for the rest of this machinery.
+// The library still performs no I/O and reads no clock: poll() says what to send and the
+// caller sends it, time arrives as an argument, and nothing here allocates after
+// construction.
 //
-// The library still performs no I/O and reads no clock
-// ---------------------------------------------------
-// poll() says what to send and the caller sends it. Time arrives as an argument. Nothing
-// here allocates after construction. The one thing the caller owes the client is spelled
-// out in the report rather than assumed: when messages are held for replay, the caller
-// hands them over with buffer_message(), because splitting a packet into messages needs
-// the wire cursor and the wire layer is deliberately not a dependency of this one.
-//
-// Why message granularity for the buffer and packet granularity for everything else
-// --------------------------------------------------------------------------------
-// A snapshot's resume point can land in the middle of a buffered packet. At packet
-// granularity the client would then have to replay the whole packet, duplicating messages
-// the snapshot already accounts for, or drop it and lose the tail. Neither is acceptable,
-// so the replay buffer is message-granular even though sequencing is not.
+// Three composition decisions are argued in docs/DESIGN.md §7b rather than here, because
+// they are decisions about the shape of the component rather than about this code: one client
+// per channel, a message-granular replay buffer under packet-granular sequencing, and why the
+// arbiter's position and the tracker's expectation are kept in step explicitly.
 
 #ifndef DFR_RECOVERY_CLIENT_HPP
 #define DFR_RECOVERY_CLIENT_HPP
@@ -159,7 +145,13 @@ class client {
     last_recovered_ = tracker_.outstanding(kChannel).intersect(arrived);
     report.recovered = last_recovered_.total_missing();
 
-    if (merged.deliver.empty() && last_recovered_.empty()) {
+    // A heartbeat carries no messages, so there is nothing to deliver and nothing to
+    // repair — but the sequence number it carries is how a receiver learns its position
+    // during a quiet period. Returning here would mean a jump announced by a heartbeat was
+    // never noticed, and on IEX two thirds of all packets are heartbeats, so that is not a
+    // corner case but the common one.
+    const bool carries_messages = message_count > 0;
+    if (carries_messages && merged.deliver.empty() && last_recovered_.empty()) {
       // Nothing new and nothing repaired: a plain duplicate. Returning before the tracker
       // sees it is what keeps a redundant pair from reporting half the stream as regressed.
       return report;
@@ -179,6 +171,25 @@ class client {
       return err;
     }
     report.outcome = seen.outcome;
+
+    // Keep the arbiter's position in step with the tracker's expectation, explicitly.
+    //
+    // They must agree, and they do not always move together: a heartbeat carries no
+    // messages, so the arbiter's watermark cannot advance on it, while the tracker's
+    // expectation does — and on IEX two thirds of packets are heartbeats. Once the two
+    // disagree, a hole can sit *above* the watermark, and the retransmit that fills it then
+    // counts as both new and repaired. That is one message delivered twice, which corrupts a
+    // book exactly as thoroughly as losing one.
+    //
+    // With the two in step the disjointness is a theorem rather than a coincidence: every
+    // hole is below the tracker's expectation, `accepted` starts at the watermark, and the
+    // watermark equals the expectation. The paranoid assertion below states it so that a
+    // future change which breaks the invariant fails loudly rather than double-delivering.
+    arbiter_.adopt(tracker_.expected_sequence(kChannel));
+    DFR_ASSERT_PARANOID(
+        merged.deliver.empty() || last_recovered_.empty() ||
+            last_recovered_.ranges().back().end <= merged.deliver.first,
+        "a message counted as both newly arrived and newly repaired");
 
     if (seen.outcome == sequencing::gap_opened) {
       report.gap_opened = seen.range;

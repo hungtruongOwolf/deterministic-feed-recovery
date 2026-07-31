@@ -78,6 +78,13 @@ dfr_add_test_suite(dfr_recovery_tests SOURCES
   recovery/client_recovery_test.cpp
 )
 
+# Spans chaos, wire and recovery on purpose: the properties it checks are exactly the ones
+# no single component can be asked about alone.
+dfr_add_test_suite(dfr_integration_tests SOURCES
+  integration/recovery_oracle_test.cpp
+  integration/recovery_repair_test.cpp
+)
+
 # One suite per protocol, one file per concept within it.
 dfr_add_test_suite(dfr_moldudp64_tests SOURCES
   wire/moldudp64_header_test.cpp

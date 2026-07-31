@@ -323,6 +323,37 @@ steady-state cycle. That turns a claim into a test.
 
 ---
 
+## 7b. Composition decisions in `dfr::recovery`
+
+Three choices that only make sense once the components are wired together, recorded here
+rather than in `client.hpp` so that file stays about the state machine.
+
+**One client per channel, not per venue and not per process.** Recovery state, retransmit
+servers and snapshot facilities are all per-channel at the venues modelled, and a
+multi-channel client would multiply a 64 KiB replay buffer by the channel count to no
+purpose. `gap_tracker` stays multi-channel anyway, because a tool that only wants to *watch*
+many channels — `tools/inspect` — has no use for the rest of the machinery.
+
+**The replay buffer is message-granular while sequencing is packet-granular.** A snapshot's
+resume point can land in the middle of a buffered packet. At packet granularity the client
+would then have to replay the whole packet, duplicating messages the snapshot already
+accounts for, or drop it and lose the tail. Neither is acceptable, so the buffer indexes
+messages — which is why handing them over is a separate call the caller makes
+(`buffer_message`): splitting a packet into messages needs the wire cursor, and the wire
+layer is deliberately not a dependency of recovery.
+
+**Two positions, kept in step explicitly.** The arbiter's watermark means "the highest
+sequence the merged stream has reached"; the client's `delivered_through()` means "the
+highest sequence handed downstream". They are equal while live and diverge while recovering,
+because messages held for replay have been seen and not delivered. Separately, a heartbeat
+advances the *tracker's* expectation while delivering nothing, so it cannot advance the
+arbiter's watermark — and on IEX two thirds of packets are heartbeats. The client therefore
+calls `arbiter::adopt(tracker.expected_sequence())` after every observation, which makes the
+disjointness of "newly arrived" and "newly repaired" a theorem instead of a coincidence.
+Both of these were found by integration testing; neither was reachable from the unit tests.
+
+---
+
 ## 8. Corrections to things commonly said
 
 - **`atomic_queue` has no `if constexpr` and no `[[nodiscard]]` anywhere** (checked `master` and

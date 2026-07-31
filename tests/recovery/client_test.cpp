@@ -246,6 +246,70 @@ TEST_CASE("a session change re-synchronises rather than reporting a gap",
   CHECK(client.poll(at_ms(50)).what == rec::client_action::idle);
 }
 
+// ---------------------------------------------------------------------------
+// Heartbeats
+// ---------------------------------------------------------------------------
+
+TEST_CASE("a heartbeat announcing a jump opens a gap",
+          "[recovery][client][regression]") {
+  // On IEX two thirds of all packets are heartbeats, and a heartbeat carries the sequence
+  // number of the *next* message — so a heartbeat whose number has jumped is how a receiver
+  // learns it missed the end of a quiet period. The client used to return early on any
+  // packet carrying no messages, which meant that jump was never noticed at all.
+  test_client client{readable_options()};
+  offer(client, kLineA, range(1, 11), at_ms(0));
+  REQUIRE(client.total_missing() == 0);
+
+  const auto beat = offer(client, kLineA, range(11, 11), at_ms(1));  // in position
+  CHECK(beat.outcome == rec::sequencing::in_order);
+  CHECK(client.total_missing() == 0);
+
+  const auto jumped = offer(client, kLineA, range(21, 21), at_ms(2));
+  CHECK(jumped.outcome == rec::sequencing::gap_opened);
+  CHECK(jumped.gap_opened == range(11, 21));
+  CHECK(client.total_missing() == 10);
+}
+
+TEST_CASE("a retransmit for a heartbeat-announced gap is delivered once",
+          "[recovery][client][regression]") {
+  // The defect this pins was found by pointing the verify tool at a real capture, and it
+  // could not happen without heartbeats. A heartbeat advances the tracker's expectation
+  // while delivering nothing, so it cannot advance the arbiter's watermark; the two then
+  // disagreed, the hole sat *above* the watermark, and the retransmit that filled it counted
+  // as both newly arrived and newly repaired. One message delivered twice corrupts a book
+  // exactly as thoroughly as losing one.
+  test_client client{readable_options()};
+  offer(client, kLineA, range(1, 11), at_ms(0));
+  offer(client, kLineA, range(21, 21), at_ms(1));  // heartbeat announcing a jump
+  REQUIRE(client.total_missing() == 10);
+
+  const auto repair = offer(client, kLineA, range(11, 21), at_ms(2));
+  CHECK(repair.outcome == rec::sequencing::gap_filled);
+  CHECK(repair.recovered == 10);
+  CHECK(client.total_missing() == 0);
+
+  // Counted once, not twice: the repaired range must not also appear as newly accepted.
+  CHECK(repair.accepted.empty());
+  std::uint64_t once = 0;
+  for (const auto& repaired : client.last_recovered().ranges()) {
+    once += repaired.count();
+  }
+  CHECK(once == 10);
+}
+
+TEST_CASE("a heartbeat behind the stream is a duplicate, not a gap",
+          "[recovery][client]") {
+  // A delayed or duplicated heartbeat carries an old sequence number. It must not rewind
+  // anything, and it must not be reported as a regression worth acting on.
+  test_client client{readable_options()};
+  offer(client, kLineA, range(1, 11), at_ms(0));
+
+  const auto late = offer(client, kLineA, range(5, 5), at_ms(1));
+  CHECK(late.recovered == 0);
+  CHECK(client.total_missing() == 0);
+  CHECK(client.delivered_through() == 11);
+}
+
 TEST_CASE("every client state and action has a distinct name",
           "[recovery][client]") {
   CHECK(rec::name_of(rec::client_state::synchronising) == "synchronising");

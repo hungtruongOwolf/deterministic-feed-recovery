@@ -4,10 +4,11 @@ A seeded fault injector and a recovery library for exchange market-data feeds.
 
 **Status: `dfr::core`, `dfr::wire`, `dfr::capture` and `dfr::chaos` are
 implemented and tested. `dfr::recovery` is implemented and tested — arbitration, gap tracking,
-retransmission and snapshot recovery, composed into one poll-driven client.
-`dfr::venue` is not written yet.**
+retransmission and snapshot recovery, composed into one poll-driven client, with an
+end-to-end oracle over both synthetic and real captures. `dfr::venue` is not written
+yet.**
 
-501 tests pass under four configurations — assertions at paranoid, fast and off,
+510 tests pass under four configurations — assertions at paranoid, fast and off,
 and AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors.
 
 ## What this is meant to be
@@ -78,6 +79,42 @@ $ curl -s 'https://iextrading.com/api/1.0/hist?date=20170826' | python3 -m json.
 $ curl -L -o deep.pcap.gz '<the DEEP link>' && gunzip deep.pcap
 $ inspect deep.pcap
 ```
+
+## The end-to-end oracle
+
+`tools/verify` injects a seeded fault schedule into a real capture, runs the damaged
+stream through `dfr::recovery`, and plays retransmit server from the undamaged
+original. It checks two properties and exits non-zero if either fails:
+
+- **detection** — the messages the client reports missing are exactly the ones that
+  never reached it, no more and no fewer;
+- **repair** — with a retransmit server, nothing is missing at the end and every
+  message was delivered exactly once.
+
+```
+$ verify deep_20170826.pcap --seed 4711
+  IEX-TP packets usable    20145
+  messages delivered       48635
+  retransmits served       11
+  reported missing         0
+  actually never arrived   0
+  delivered twice          0
+  detection exact          yes
+  every message once       yes
+  accounting balances      yes
+  fully repaired           yes
+```
+
+Both properties hold across **50 runs** — five captures spanning 2017 to 2024, both
+container formats, ten seeds each. The message count matches `inspect`'s independent
+count for the same file, which is a second opinion on the accounting.
+
+The same oracle runs in CI over synthetic packets
+(`tests/integration/recovery_oracle_test.cpp`), where it is fast, self-contained, and
+fails on the commit that broke something. The synthetic stream carries heartbeats
+because a stream without them let a real defect through: a heartbeat advances the
+tracker's expectation without advancing the arbiter's watermark, and a retransmit
+filling the resulting hole was counted twice. Only the real-data run found it.
 
 Three things the exercise turned up:
 
