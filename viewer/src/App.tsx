@@ -38,6 +38,9 @@ import { Performance } from "./panels/Performance";
 import { Disclosure } from "./ui/Disclosure";
 import { Hero } from "./panels/Hero";
 import { Findings } from "./panels/Findings";
+import { Primer } from "./panels/Primer";
+import { Outcome } from "./panels/Outcome";
+import { plainly } from "./model/plain";
 import { nanos } from "./model/perf";
 import { TEST_COUNT } from "./model/findings";
 import { usePlayback } from "./anim/usePlayback";
@@ -306,6 +309,14 @@ export function App() {
 
       {film !== undefined && view !== undefined && (
         <main className="app__main">
+          {/* Before anything technical. Everything below is downstream of these three sentences. */}
+          <Primer
+            onWatch={() => {
+              document.getElementById("watch")?.scrollIntoView({ behavior: "smooth" });
+              start();
+            }}
+          />
+
           <Hero
             tests={TEST_COUNT}
             allocations={perf?.shipping.allocations_after_init ?? 0}
@@ -324,26 +335,11 @@ export function App() {
             }}
           />
 
-          {/* ---- 1. the defects --------------------------------------------
-              First, because this is what an engineer came to find out and it was invisible: 113 passages in the
-              commit history describe a defect found, and not one of them appeared on the page outside a fold. */}
-          <section className="act-section">
-            <h2 className="act-section__title">
-              <span className="act-section__number mono">1</span>
-              What broke, and what caught it
-            </h2>
-            <p className="act-section__lede">
-              Six real defects from the commit history. Four of them are mine — found, not avoided — because a
-              list of things that went right is a list of things nobody checked.
-            </p>
-            <Findings />
-          </section>
-
-          {/* ---- 2. the film ------------------------------------------------ */}
+          {/* ---- 1. the film ------------------------------------------------ */}
           <section className="act-section" id="watch">
             <h2 className="act-section__title">
-              <span className="act-section__number mono">2</span>
-              Watch a feed break and recover
+              <span className="act-section__number mono">1</span>
+              What goes wrong, and how would you even notice?
             </h2>
             <p className="act-section__lede">
               Three acts, played straight through. Each one takes away a defence the last one had, so you watch
@@ -396,6 +392,10 @@ export function App() {
               verdict={verdictOf(film)}
             />
 
+            {/* The same run in words, for a reader who cannot use the drawing. Not a simplification: "the price list
+                came out identical to the one that never lost anything" is the claim. */}
+            <Outcome outcome={plainly(view.act.trace, view.moment.beat.event)} />
+
             <EventRail film={film} at={view.at} onSeek={(to) => playback.seek(to)} />
 
             <Disclosure summary="this act in numbers — delivery, line health, and what the run does not claim">
@@ -407,12 +407,12 @@ export function App() {
             </Disclosure>
           </section>
 
-          {/* ---- the snapshot: the third defence, working ------------------ */}
+          {/* ---- 2. the snapshot: the third defence, working ------------------ */}
           {snapshot !== undefined && (
             <section className="act-section">
               <h2 className="act-section__title">
-                <span className="act-section__number mono">3</span>
-                A client rebuilding the book from nothing
+                <span className="act-section__number mono">2</span>
+                Starting from nothing: rebuilding the whole price list
               </h2>
               <p className="act-section__lede">
                 The last defence, doing its job. Above it is a plane the run falls onto; here a client with no state at
@@ -427,26 +427,12 @@ export function App() {
             </section>
           )}
 
-          {/* ---- 4. cost -------------------------------------------------- */}
-          {perf !== undefined && (
-            <section className="act-section">
-              <h2 className="act-section__title">
-                <span className="act-section__number mono">4</span>
-                What it costs
-              </h2>
-              <p className="act-section__lede">
-                The recovery path only runs when something has already gone wrong, which is exactly the code
-                nobody benchmarks.
-              </p>
-              <Performance perf={perf} />
-            </section>
-          )}
-          {/* ---- 5. orders ------------------------------------------------- */}
+          {/* ---- 3. orders ------------------------------------------------- */}
           {session !== undefined && (
             <section className="act-section">
               <h2 className="act-section__title">
-                <span className="act-section__number mono">5</span>
-                The same exchange, taking orders
+                <span className="act-section__number mono">3</span>
+                The other direction: sending orders in
               </h2>
               <p className="act-section__lede">
                 Above is the exchange sending. This is the exchange listening — and answering every order with a
@@ -461,6 +447,36 @@ export function App() {
             </section>
           )}
 
+          {/* ---- 4. the defects --------------------------------------------
+              First, because this is what an engineer came to find out and it was invisible: 113 passages in the
+              commit history describe a defect found, and not one of them appeared on the page outside a fold. */}
+          <section className="act-section">
+            <h2 className="act-section__title">
+              <span className="act-section__number mono">4</span>
+              Where it went wrong while I was building it
+            </h2>
+            <p className="act-section__lede">
+              This section is for engineers, and the rest of the page does not depend on it. Real defects from the
+              commit history — several of them mine, found rather than avoided, because a list of things that went
+              right is a list of things nobody checked.
+            </p>
+            <Findings />
+          </section>
+
+          {/* ---- 5. cost -------------------------------------------------- */}
+          {perf !== undefined && (
+            <section className="act-section">
+              <h2 className="act-section__title">
+                <span className="act-section__number mono">5</span>
+                What it costs to keep up
+              </h2>
+              <p className="act-section__lede">
+                The recovery path only runs when something has already gone wrong, which is exactly the code
+                nobody benchmarks.
+              </p>
+              <Performance perf={perf} />
+            </section>
+          )}
         </main>
       )}
     </div>

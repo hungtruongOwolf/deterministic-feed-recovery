@@ -496,3 +496,35 @@
 }
 .snapshot__controls-head { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
 .snapshot__controls-note { flex: 1 1 34ch; font-size: 11px; line-height: 1.45; color: var(--ink-faint); }
+
+/* ------------------------------------------------------------------- the primer
+
+   Three sentences and no jargon, because the subject is explainable to anybody and the old first screen used nine
+   technical terms before defining one of them.                                                                  */
+
+.primer { grid-column: 1 / -1; margin-bottom: 30px; }
+.primer__beats { list-style: none; margin: 0 0 18px; padding: 0; display: grid; gap: 12px; max-width: 84ch; }
+.beat { display: grid; grid-template-columns: 1.6rem 1fr; gap: 12px; align-items: start; }
+.beat__number {
+  font-size: 10px; letter-spacing: 0.1em; color: var(--ink-faint);
+  border: 1px solid var(--rule); padding: 2px 6px; text-align: center;
+}
+.beat__text { margin: 0; font-size: 15px; line-height: 1.6; }
+.beat--stake .beat__text { color: var(--ink); }
+.beat--stake .beat__number { border-color: var(--fault); color: var(--fault); }
+.primer__thesis {
+  margin: 0 0 16px; padding: 11px 14px; font-size: 15px; line-height: 1.55; max-width: 84ch;
+  border-left: 2px solid var(--ink); background: var(--page-sunk);
+}
+.primer__go { font-size: 15px; padding: 9px 18px; background: var(--ink); color: var(--page); border-color: var(--ink); }
+.primer__go:hover { background: #000; }
+.primer__go-note { font-family: var(--mono); font-size: 9.5px; color: var(--ink-faint); margin-left: 12px; }
+
+/* The same run, in words, for a reader who cannot use the drawing. */
+.outcome { margin-top: 12px; padding: 11px 14px; border: 1px solid var(--rule); max-width: 92ch; }
+.outcome.is-good { border-left: 3px solid var(--healthy); }
+.outcome.is-bad { border-left: 3px solid var(--unfillable); }
+.outcome.is-running { border-left: 3px solid var(--rule-strong); }
+.outcome__line { margin: 0 0 5px; font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+.outcome__line:last-child { margin-bottom: 0; }
+.outcome__line--result { color: var(--ink); font-size: 14.5px; }
