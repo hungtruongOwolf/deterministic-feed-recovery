@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        preset: [dev, release, bench, asan]
+        preset: [dev, release, bench, asan, tsan]
     env:
       CC: clang
       CXX: clang++
@@ -60,6 +60,14 @@ jobs:
 
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure
+
+      # The most useful sentence on the page is its test count, and a number typed into a component becomes a lie
+      # the next time a suite is added. Checked here rather than in the viewer job because this one already has a
+      # configured build with a pinned compiler — putting a C++ build into the viewer job made it pick up the
+      # runner's default GCC, which is a different subject (see docs/DESIGN.md).
+      - name: The page's test count matches the build
+        if: matrix.preset == 'dev'
+        run: ./scripts/sync-test-count.sh dev --check
 
   traces:
     name: traces reproduce
@@ -174,12 +182,3 @@ jobs:
       # rather than a field name. Nothing without eyes can tell whether it looks good; this tells whether it
       # works.
       - run: npm run check
-
-      # The most useful sentence on the page is its test count, and a number typed into a component becomes a
-      # lie the next time a suite is added. Generated from `ctest -N`, and this fails if it has drifted.
-      - name: The page's test count matches the build
-        working-directory: .
-        run: |
-          cmake --preset dev
-          cmake --build --preset dev -j 4
-          ./scripts/sync-test-count.sh dev --check

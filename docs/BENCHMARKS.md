@@ -92,6 +92,27 @@ different machine would move every number in the table.
 **Not a claim about a whole system.** There is no I/O, no kernel bypass, no thread hand-off in the figures
 above. The SPSC hand-off is measured separately, in `docs/CONCURRENCY.md`.
 
+## What GCC said, by accident
+
+A step that built C++ inside the viewer's CI job picked up the runner's default **GCC** rather than the pinned
+Clang, and failed with warnings Clang does not have:
+
+```
+error: use of 'std::hardware_destructive_interference_size'   [-Winterference-size]
+error: useless cast to type 'bool'                            [-Wuseless-cast]
+error: useless cast to type 'std::size_t'                     [-Wuseless-cast]
+```
+
+The step was in the wrong job and has been moved. But the finding is real and is recorded rather than dropped:
+GCC warns on `hardware_destructive_interference_size` because its value is part of the ABI and differs between
+GCC versions, which is precisely the sort of thing a cache-line constant in a lock-free structure should not be
+silently inheriting. `spsc_ring.hpp` already falls back to a literal 64 when the standard constant is absent;
+what it does *not* yet do is prefer the literal even when the constant exists.
+
+**Not fixed, and stated rather than hidden.** A GCC job is the honest next step — the local machine has no real
+GCC (Apple Clang answers to `g++`), so adding one would mean committing a configuration nobody had run. Two
+compilers already catch what one cannot; a third would catch more, and this is the evidence for it.
+
 ## Two measurement bugs worth recording
 
 Both were in the flattering direction and both were found by reading the numbers rather than by any test.
