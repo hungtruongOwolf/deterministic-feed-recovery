@@ -98,7 +98,7 @@ cmake -S . -B build/dev && cmake --build build/dev -j8
 # The last three lines are the point: the client counted the sequence itself.
 ./build/dev/tools/session
 
-# All 676 tests, assertions at paranoid.
+# All 715 tests, assertions at paranoid.
 ctest --test-dir build/dev
 
 # A run recorded as JSONL. The same seed gives byte-identical output; a different seed does not.
@@ -350,7 +350,7 @@ ctest --preset dev
 Other presets: `release` (optimised, assertions still on at the fast level),
 `bench` (assertions off, for measuring what they cost), `asan`, `tsan`.
 
-**A change is not done until all four of `dev`, `release`, `bench` and `asan` pass.** The matrix
+**A change is not done until all five of `dev`, `release`, `bench`, `asan` and `tsan` pass.** The matrix
 is not decoration: two defects in this repository were invisible in one configuration and fatal in
 another — a dangling `span` into a destroyed temporary that `-O0` had not yet reused the stack for,
 and a test asserting that a disabled assertion does not evaluate its condition, which the
@@ -363,7 +363,8 @@ where `-Wmissing-field-initializers` is implemented by one and not the other. Fo
 configurations could not have caught it, and a verification story that omits what it cannot see is
 the kind of overclaiming this project criticises elsewhere.
 
-`.github/workflows/ci.yml` runs the same four presets, checks the committed traces still reproduce
+`.github/workflows/ci.yml` runs the same five presets under Linux Clang **and the whole suite under GCC 14**,
+fuzzes every decoder, checks the WebAssembly build matches native byte for byte, checks the committed traces still reproduce
 byte-for-byte, and builds the viewer. Clang only for now, because this machine has no real GCC —
 Apple Clang answers to `g++` — and a GCC job would be a configuration nobody had verified before
 committing it.

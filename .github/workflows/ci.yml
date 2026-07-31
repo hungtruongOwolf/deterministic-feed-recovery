@@ -69,6 +69,12 @@ jobs:
         if: matrix.preset == 'dev'
         run: ./scripts/sync-test-count.sh dev --check
 
+      # And the prose. A README saying 676 tests when there are 715 is the first thing a reader checks and the
+      # easiest thing to leave behind, so staleness fails a build rather than ageing quietly.
+      - name: The documentation and the build agree
+        if: matrix.preset == 'dev'
+        run: ./scripts/check-docs.sh dev
+
   traces:
     name: traces reproduce
     runs-on: ubuntu-24.04
