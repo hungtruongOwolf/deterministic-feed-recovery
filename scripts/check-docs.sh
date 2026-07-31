@@ -63,6 +63,22 @@ else
   failures=$((failures + missing))
 fi
 
+# The test badge is a number in a URL, which is the least likely thing anybody re-reads.
+if grep -q "tests-${count}%20across" "${here}/README.md"; then
+  say "✓" "the README badge says ${count} tests"
+else
+  say "✗" "the README test badge is stale; it should say ${count}"
+  failures=$((failures + 1))
+fi
+
+# A portfolio repository with no licence is legally all rights reserved, which contradicts the reason it exists.
+if [[ -f "${here}/LICENSE" ]]; then
+  say "✓" "there is a licence file"
+else
+  say "✗" "there is no LICENSE file"
+  failures=$((failures + 1))
+fi
+
 # The size rule, from docs/STYLE.md: "Target 200 lines; treat 300 as a smell and 400 as a defect."
 #
 # A defect is a defect whoever wrote it, and five files had crossed the line — one of them written the same week

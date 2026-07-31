@@ -5,6 +5,11 @@
 A seeded fault injector and a recovery library for exchange market-data feeds. Every run is a deterministic
 function of its seed, so a failure is a number somebody else can type in and see for themselves.
 
+[![ci](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml)
+[![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
+![tests](https://img.shields.io/badge/tests-719%20across%205%20configurations-brightgreen.svg)
+
 **[Watch a run →](https://hungtruongowolf.github.io/deterministic-feed-recovery/)**
 
 ## Status
@@ -388,3 +393,10 @@ committing it.
 - `viewer/README.md` — the one rule the viewer follows, and why it has no domain logic.
 - `traces/` — recorded runs, committed as fixtures. `scripts/regenerate-traces.sh` then
   `git diff traces/` is a behavioural regression report.
+
+## Licence
+
+[MIT](LICENSE). A portfolio repository with no licence file is legally *all rights reserved* — nobody may copy a
+snippet, vendor a header, or safely learn from it in a commercial setting, and some legal departments will not let an
+engineer open it at all. That contradicts the reason this exists, so it is licensed the same way the libraries it
+learns from are: rigtorp's SPSCQueue and max0x7ba's atomic_queue are both MIT.
