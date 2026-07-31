@@ -31,6 +31,7 @@
 #include <dfr/core/result.hpp>
 #include <dfr/venue/order_entry.hpp>
 #include <dfr/venue/order_session_state.hpp>
+#include <dfr/venue/order_session_writer.hpp>
 #include <dfr/wire/ouch.hpp>
 #include <dfr/wire/soupbintcp.hpp>
 
@@ -49,7 +50,7 @@ class order_session {
 
   constexpr order_session(order_session_options options,
                           order_entry_options entry_options) noexcept
-      : options_(options), entry_(entry_options), sequence_(options.first_sequence) {
+      : options_(options), entry_(entry_options), writer_(options.first_sequence) {
     // A credential that cannot be written into its field can never be read out of one, so a session
     // configured with it would reject every login and look like an authentication problem.
     DFR_ASSERT(options.username.size() <= wire::soupbintcp::kUsernameSize,
@@ -66,8 +67,11 @@ class order_session {
     return phase_ == session_phase::established;
   }
 
-  [[nodiscard]] constexpr const order_session_stats& stats() const noexcept
-      DFR_LIFETIME_BOUND {
+  // Fills in the two counters the writer owns before handing the struct over, so a caller sees one set of
+  // numbers rather than having to add two objects together.
+  [[nodiscard]] constexpr const order_session_stats& stats() const noexcept DFR_LIFETIME_BOUND {
+    stats_.packets_out = writer_.packets_out();
+    stats_.acknowledgements_out = writer_.acknowledgements_out();
     return stats_;
   }
   [[nodiscard]] constexpr const order_entry<Clock>& orders() const noexcept
@@ -77,7 +81,9 @@ class order_session {
 
   // The sequence the *next* outbound Sequenced Data Packet will carry — the same convention Login
   // Accepted uses, so the number a client is told and the number this holds are the same number.
-  [[nodiscard]] constexpr std::uint64_t next_sequence() const noexcept { return sequence_; }
+  [[nodiscard]] constexpr std::uint64_t next_sequence() const noexcept {
+    return writer_.next_sequence();
+  }
 
   // ---- input -------------------------------------------------------------
 
@@ -149,7 +155,8 @@ class order_session {
     // beating at a client that has not identified itself is talking to a port scanner.
     if (options_.send_heartbeats && phase_ == session_phase::established &&
         millis_between(last_out_, now) >= wire::soupbintcp::kHeartbeatIntervalMillis) {
-      send_bare(wire::soupbintcp::packet_type::server_heartbeat, now, emit);
+      writer_.bare(wire::soupbintcp::packet_type::server_heartbeat, emit);
+      last_out_ = now;
       ++stats_.server_heartbeats;
     }
   }
@@ -160,7 +167,8 @@ class order_session {
     if (phase_ == session_phase::ended) {
       return;
     }
-    send_bare(wire::soupbintcp::packet_type::end_of_session, now, emit);
+    writer_.bare(wire::soupbintcp::packet_type::end_of_session, emit);
+    last_out_ = now;
     end(session_ending::closed_by_host, now, emit);
   }
 
@@ -176,18 +184,10 @@ class order_session {
     if (phase_ != session_phase::established) DFR_UNLIKELY {
       return error::session_not_established;
     }
-    return entry_.execute(token, shares, at, now, sequenced_sink(now, emit));
+    return entry_.execute(token, shares, at, now, sink(emit));
   }
 
  private:
-  // Every outbound acknowledgement is one OUCH message inside one Sequenced Data Packet, so the largest
-  // frame this can ever build is known at compile time. Asserting it here means the encode below cannot
-  // fail for capacity, which is why it is asserted rather than handled.
-  static constexpr std::size_t kFrameCapacity =
-      wire::soupbintcp::kFrameOverhead + wire::ouch::kMaxMessageBytes;
-  static_assert(kFrameCapacity <= wire::soupbintcp::kMaxPacketBytes,
-                "an acknowledgement must fit in one SoupBinTCP packet");
-
   template <typename Emit>
   [[nodiscard]] constexpr error dispatch(const wire::soupbintcp::packet& frame, time_point now,
                                          Emit&& emit) noexcept {
@@ -249,15 +249,13 @@ class order_session {
     }
 
     if (request.username != options_.username || request.password != options_.password) {
-      reject_login(wire::soupbintcp::reject_reason::not_authorized, now, emit);
-      return error::ok;
+      return reject(wire::soupbintcp::reject_reason::not_authorized, now, emit);
     }
 
     // An empty requested session means "whatever is current", per §3.2 — the absence is the meaning, so
     // it matches rather than failing to.
     if (!request.requested_session.empty() && request.requested_session != options_.session_id) {
-      reject_login(wire::soupbintcp::reject_reason::session_not_available, now, emit);
-      return error::ok;
+      return reject(wire::soupbintcp::reject_reason::session_not_available, now, emit);
     }
 
     // §3.2: requesting 1 means "from the beginning of the session", and anything else — including 0,
@@ -265,20 +263,14 @@ class order_session {
     // retains nothing, so a replay request is answered with the truth about where it is rather than with
     // a rejection: the client learns the position from the Login Accepted it is about to read.
     if (request.requested_sequence == 1 && options_.first_sequence == 1) {
-      sequence_ = options_.first_sequence;
-    }
-
-    std::array<std::byte, kFrameCapacity> out{};
-    const mutable_packet_view view{out.data(), out.size()};
-    std::size_t size = 0;
-    if (const auto err =
-            wire::soupbintcp::encode_login_accepted(view, options_.session_id, sequence_).get(size);
-        err != error::ok) DFR_UNLIKELY {
-      return err;
+      writer_.restart_at(options_.first_sequence);
     }
 
     phase_ = session_phase::established;
-    emit_frame(packet_view{out.data(), size}, now, emit);
+    if (const auto err = writer_.login_accepted(options_.session_id, emit); !err) DFR_UNLIKELY {
+      return err.error_code();
+    }
+    last_out_ = now;
     return error::ok;
   }
 
@@ -299,43 +291,43 @@ class order_session {
     }
 
     ++stats_.orders_in;
-    auto sink = sequenced_sink(now, emit);
+    auto numbered = sink(emit);
 
+    // One routing table rather than four copies of the same five lines. Each branch decodes into its own type and
+    // hands it to its own method, so the shape is identical every time and the only thing that varies is a pair of
+    // names — which is exactly what a template parameter is for.
     switch (static_cast<wire::ouch::inbound_type>(frame.payload.u8_at(0))) {
-      case wire::ouch::inbound_type::enter_order: {
-        wire::ouch::enter_order request;
-        if (const auto err = wire::ouch::decode_enter_order(frame.payload).get(request);
-            err != error::ok) {
-          return malformed(now, emit);
-        }
-        return outcome_of(entry_.enter(request, now, sink));
-      }
-      case wire::ouch::inbound_type::replace_order: {
-        wire::ouch::replace_order request;
-        if (const auto err = wire::ouch::decode_replace_order(frame.payload).get(request);
-            err != error::ok) {
-          return malformed(now, emit);
-        }
-        return outcome_of(entry_.replace(request, now, sink));
-      }
-      case wire::ouch::inbound_type::cancel_order: {
-        wire::ouch::cancel_order request;
-        if (const auto err = wire::ouch::decode_cancel_order(frame.payload).get(request);
-            err != error::ok) {
-          return malformed(now, emit);
-        }
-        return outcome_of(entry_.cancel(request, now, sink));
-      }
-      case wire::ouch::inbound_type::modify_order: {
-        wire::ouch::modify_order request;
-        if (const auto err = wire::ouch::decode_modify_order(frame.payload).get(request);
-            err != error::ok) {
-          return malformed(now, emit);
-        }
-        return outcome_of(entry_.modify(request, now, sink));
-      }
+      case wire::ouch::inbound_type::enter_order:
+        return route<wire::ouch::enter_order>(frame.payload, now, emit, numbered,
+                                              wire::ouch::decode_enter_order,
+                                              [&](const auto& r, auto&& s) { return entry_.enter(r, now, s); });
+      case wire::ouch::inbound_type::replace_order:
+        return route<wire::ouch::replace_order>(frame.payload, now, emit, numbered,
+                                                wire::ouch::decode_replace_order,
+                                                [&](const auto& r, auto&& s) { return entry_.replace(r, now, s); });
+      case wire::ouch::inbound_type::cancel_order:
+        return route<wire::ouch::cancel_order>(frame.payload, now, emit, numbered,
+                                               wire::ouch::decode_cancel_order,
+                                               [&](const auto& r, auto&& s) { return entry_.cancel(r, now, s); });
+      case wire::ouch::inbound_type::modify_order:
+        return route<wire::ouch::modify_order>(frame.payload, now, emit, numbered,
+                                               wire::ouch::decode_modify_order,
+                                               [&](const auto& r, auto&& s) { return entry_.modify(r, now, s); });
     }
     return malformed(now, emit);
+  }
+
+  // Decode, then act, then report — the shape every inbound message shares.
+  template <typename Request, typename Emit, typename Sink, typename Decode, typename Act>
+  [[nodiscard]] constexpr error route(packet_view body, time_point now, Emit&& emit, Sink&& sink,
+                                      Decode&& decode, Act&& act) noexcept {
+    Request request;
+    if (const auto err = decode(body).get(request); err != error::ok) {
+      return malformed(now, emit);
+    }
+    // An outcome is not an error: `ignored` is a legitimate answer the specification requires, so only a failure
+    // to *produce* an answer propagates.
+    return act(request, sink).error_code();
   }
 
   // An order message this host cannot read. The session ends rather than skipping it: OUCH carries no
@@ -347,68 +339,28 @@ class order_session {
     return error::ok;
   }
 
-  // An outcome is not an error: `ignored` is a legitimate answer the specification requires. Only a
-  // failure to *produce* an answer propagates.
-  [[nodiscard]] static constexpr error outcome_of(const result<order_outcome>& outcome) noexcept {
-    return outcome.error_code();
+
+
+
+
+  // Everything order_entry emits, numbered and framed. One lambda rather than a member, because the writer needs
+  // no notion of "now" and the session's clock has no business in a frame builder.
+  template <typename Emit>
+  [[nodiscard]] constexpr auto sink(Emit&& emit) noexcept {
+    return [this, &emit](packet_view message) noexcept { writer_.sequenced(message, emit); };
   }
 
-  // Wraps whatever order_entry emits into a Sequenced Data Packet and hands it on.
-  //
-  // This one lambda is the join the whole file exists for: the order host writes OUCH bytes and knows
-  // nothing about sequence numbers, and the session numbers them and knows nothing about orders.
+  // A rejection is a reply and an ending, and §3.3 says the server closes afterwards — so a client retries by
+  // reconnecting rather than by waiting.
   template <typename Emit>
-  [[nodiscard]] constexpr auto sequenced_sink(time_point now, Emit&& emit) noexcept {
-    return [this, now, &emit](packet_view message) noexcept {
-      std::array<std::byte, kFrameCapacity> out{};
-      const mutable_packet_view view{out.data(), out.size()};
-      std::size_t size = 0;
-      const auto err = wire::soupbintcp::encode_packet(
-                           view, wire::soupbintcp::packet_type::sequenced_data, message)
-                           .get(size);
-      // Unreachable by construction: kFrameCapacity is the largest acknowledgement plus the frame, and
-      // the static_assert above proves that fits. Asserted rather than handled so that a future OUCH
-      // message that breaks the assumption stops the run instead of truncating a reply.
-      DFR_ASSERT(err == error::ok, "an acknowledgement did not fit its own frame");
-      ++sequence_;
-      ++stats_.acknowledgements_out;
-      emit_frame(packet_view{out.data(), size}, now, emit);
-    };
-  }
-
-  template <typename Emit>
-  constexpr void reject_login(wire::soupbintcp::reject_reason reason, time_point now,
-                              Emit&& emit) noexcept {
-    std::array<std::byte, kFrameCapacity> out{};
-    const mutable_packet_view view{out.data(), out.size()};
-    std::size_t size = 0;
-    const auto err = wire::soupbintcp::encode_login_rejected(view, reason).get(size);
-    DFR_ASSERT(err == error::ok, "a login rejection did not fit its own frame");
-
+  [[nodiscard]] constexpr error reject(wire::soupbintcp::reject_reason reason, time_point now,
+                                       Emit&& emit) noexcept {
     ++stats_.logins_rejected;
-    emit_frame(packet_view{out.data(), size}, now, emit);
-    // §3.3: the server closes the connection after rejecting. The client reconnects to retry, which is
-    // why this is the end of a session and not a state to sit in.
+    writer_.login_rejected(reason, emit);
+    last_out_ = now;
     ending_ = session_ending::protocol_error;
     phase_ = session_phase::ended;
-  }
-
-  template <typename Emit>
-  constexpr void send_bare(wire::soupbintcp::packet_type type, time_point now,
-                           Emit&& emit) noexcept {
-    std::array<std::byte, wire::soupbintcp::kFrameOverhead> out{};
-    const mutable_packet_view view{out.data(), out.size()};
-    std::size_t size = 0;
-    const auto err = wire::soupbintcp::encode_bare(view, type).get(size);
-    DFR_ASSERT(err == error::ok, "an empty packet did not fit its own frame");
-    emit_frame(packet_view{out.data(), size}, now, emit);
-  }
-
-  template <typename Emit>
-  constexpr void emit_frame(packet_view frame, time_point now, Emit&& emit) noexcept {
-    ++stats_.packets_out;
-    last_out_ = now;
-    emit(frame);
+    return error::ok;
   }
 
   template <typename Emit>
@@ -429,11 +381,11 @@ class order_session {
 
   order_session_options options_{};
   order_entry<Clock> entry_;
+  order_session_writer writer_;
   session_phase phase_{session_phase::awaiting_login};
   session_ending ending_{session_ending::not_ended};
-  order_session_stats stats_{};
+  mutable order_session_stats stats_{};
 
-  std::uint64_t sequence_{1};
   time_point last_in_{};
   time_point last_out_{};
   // Whether anything has arrived at all. Without it, a session created at time zero and polled at

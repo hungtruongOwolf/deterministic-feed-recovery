@@ -9,7 +9,7 @@ function of its seed, so a failure is a number somebody else can type in and see
 
 ## Status
 
-All seven namespaces are implemented and tested.
+All nine namespaces are implemented and tested.
 
 | | what it is | state |
 |---|---|---|

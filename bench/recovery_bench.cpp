@@ -20,6 +20,7 @@
 // nobody can get from a design document.
 
 #include "support/measure.hpp"
+#include "support/report.hpp"
 
 #include <dfr/chaos/injector.hpp>
 #include <dfr/chaos/schedule.hpp>
@@ -109,44 +110,6 @@ rec::client_options client_options() {
 // Output
 // ---------------------------------------------------------------------------
 
-void print_row(const bench::result& r) {
-  std::printf("  %-38s %9.1f %9.1f %9.1f %9.1f   %12.0f/s\n", r.name.c_str(), r.best, r.p50, r.p99,
-              r.worst, r.per_second());
-}
-
-void write_json(std::FILE* out, const std::vector<bench::result>& results,
-                std::string_view assertions, std::uint64_t allocations) {
-  std::fprintf(out,
-               "{\"kind\":\"benchmarks\",\"schema\":\"dfr-bench/1\",\"assertions\":\"%.*s\","
-               "\"allocations_after_init\":%llu,\"measurements\":[",
-               static_cast<int>(assertions.size()), assertions.data(),
-               static_cast<unsigned long long>(allocations));
-  for (std::size_t i = 0; i < results.size(); ++i) {
-    const auto& r = results[i];
-    std::fprintf(out,
-                 "%s{\"name\":\"%s\",\"unit\":\"%s\",\"batch\":%zu,\"samples\":%zu,"
-                 "\"best_ns\":%.3f,\"p50_ns\":%.3f,\"p99_ns\":%.3f,\"worst_ns\":%.3f,"
-                 "\"mean_ns\":%.3f,\"per_second\":%.0f}",
-                 i == 0 ? "" : ",", r.name.c_str(), r.unit.c_str(), r.batch, r.samples, r.best,
-                 r.p50, r.p99, r.worst, r.mean, r.per_second());
-  }
-  // The ledger travels with the numbers, so a page cannot show a throughput figure as a latency one.
-  std::fprintf(out,
-               "],\"limits\":["
-               "{\"claim\":\"nanoseconds per operation on this machine\",\"status\":\"measured\","
-               "\"note\":\"steady_clock over batches; percentiles are over batch means, not over "
-               "individual operations\"},"
-               "{\"claim\":\"allocations after initialisation\",\"status\":\"measured\","
-               "\"note\":\"global operator new counted across a whole recovery run\"},"
-               "{\"claim\":\"tick-to-trade latency\",\"status\":\"not-measurable\","
-               "\"note\":\"no PMU counters and no NIC hardware timestamping on the machines this runs "
-               "on; a figure produced anyway would have nothing behind it\"},"
-               "{\"claim\":\"how this compares to a production feed handler\",\"status\":"
-               "\"not-measurable\",\"note\":\"no published figures to compare against, and a "
-               "different machine would move every number here\"}"
-               "]}\n");
-}
-
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -159,14 +122,9 @@ void write_json(std::FILE* out, const std::vector<bench::result>& results,
 //
 // Defined at file scope because a replacement operator new must be; the counter is only read after the
 // measured section, and this program is single-threaded, so a plain integer is honest here.
-namespace {
-std::uint64_t g_allocations = 0;
-bool g_counting = false;
-}  // namespace
-
 void* operator new(std::size_t size) {
-  if (g_counting) {
-    ++g_allocations;
+  if (dfr_bench::g_counting) {
+    ++dfr_bench::g_allocations;
   }
   void* memory = std::malloc(size == 0 ? 1 : size);
   if (memory == nullptr) {
@@ -364,8 +322,8 @@ int main(int argc, char** argv) {
   //
   // A whole run, with the counter armed. Everything above ran before this, so the vectors the harness itself
   // needed are already grown and cannot be attributed to the library.
-  g_allocations = 0;
-  g_counting = true;
+  dfr_bench::g_allocations = 0;
+  dfr_bench::g_counting = true;
   {
     bench_client client{client_options()};
     clock_type clock;
@@ -388,7 +346,7 @@ int main(int argc, char** argv) {
     }
     bench::keep(delivered);
   }
-  g_counting = false;
+  dfr_bench::g_counting = false;
 
 #ifdef NDEBUG
   const std::string_view assertions = "off";
@@ -402,11 +360,11 @@ int main(int argc, char** argv) {
               "does and does not say\n\n");
   std::printf("  %-38s %9s %9s %9s %9s   %14s\n", "", "best", "p50", "p99", "worst", "rate");
   for (const auto& r : results) {
-    print_row(r);
+    bench::print_row(r);
   }
   std::printf("\n  allocations after initialisation: %llu",
-              static_cast<unsigned long long>(g_allocations));
-  std::printf(g_allocations == 0 ? "  ✓\n" : "  ← the claim is broken\n");
+              static_cast<unsigned long long>(dfr_bench::g_allocations));
+  std::printf(dfr_bench::g_allocations == 0 ? "  ✓\n" : "  ← the claim is broken\n");
   std::printf("\n  not measured here: tick-to-trade, NIC-to-NIC, anything needing a hardware "
               "timestamp.\n  This machine has no PMU counters and no NIC timestamping, so no figure "
               "is given rather than\n  a figure with nothing behind it.\n\n");
@@ -417,10 +375,10 @@ int main(int argc, char** argv) {
       std::fprintf(stderr, "recovery_bench: cannot write %s\n", json_path);
       return 1;
     }
-    write_json(out, results, assertions, g_allocations);
+    bench::write_json(out, results, assertions, dfr_bench::g_allocations);
     std::fclose(out);
     std::printf("wrote %s\n", json_path);
   }
 
-  return g_allocations == 0 ? 0 : 1;
+  return dfr_bench::g_allocations == 0 ? 0 : 1;
 }

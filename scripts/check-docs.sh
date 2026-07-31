@@ -63,6 +63,48 @@ else
   failures=$((failures + missing))
 fi
 
+# The size rule, from docs/STYLE.md: "Target 200 lines; treat 300 as a smell and 400 as a defect."
+#
+# A defect is a defect whoever wrote it, and five files had crossed the line — one of them written the same week
+# the rule was quoted at somebody. Enforcing it here means the next one fails a build instead of accumulating.
+oversize="$(find "${here}/include" "${here}/tests" "${here}/tools" "${here}/bench" "${here}/fuzz" \
+  \( -name '*.hpp' -o -name '*.cpp' \) -exec wc -l {} + 2>/dev/null \
+  | awk '$1 > 400 && $2 != "total" { print "      " $1 "  " $2 }' || true)"
+if [[ -n "${oversize}" ]]; then
+  say "✗" "files over 400 lines, which docs/STYLE.md calls a defect:"
+  printf '%s\n' "${oversize}"
+  failures=$((failures + 1))
+else
+  say "✓" "no file is over 400 lines"
+fi
+
+# The benchmark table is generated from the JSON it claims to come from, and two figures had drifted.
+if python3 "${here}/scripts/sync-benchmark-table.py" --check >/dev/null 2>&1; then
+  say "✓" "the benchmark table matches bench/results-*.json"
+else
+  say "✗" "docs/BENCHMARKS.md disagrees with bench/results-*.json — run scripts/sync-benchmark-table.py"
+  failures=$((failures + 1))
+fi
+
+# Namespace count, which the README got wrong by two.
+namespaces="$(find "${here}/include/dfr" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
+words=(zero one two three four five six seven eight nine ten eleven twelve)
+if grep -qiE "All (${words[*]// /|}) namespaces" "${here}/README.md" &&
+   ! grep -qi "All ${words[${namespaces}]} namespaces" "${here}/README.md"; then
+  say "✗" "the README miscounts the ${namespaces} namespaces"
+  failures=$((failures + 1))
+else
+  say "✓" "the README counts ${namespaces} namespaces"
+fi
+
+# The viewer README has to mention what the page actually opens with. It once described a deleted heading.
+for token in hero Findings "What broke"; do
+  if ! grep -qiF "${token}" "${here}/viewer/README.md"; then
+    say "✗" "viewer/README.md does not mention \"${token}\", which is on the page"
+    failures=$((failures + 1))
+  fi
+done
+
 if [[ ${failures} -ne 0 ]]; then
   echo "check-docs: ${failures} checks failed" >&2
   exit 1

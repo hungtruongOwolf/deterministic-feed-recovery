@@ -75,6 +75,8 @@ jobs:
         if: matrix.preset == 'dev'
         run: ./scripts/check-docs.sh dev
 
+      # The size rule needs the benchmark JSON present, which check-docs reads, so it runs in the same step group.
+
   traces:
     name: traces reproduce
     runs-on: ubuntu-24.04

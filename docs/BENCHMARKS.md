@@ -35,14 +35,14 @@ part worth quoting and the absolute nanoseconds are not.
 
 | operation | off | fast | paranoid | paranoid cost |
 |---|---|---|---|---|
-| decode an IEX-TP header | **0.98 ns** | 2.81 | 2.97 | **3.0×** |
-| frame and walk a MoldUDP64 packet | **2.20 ns** | 2.69 | 2.69 | **1.2×** |
-| gap-set arithmetic, a hole's whole life | **14.97 ns** | 13.35 | 15.30 | below the noise floor |
-| ingest with loss, and poll | **58.10 ns** | 58.51 | 59.08 | below the noise floor |
-| ingest a packet end to end | **41.02 ns** | 37.92 | 38.41 | below the noise floor |
+| decode an IEX-TP header | **1.02 ns** | 3.01 | 2.97 | **2.9×** |
+| frame and walk a MoldUDP64 packet | **2.20 ns** | 3.01 | 2.85 | **1.3×** |
+| gap-set arithmetic, a hole's whole life | **14.97 ns** | 14.32 | 14.98 | below the noise floor |
+| ingest with loss, and poll | **58.02 ns** | 59.33 | 59.08 | below the noise floor |
+| ingest a packet end to end | **41.50 ns** | 41.83 | 42.32 | below the noise floor |
 | allocations after initialisation | **0** | 0 | 0 | none |
 
-At 8 messages per packet, the clean-feed figure is roughly **24 million packets or 195 million messages a
+At 8 messages per packet, the clean-feed figure is roughly **24 million packets or 193 million messages a
 second on one core**, with no I/O in the loop.
 
 ### What the assertion columns actually showed

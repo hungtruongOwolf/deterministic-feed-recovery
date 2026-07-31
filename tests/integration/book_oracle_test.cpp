@@ -28,7 +28,7 @@
 // 600 messages, same update counts, different book. Recovery was right and the consumer was wrong — see the last
 // test in this file, which keeps that mistake alive on purpose.
 
-#include "support/oracle_feed.hpp"
+#include "support/oracle_replay.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
