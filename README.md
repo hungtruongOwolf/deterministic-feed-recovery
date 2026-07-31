@@ -51,8 +51,19 @@ ctest --test-dir build/dev
 ./build/dev/tools/verify   <capture.pcap> --seed 4711 --faults 40
 ```
 
-Or [watch a run in the browser](https://hungtruongowolf.github.io/deterministic-feed-recovery/), which
-needs nothing installed.
+Or [run it in the browser](https://hungtruongowolf.github.io/deterministic-feed-recovery/) — the page
+compiles this library to WebAssembly, so the seed you type is a run that happens. Not a replay of a
+recording.
+
+```sh
+# The browser build, and the check that matters: does it produce the same bytes as the terminal?
+./scripts/build-wasm.sh
+./scripts/check-wasm.sh dev
+```
+
+Two compilers, two targets, one seed. Six shapes of run — one line, two lines, the glimpse race, two session
+scripts — diffed byte for byte. If they ever differ, something in the library depends on its platform and
+"deterministic" was a word rather than a property, so CI fails on it.
 
 ## What this is meant to be
 

@@ -16,7 +16,19 @@ import {
   PROJECT_NAME,
   PROJECT_TAGLINE,
 } from "./model/brand";
-import { ACTS, actAt, buildFilm, dwellFor, INTERLUDE_BEATS, type Film } from "./model/film";
+import {
+  ACTS,
+  actAt,
+  buildFilm,
+  DEFAULT_SETTINGS,
+  depthsOf,
+  dwellFor,
+  INTERLUDE_BEATS,
+  type Film,
+  type Settings,
+} from "./model/film";
+import { loadEngine, type Engine, type SessionParameters } from "./wasm/engine";
+import { Controls } from "./panels/Controls";
 import { parseSession, type SessionTrace } from "./model/session";
 import { SessionSection } from "./session/SessionSection";
 import { usePlayback } from "./anim/usePlayback";
@@ -35,6 +47,14 @@ import { LineHealth } from "./panels/LineHealth";
 export function App() {
   const [film, setFilm] = useState<Film | undefined>();
   const [session, setSession] = useState<SessionTrace | undefined>();
+  const [engine, setEngine] = useState<Engine | undefined>();
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [busy, setBusy] = useState(false);
+  const [sessionSettings, setSessionSettings] = useState<SessionParameters>({
+    orders: 3,
+    fill: 40,
+    cancel: true,
+  });
   const [error, setError] = useState<string | undefined>();
   const [started, setStarted] = useState(false);
 
@@ -42,39 +62,90 @@ export function App() {
   const dwell = useCallback((at: number) => (film === undefined ? 1 : dwellFor(film, at)), [film]);
   const playback = usePlayback(film?.moments.length ?? 0, dwell);
 
+  // The library itself, compiled to WebAssembly. Loaded once, and the page falls back to the committed
+  // traces if it cannot be: a reader on a browser without WebAssembly should see the argument, not an
+  // error, and the controls say plainly that they are inert rather than pretending to work.
   useEffect(() => {
     let cancelled = false;
-    Promise.all(
-      ACTS.map(async (act) => {
-        const response = await fetch(`traces/${act.file}`);
-        if (!response.ok) {
-          throw new Error(`traces/${act.file}: ${response.status}`);
-        }
-        return parseTrace(await response.text());
-      }),
-    )
-      .then((traces: readonly Trace[]) => {
+    loadEngine()
+      .then((loaded) => {
         if (!cancelled) {
-          setFilm(buildFilm(traces));
-          setError(undefined);
-          setStarted(false);
+          setEngine(loaded);
         }
       })
-      .catch((cause: unknown) => {
-        if (!cancelled) {
-          setFilm(undefined);
-          setError(cause instanceof TraceFormatError ? cause.message : String(cause));
+      .catch(() => {
+        if (cancelled) {
+          return;
         }
+        // Fall back to what is committed, which is the same three runs at the default settings.
+        Promise.all(
+          ACTS.map(async (act) => {
+            const response = await fetch(`traces/${act.file}`);
+            if (!response.ok) {
+              throw new Error(`traces/${act.file}: ${response.status}`);
+            }
+            return parseTrace(await response.text());
+          }),
+        )
+          .then((traces: readonly Trace[]) => {
+            if (!cancelled) {
+              setFilm(buildFilm(traces));
+              setError(undefined);
+            }
+          })
+          .catch((cause: unknown) => {
+            if (!cancelled) {
+              setError(cause instanceof TraceFormatError ? cause.message : String(cause));
+            }
+          });
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  // Every act re-run whenever the settings change. Synchronous on purpose: a run of three hundred messages
+  // is a few milliseconds, and a worker would add a message protocol to save nothing anybody can perceive.
+  useEffect(() => {
+    if (engine === undefined) {
+      return;
+    }
+    setBusy(true);
+    try {
+      const traces = ACTS.map((act) =>
+        parseTrace(
+          engine.runTrace({
+            seed: settings.seed,
+            messages: settings.messages,
+            faults: settings.faults,
+            lines: act.lines,
+            glimpse: act.glimpse,
+            staleness: act.staleness,
+          }),
+        ),
+      );
+      setFilm(buildFilm(traces));
+      setError(undefined);
+      setStarted(false);
+    } catch (cause) {
+      setError(cause instanceof TraceFormatError ? cause.message : String(cause));
+    } finally {
+      setBusy(false);
+    }
+  }, [engine, settings]);
+
   // The order-entry session, fetched separately and drawn below. Its absence must not stop the film: two
   // halves of one page, and one failing to load is a reason to show the other rather than neither.
   useEffect(() => {
     let cancelled = false;
+    if (engine !== undefined) {
+      try {
+        setSession(parseSession(engine.runSession(sessionSettings)));
+      } catch {
+        setSession(undefined);
+      }
+      return;
+    }
     fetch("traces/order-session.jsonl")
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
       .then((text) => {
@@ -90,7 +161,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [engine, sessionSettings]);
 
   // Space to play, arrows to step: the shortcuts anybody tries on something that moves.
   useEffect(() => {
@@ -166,6 +237,14 @@ export function App() {
 
       {film !== undefined && view !== undefined && (
         <main className="app__main">
+          <Controls
+            settings={settings}
+            onChange={setSettings}
+            busy={busy}
+            live={engine !== undefined}
+            depths={depthsOf(film)}
+          />
+
           <div className="app__stage">
             <ActStrip film={film} position={playback.position} onSeek={(to) => playback.seek(to)} />
 
@@ -212,7 +291,14 @@ export function App() {
             <Ledger trace={view.act.trace} />
           </div>
 
-          {session !== undefined && <SessionSection trace={session} />}
+          {session !== undefined && (
+            <SessionSection
+              trace={session}
+              settings={sessionSettings}
+              onChange={setSessionSettings}
+              live={engine !== undefined}
+            />
+          )}
         </main>
       )}
     </div>

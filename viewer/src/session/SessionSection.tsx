@@ -6,13 +6,18 @@
 
 import { useState } from "react";
 import { meaningOf, type SessionTrace } from "../model/session";
+import type { SessionParameters } from "../wasm/engine";
 import { Ladder } from "./Ladder";
 
 interface Props {
   readonly trace: SessionTrace;
+  readonly settings: SessionParameters;
+  readonly onChange: (settings: SessionParameters) => void;
+  /** False when WebAssembly could not load and the committed session is being drawn. */
+  readonly live: boolean;
 }
 
-export function SessionSection({ trace }: Props) {
+export function SessionSection({ trace, settings, onChange, live }: Props) {
   const [hover, setHover] = useState<number | undefined>(undefined);
   const focused = hover === undefined ? undefined : trace.steps[hover];
   const { summary, header } = trace;
@@ -46,6 +51,53 @@ export function SessionSection({ trace }: Props) {
         </div>
       </div>
 
+      <div className="session__controls">
+        <span className="session__controls-head mono">YOUR SESSION</span>
+        <label className="controls__field controls__field--tight">
+          <span className="controls__label mono">orders</span>
+          <input
+            className="controls__input mono"
+            type="number"
+            min={1}
+            max={12}
+            value={settings.orders}
+            disabled={!live}
+            onChange={(e) =>
+              onChange({ ...settings, orders: clamp(Number(e.currentTarget.value), 1, 12) })
+            }
+          />
+        </label>
+        <label className="controls__field controls__field--tight">
+          <span className="controls__label mono">fill shares</span>
+          <input
+            className="controls__input mono"
+            type="number"
+            min={0}
+            max={200}
+            step={20}
+            value={settings.fill}
+            disabled={!live}
+            onChange={(e) =>
+              onChange({ ...settings, fill: clamp(Number(e.currentTarget.value), 0, 200) })
+            }
+          />
+        </label>
+        <label className="session__toggle">
+          <input
+            type="checkbox"
+            checked={settings.cancel}
+            disabled={!live}
+            onChange={(e) => onChange({ ...settings, cancel: e.currentTarget.checked })}
+          />
+          <span>cancel the second order</span>
+        </label>
+        <span className="session__controls-note">
+          {live
+            ? "Fill all 200 shares and watch the order go from live to dead, and the counters keep step."
+            : "WebAssembly did not load, so this is the committed session and the controls are inert."}
+        </span>
+      </div>
+
       <Ladder trace={trace} hover={hover} onHover={setHover} />
 
       <div className="session__caption">
@@ -73,12 +125,19 @@ export function SessionSection({ trace }: Props) {
       </div>
 
       <p className="session__foot">
-        {header.orders} orders, one fill of {header.fill} shares driven by the caller, one cancel, one
-        logout. There is no matching engine here on purpose — see the ledger for what that means and what
+        {header.orders} orders, a fill of {header.fill} shares driven by the caller
+        {header.cancel ? ", one cancel" : ""}, one logout. There is no matching engine here on purpose — see the ledger for what that means and what
         else this run does not claim.
       </p>
     </section>
   );
+}
+
+function clamp(value: number, low: number, high: number): number {
+  if (!Number.isFinite(value)) {
+    return low;
+  }
+  return Math.max(low, Math.min(high, Math.round(value)));
 }
 
 function Figure({ label, value }: { readonly label: string; readonly value: string }) {

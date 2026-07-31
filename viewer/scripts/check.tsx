@@ -20,7 +20,16 @@ import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { parseTrace } from "../src/model/trace";
 import { buildStory } from "../src/model/story";
-import { ACTS, actAt, buildFilm, prologue, runtimeSeconds } from "../src/model/film";
+import {
+  ACTS,
+  actAt,
+  buildFilm,
+  DEFAULT_SETTINGS,
+  depthsOf,
+  prologue,
+  runtimeSeconds,
+} from "../src/model/film";
+import { Controls } from "../src/panels/Controls";
 import { BEATS_PER_SECOND } from "../src/anim/usePlayback";
 import { ActStrip } from "../src/panels/ActStrip";
 import { meaningOf as meaningFor, parseSession } from "../src/model/session";
@@ -391,7 +400,14 @@ check(
 
 // Rendering: the drawing exists, the counters are printed, and hovering changes what is said.
 {
-  const drawn = renderToStaticMarkup(<SessionSection trace={session} />);
+  const drawn = renderToStaticMarkup(
+    <SessionSection
+      trace={session}
+      settings={{ orders: 3, fill: 40, cancel: true }}
+      onChange={() => {}}
+      live
+    />,
+  );
   check(drawn.includes('class="ladder'), "the ladder draws");
   check((drawn.match(/class="rung/g) ?? []).length >= session.steps.length, "every step gets a rung");
   check((drawn.match(/rung__count/g) ?? []).length === session.steps.length * 2, "both counters are printed on every rung");
@@ -406,6 +422,44 @@ check(
     return said.length < 20 || /_/.test(said);
   });
   check(unexplained.length === 0, "every step of the session is explained in plain words");
+}
+
+// ---------------------------------------------------------------------------
+// 7. the controls — the page runs the library, and says so honestly
+// ---------------------------------------------------------------------------
+
+console.log("\nthe controls");
+
+{
+  const depths = depthsOf(film);
+  const holding = renderToStaticMarkup(
+    <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live depths={depths} />,
+  );
+  check(holding.includes("WebAssembly"), "the page says the library is running on it");
+  check(/seed/.test(holding) && /faults/.test(holding), "the seed and the fault count are editable");
+  check(holding.includes("is-holding"), `the verdict holds at the committed settings (${depths.join(" → ")})`);
+  check(!/disabled/.test(holding), "the controls are enabled when the library loaded");
+
+  // The honest half: with the library unavailable the page must say so and stop pretending the inputs work.
+  const offline = renderToStaticMarkup(
+    <Controls
+      settings={DEFAULT_SETTINGS}
+      onChange={() => {}}
+      busy={false}
+      live={false}
+      depths={depths}
+    />,
+  );
+  check(/did not load/.test(offline), "a failed load is stated rather than hidden");
+  check(/disabled/.test(offline), "and the inputs are disabled rather than inert-looking but live");
+
+  // And when the claim stops holding, the page has to say that too rather than keep a caption that has
+  // become false. This is the case a reader reaches by setting the fault count to zero.
+  const broken = renderToStaticMarkup(
+    <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live depths={[0, 0, 2]} />,
+  );
+  check(broken.includes("is-broken"), "a run where the claim fails is reported as failing");
+  check(/does not hold/.test(broken), "and it is said in words, not only in colour");
 }
 
 console.log(failures === 0 ? "\nall drawing checks passed" : `\n${failures} drawing checks failed`);

@@ -231,3 +231,47 @@
 .session__figure-label { font-size: 9px; letter-spacing: 0.12em; color: var(--ink-soft); }
 .session__figure-value { font-family: var(--serif); font-size: 17px; color: var(--ink); }
 .session__foot { margin: 14px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint); max-width: 90ch; }
+
+/* --------------------------------------------------------------- the controls
+
+   The page runs the library rather than replaying it, so there are numbers to type. What they change is the
+   data; which defence each act removes is not on offer, because that is the experiment.                  */
+
+.controls {
+  grid-column: 1 / -1; margin-bottom: 16px;
+  border: 1px solid var(--rule-strong); padding: 11px 14px 12px;
+}
+.controls__head { font-size: 9.5px; letter-spacing: 0.13em; color: var(--ink-soft); }
+.controls__offline {
+  margin: 8px 0 0; padding: 7px 10px; font-size: 12.5px; line-height: 1.5;
+  border-left: 2px solid var(--fault); color: var(--ink-soft); background: var(--page-sunk);
+}
+.controls__row { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-top: 9px; }
+.controls__field { display: flex; flex-direction: column; gap: 2px; }
+.controls__field--tight { gap: 1px; }
+.controls__label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+.controls__input {
+  width: 92px; padding: 4px 7px; font-size: 13px;
+  border: 1px solid var(--rule-strong); background: var(--page); color: var(--ink);
+}
+.controls__input:disabled { color: var(--ink-faint); background: var(--page-sunk); }
+.controls__hint { font-size: 9.5px; color: var(--ink-faint); }
+.controls__actions { display: flex; gap: 7px; margin-left: auto; }
+.controls__dice, .controls__reset { font-size: 12px; }
+
+.controls__verdict {
+  display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--rule);
+}
+.controls__verdict-numbers { font-size: 19px; letter-spacing: 0.08em; color: var(--healthy); }
+.controls__verdict.is-broken .controls__verdict-numbers { color: var(--fault); }
+.controls__verdict-text { flex: 1 1 44ch; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.controls__busy { font-size: 10px; letter-spacing: 0.12em; color: var(--ink-faint); }
+
+.session__controls {
+  display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap;
+  margin: 0 0 12px; padding: 10px 13px; border: 1px solid var(--rule);
+}
+.session__controls-head { font-size: 9px; letter-spacing: 0.13em; color: var(--ink-soft); align-self: center; }
+.session__toggle { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); }
+.session__controls-note { flex: 1 1 32ch; font-size: 11px; line-height: 1.45; color: var(--ink-faint); }

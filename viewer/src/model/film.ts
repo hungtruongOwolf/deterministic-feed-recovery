@@ -15,9 +15,22 @@
 import type { Trace } from "./trace";
 import { buildStory, type Beat } from "./story";
 
-/** What each act is, written down once. The files are fetched in this order and joined in this order. */
+/**
+ * What each act is, written down once, including the parameters that make it that act.
+ *
+ * The parameters are here rather than in the controls because they are what the act *means*: act II is "the
+ * second line taken away", which is `lines: 1`. A reader changing the seed changes the data; they cannot
+ * change the argument, because the argument is the three removals and those are fixed.
+ */
 export interface ActSpec {
+  /** The committed trace, used when WebAssembly is unavailable. */
   readonly file: string;
+  /** How many redundant lines carry the feed in this act. */
+  readonly lines: 1 | 2;
+  /** Whether the retransmit facility refuses, forcing a snapshot. */
+  readonly glimpse: boolean;
+  /** How far behind the snapshot reply is, in messages. Only meaningful when `glimpse`. */
+  readonly staleness: number;
   readonly ordinal: string;
   readonly title: string;
   /** What is different from the act before — the reason this act exists. */
@@ -29,6 +42,9 @@ export interface ActSpec {
 export const ACTS: readonly ActSpec[] = [
   {
     file: "redundant-ab.jsonl",
+    lines: 2,
+    glimpse: false,
+    staleness: 0,
     ordinal: "I",
     title: "Two lines carry the feed",
     change:
@@ -37,6 +53,9 @@ export const ACTS: readonly ActSpec[] = [
   },
   {
     file: "recovering-seed4711.jsonl",
+    lines: 1,
+    glimpse: false,
+    staleness: 0,
     ordinal: "II",
     title: "Now take the second line away",
     change:
@@ -45,6 +64,9 @@ export const ACTS: readonly ActSpec[] = [
   },
   {
     file: "glimpse-race.jsonl",
+    lines: 1,
+    glimpse: true,
+    staleness: 20,
     ordinal: "III",
     title: "And close the retransmit window",
     change:
@@ -52,6 +74,30 @@ export const ACTS: readonly ActSpec[] = [
     reaches: "falls to the third defence, and still loses data",
   },
 ];
+
+/**
+ * What a reader may change: the data, never the argument.
+ *
+ * The seed and the fault count are theirs. Which defence each act removes is not, because that is the
+ * experiment — three parts in order, each with one fewer layer — and a control that could break it would
+ * turn the page back into three unrelated runs.
+ */
+export interface Settings {
+  readonly seed: number;
+  readonly messages: number;
+  readonly faults: number;
+}
+
+export const DEFAULT_SETTINGS: Settings = { seed: 4711, messages: 300, faults: 6 };
+
+/** The committed traces were generated with exactly these, which is why the page looks the same on arrival. */
+export function isDefault(settings: Settings): boolean {
+  return (
+    settings.seed === DEFAULT_SETTINGS.seed &&
+    settings.messages === DEFAULT_SETTINGS.messages &&
+    settings.faults === DEFAULT_SETTINGS.faults
+  );
+}
 
 /** How many beats the interlude card stays up for. Long enough to read, short enough not to be a wait. */
 export const INTERLUDE_BEATS = 9;
@@ -150,6 +196,23 @@ export function runtimeSeconds(film: Film, beatsPerSecond: number): number {
     total += dwellFor(film, at) / beatsPerSecond;
   }
   return total;
+}
+
+/**
+ * How deep into the stack of defences each act was actually forced.
+ *
+ * Read from the runs rather than from the story, so the page can report what happened instead of what it
+ * intended. A reader who sets the fault count to zero should be told the claim stopped holding, not shown a
+ * caption that has quietly become false.
+ */
+export function depthsOf(film: Film): readonly number[] {
+  return film.acts.map((act) =>
+    act.trace.summary.snapshot_requests > 0
+      ? 2
+      : act.trace.summary.retransmit_requests > 0
+        ? 1
+        : 0,
+  );
 }
 
 /** One or two sentences on the whole film, shown before anything moves. */

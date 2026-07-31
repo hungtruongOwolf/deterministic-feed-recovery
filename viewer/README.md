@@ -92,6 +92,33 @@ the only way to show something failing to arrive. A session is a transcript: it 
 lockstep of the counters is visible all at once in a way it would not be one rung at a time. Hovering a
 rung says what that step means in words.
 
+## The library runs on the page
+
+Everything above used to be drawn from three JSONL files generated once and committed. Correct, and not
+yours: no seed to type, no fault count to raise, nothing to be surprised by. A viewer over fixtures is a
+screenshot with extra steps.
+
+So `wasm/api.cpp` compiles the library for the browser, and the controls re-run it. This works for a reason
+rather than by luck — the library is header-only, reads no clock, opens no sockets, allocates nothing after
+start-up, and every run is a function of its seed. Those were determinism constraints, adopted so a failing
+run could be replayed from a number, and they turn out to be exactly the constraints that make code portable
+to a sandbox with no operating system.
+
+Two things keep it honest:
+
+- **The output goes through the same writers the native tool uses**, into Emscripten's in-memory filesystem
+  and back out as a string. A separate formatter for the browser would have been a second format, and the two
+  would have drifted. `scripts/check-wasm.sh` runs six shapes through both and diffs them byte for byte.
+- **The escalation verdict is measured on the run in front of you**, not asserted about a recording. Set the
+  fault count to zero and act II never needs a retransmit — so the claim stops holding, and the page says so
+  instead of keeping a caption that has become false.
+
+What the controls change is the data. What they cannot change is which defence each act removes, because that
+is the experiment.
+
+If WebAssembly fails to load the committed traces are drawn instead, the controls are disabled, and the page
+says why. An inert control that looks live is worse than no control.
+
 ## The one rule
 
 **No domain logic lives here.** Every number drawn is a field the trace already carries — the client state,

@@ -82,6 +82,43 @@ jobs:
           ./scripts/regenerate-traces.sh dev
           git diff --exit-code -- traces/ viewer/public/traces/
 
+  # The load-bearing check for the WebAssembly build: does the browser produce the same trace as the
+  # terminal? Two compilers, two targets, one seed. If the bytes ever differ then something in the library
+  # depends on its platform, and "deterministic" was a word rather than a property — so this fails the build
+  # rather than being noticed later by a reader comparing numbers.
+  wasm:
+    name: wasm matches native, byte for byte
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.7
+          actions-cache-folder: emsdk-cache
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build the native tools
+        run: |
+          cmake --preset dev
+          cmake --build --preset dev -j 4 --target dfr_trace dfr_session
+
+      - name: Build for the browser
+        run: ./scripts/build-wasm.sh
+
+      # The committed module is a build artifact and is committed on purpose, so that Pages can deploy
+      # without an Emscripten toolchain. A diff here means somebody changed the library and did not rebuild
+      # it, which would leave the page running yesterday's code while the tests ran today's.
+      - name: The committed module is current
+        run: git diff --exit-code -- viewer/public/wasm/
+
+      - name: Compare the two
+        run: ./scripts/check-wasm.sh dev
+
   viewer:
     name: viewer typechecks and builds
     runs-on: ubuntu-24.04
