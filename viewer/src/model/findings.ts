@@ -10,9 +10,12 @@
 // judgement, and the only real evidence of judgement is a hard bug found and correctly explained — including
 // the ones where the bug was in my own reasoning.
 //
-// Every entry below is a real commit. The claim, the way it hid, and the thing that caught it. Four of the six
-// are mistakes I made and then found; that is the point rather than an embarrassment, because a portfolio of
-// things that went right is a portfolio of things nobody checked.
+// Every entry below is a real commit. The claim, the way it hid, and the thing that caught it. Most of them are
+// mistakes I made and then found; that is the point rather than an embarrassment, because a portfolio of things
+// that went right is a portfolio of things nobody checked.
+//
+// Including the ones where the mistake was in the checking. One entry here is a guard I wrote that reported success
+// on the bug it existed to catch, which is the most useful kind of thing to have written down.
 
 export interface Finding {
   /** What happened, short enough to scan. */
@@ -40,6 +43,26 @@ export const FINDINGS: readonly Finding[] = [
       "While a hole is open the client keeps delivering later messages — on purpose, because stalling on a gap turns one loss into an outage. So a repair arrives after higher sequence numbers, and an aggregated book is last-write-wins. A consumer must apply in sequence order, not arrival order, and nothing warns it.",
     kind: "the hardest one",
     where: `${REPO}/tests/integration/book_oracle_test.cpp`,
+  },
+  {
+    title: "The flaky abort was in the test harness, and one run was never enough",
+    hid: "A threaded test aborted intermittently with SIGABRT, no failing expression, and a Catch2 assertion about its own output redirect. It pointed at the lock-free code, where nothing was wrong. I had read \u201c720 tests passed\u201d and pushed.",
+    caught:
+      "Running it in a loop rather than once: it reproduced on the second run, so it had never been platform-specific. A REQUIRE on the consumer thread was racing the main thread \u2014 Catch2's result capture is single-threaded.",
+    matters:
+      "My first guard ran it 40 times and reported success on the bug planted back. The failure rate is 2% a run, so 40 runs is a coin flip \u2014 and a guard that is a coin flip is worse than none, because its pass gets believed. 400 runs is 99.97%, and six seconds.",
+    kind: "verification",
+    where: `${REPO}/scripts/hammer-concurrency.sh`,
+  },
+  {
+    title: "Two documentation guards printed a tick while checking nothing",
+    hid: "Both built a regular-expression alternation with `${words[*]// /|}`, which looks like it joins with pipes and does not: bash substitutes inside each element, then joins with a space. The pattern could never match, so both guards fell to the else branch and reported success.",
+    caught:
+      "Breaking the thing on purpose to watch the check fail \u2014 and watching it pass. That habit came from the previous finding, one commit earlier.",
+    matters:
+      "One had been guarding the README's namespace count for weeks. A check that cannot fail is worse than no check, because the repository reads as verified: I had been citing that tick. Every guard here now gets a planted defect before it is believed.",
+    kind: "verification",
+    where: `${REPO}/scripts/check-docs.sh`,
   },
   {
     title: "Three functions claimed constexpr and could not deliver it",

@@ -93,3 +93,47 @@ place this bug is visible**, and a CI running on x86 Linux would report a clean 
 
 A real proof needs a model checker over the memory model — CDSChecker, GenMC, or a herd7 litmus test. That is
 not built here, and not pretending to be is the point.
+
+## A concurrency test that has passed once has told you almost nothing
+
+The threaded book test — *the book built across a thread boundary is the same book* — aborted intermittently in
+CI with a `SIGABRT`, no failing expression, and a Catch2 internal assertion:
+
+```
+Assertion `!m_redirectActive && "redirect is already active"' failed.
+```
+
+I had read "720 tests passed" locally and pushed. Looked for on purpose afterwards, it reproduced on the **second
+run** on the same machine. So it had never been platform-specific; "the suite passed" had meant "the suite passed
+once", which for a test whose subject is an interleaving is close to no information at all.
+
+**The defect was in the measuring apparatus.** `detail::apply` in the test support used `REQUIRE`, and the threaded
+test calls it from the consumer thread. Catch2's result capture and output redirect are single-threaded, so two
+threads inside them race and abort. Nothing in `dfr::concurrent` was wrong — which is the worst shape a flake can
+have, because it points at the library and wastes the reading on the wrong file.
+
+The fix is that the shared apply function counts decode failures into `replay_result::malformed` and the main thread
+asserts it is zero after the join. Sharing one apply function between the two replays is the point of that seam and
+it survives; what it may not do is touch Catch2.
+
+### Choosing the repetition count by measuring, not by feel
+
+`scripts/hammer-concurrency.sh` runs the threaded suites until they fail or until enough runs agree. With the defect
+planted back:
+
+| runs | probability of catching a 2% flake | cost |
+|---|---|---|
+| 40 | 55% | ~1 s |
+| 120 | 91% | ~2 s |
+| **400** | **99.97%** | **~6 s** |
+
+The rate is measured: 4 failures in 200 runs, at 14 ms a run. My first count was 40, and it **reported success on
+the planted bug** — a guard that is a coin flip is worse than none, because its pass gets believed anyway. At 400
+it caught the planted bug on run 167, and the fixed version agreed 400 times.
+
+CI runs it on `dev` and `release`, and not under the sanitisers, where a single run already inspects far more than
+repetition would and 400 would take longer than the rest of the workflow put together.
+
+One incidental finding: Catch2 3.7.1's `catch_discover_tests` **silently ignores** `ADD_TAGS_AS_LABELS`. The first
+version of this guard used `ctest -L concurrent`, which selected nothing and reported `Total Tests: 0` rather than an
+error — a guard that runs zero tests and exits zero. It filters by tag at the binary instead.

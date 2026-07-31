@@ -31,8 +31,8 @@ All nine namespaces are implemented and tested.
 | `dfr::wire::glimpse` | the snapshot protocol as bytes, served over SoupBinTCP | done |
 
 **720 tests pass under five configurations** — assertions at paranoid, fast and off, and
-AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer — all with warnings as errors, on Apple Clang
-locally and Linux Clang in CI. There is an end-to-end oracle over both synthetic streams and real captures.
+AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer — all with warnings as errors, on **three
+compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both synthetic streams and real captures.
 
 ## The invariant that needed a message layer
 
@@ -114,6 +114,10 @@ ctest --test-dir build/dev
 # A run recorded as JSONL. The same seed gives byte-identical output; a different seed does not.
 ./build/dev/tools/trace --seed 4711 --messages 300 --faults 6 --out /tmp/a.jsonl
 ./build/dev/tools/trace --seed 4711 --messages 300 --faults 6 --out /tmp/b.jsonl && diff /tmp/a.jsonl /tmp/b.jsonl
+
+# A snapshot served and rebuilt: the venue's book, and a client that starts from nothing.
+# Both books are printed at every frame — watch the right one converge on the left one.
+./build/dev/tools/glimpse --levels 5
 
 # Against a real capture, if you have an IEX HIST pcap:
 ./build/dev/tools/inspect  <capture.pcap>
@@ -286,7 +290,7 @@ Three things the exercise turned up:
 
 `tools/trace` records a whole run — venue publishing, faults injected, the client's every
 decision — as one JSON object per line. A trace is a deterministic function of the seed, so
-it is committed next to the code rather than regenerated: `traces/` holds two, and
+it is committed next to the code rather than regenerated: `traces/` holds five, and
 `diff`ing a fresh run against them is a behavioural regression test a human can read.
 
 ```
@@ -306,14 +310,30 @@ cannot drift from what the run actually did.
 
 ## Viewer
 
-`viewer/` is a static page that reads a trace and draws it: a time scrubber over the packet axis,
-the client's state as a band across the run, the Glimpse race drawn on a sequence axis, per-line
-health for a redundant pair, and the honesty ledger.
+`viewer/` is a static page that compiles this library to WebAssembly and runs it. Five sections, ordered for
+somebody who has not read any of this:
+
+1. **What goes wrong, and how would you even notice?** — the run itself. Choose how much damage and how long, and
+   it re-runs: the packet axis, the client's state as a band, the Glimpse race on a sequence axis, per-line health
+   for a redundant pair, and the top of book beside it. The same run is also stated in four plain sentences, so it
+   is legible without reading the geometry.
+2. **Starting from nothing** — a snapshot served and rebuilt, the venue's book and the client's side by side.
+3. **The other direction** — an order-entry session, both halves of the wire.
+4. **Where it went wrong while I was building it** — eleven defects, each with how it hid, what caught it, and what
+   it changed. For engineers, and placed after the sections that are not.
+5. **What it costs to keep up** — the benchmark tables, led by one figure measured *in your browser* on the run you
+   just caused, with the gap to the native numbers stated rather than left to be discovered.
+
+It opens by saying what goes wrong for somebody rather than what was built, because a reader who does not already
+know why this is hard cannot be persuaded by a diagram of it. `npm run check` enforces that: a jargon blocklist that
+must not appear before anything is explained, a consequence sentence that must exist, prose word budgets per panel,
+WCAG contrast ratios, no dead CSS, and every symbol-only control labelled.
 
 **Live:** <https://hungtruongowolf.github.io/deterministic-feed-recovery/>
 
 ```
 cd viewer && npm install && npm run dev
+npm run check        # the drawing checks, the legibility checks and the budgets
 ```
 
 It contains **no domain logic**. Every number drawn is a field the trace already carries; nothing
@@ -360,6 +380,17 @@ ctest --preset dev
 Other presets: `release` (optimised, assertions still on at the fast level),
 `bench` (assertions off, for measuring what they cost), `asan`, `tsan`.
 
+```sh
+./scripts/hammer-concurrency.sh dev 400   # the threaded tests, four hundred times
+```
+
+**A concurrency test that has passed once has told you almost nothing.** The threaded book test aborted
+intermittently; I read "720 tests passed", pushed, and CI failed. Looked for on purpose it reproduced on the second
+run, so it had never been platform-specific — and the defect was in the *harness*, a Catch2 `REQUIRE` on the
+consumer thread racing the main thread's result capture. With it planted back, the test fails 4 times in 200 runs;
+the first repetition count I tried, 40, reported success. 400 runs catch it 99.97% of the time and cost six seconds,
+so that is the default and CI runs it on `dev` and `release`.
+
 **A change is not done until all five of `dev`, `release`, `bench`, `asan` and `tsan` pass.** The matrix
 is not decoration: two defects in this repository were invisible in one configuration and fatal in
 another — a dangling `span` into a destroyed temporary that `-O0` had not yet reused the stack for,
@@ -374,10 +405,18 @@ configurations could not have caught it, and a verification story that omits wha
 the kind of overclaiming this project criticises elsewhere.
 
 `.github/workflows/ci.yml` runs the same five presets under Linux Clang **and the whole suite under GCC 14**,
-fuzzes every decoder, checks the WebAssembly build matches native byte for byte, checks the committed traces still reproduce
-byte-for-byte, and builds the viewer. Clang only for now, because this machine has no real GCC —
-Apple Clang answers to `g++` — and a GCC job would be a configuration nobody had verified before
-committing it.
+fuzzes every decoder, checks the WebAssembly build matches native byte for byte, checks the committed traces still
+reproduce byte-for-byte, hammers the threaded tests, and builds the viewer.
+
+GCC was added because the local matrix cannot see the compiler, and it paid for itself over four rounds: it rejected
+`hardware_destructive_interference_size` as an ABI dependency in two separate places, three functions marked
+`constexpr` that cannot be, a `char[12]` buffer for a value needing 22, a `char[48]` needing 80, and nine redundant
+casts. None of that is Clang-visible.
+
+**Neither machine dominates.** CI's x86-64 caught a `>` that should have been `>=` in the publisher's reorder window,
+which this arm64 laptop never reached because its timing never produced a reorder distance of exactly the window
+size. In the other direction, ThreadSanitizer on x86-64 **passes** a deliberately broken ring that an arm64 property
+test fails 12 times out of 12. Two architectures, two classes of defect, and dropping either would lose one.
 
 ## Documents
 
@@ -387,6 +426,11 @@ committing it.
 - `LUAN-GIAI-TIENG-VIET.md` — the same reasoning chain in Vietnamese.
 - `docs/DESIGN.md` — mechanism choices, each with the real project and file that proves it works,
   plus why the two existing open-source MoldUDP64 libraries do not meet these requirements.
+- `docs/BENCHMARKS.md` — the method, the three measurement bugs found by reading numbers that were too good, and
+  why comparing the `dev` and `bench` presets to price assertions is wrong.
+- `docs/CONCURRENCY.md` — the one thread boundary, and the experiment where ThreadSanitizer passes a broken ring.
+- `docs/FUZZING.md` — the four decoders fuzzed, the corpus taken from real packets at three layers, and the planted
+  bug that validated the harness.
 - `docs/STYLE.md` — house rules for comments, assertions, file size, aggregate defaults, README and
   commits, calibrated against measured comment and assertion density in Linux, SQLite, TigerBeetle,
   simdjson, quill and others.

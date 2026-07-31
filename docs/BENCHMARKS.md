@@ -92,6 +92,31 @@ different machine would move every number in the table.
 **Not a claim about a whole system.** There is no I/O, no kernel bypass, no thread hand-off in the figures
 above. The SPSC hand-off is measured separately, in `docs/CONCURRENCY.md`.
 
+## The one figure measured in the reader's browser
+
+Everything above is measured natively and committed to `bench/results-*.json`, which makes all of it honest and none
+of it something a visitor caused. A benchmark you cannot reproduce is a claim, so the viewer's performance section
+opens with a figure the reader produces by pressing something: the page already recompiles the three acts into
+WebAssembly and runs them on every settings change, and timing that call costs one `performance.now()` on each side.
+
+It reports **minima, per message**, for the same reason the tables above do — and the reason was measured rather than
+assumed. Back-to-back runs of the same three acts came out at 242,778 and then 570,982 messages a second, a 2.4×
+spread with the *first* run the slowest: a cold WebAssembly instance and an unwarmed JIT are both being paid for.
+Reporting the latest run would make the opening figure the worst one and lurch on every keystroke. Per message rather
+than per run, because the length control changes how much work a run is.
+
+The figure lands roughly **100× below** the native ingest number, and the page states that factor itself rather than
+leaving a reader to compute it and mistrust both. The gap is not an embarrassment; it is the reason these tables
+exist:
+
+- WebAssembly, single-threaded, in a browser sandbox;
+- every event serialised to JSONL as it runs, which is most of what is being timed — the trace format is the
+  architecture, not overhead to be excused;
+- and a browser cannot resolve a two-nanosecond operation at all.
+
+So the honest claim is narrow, and it is the only one made: this many messages went through the real state machine,
+on your machine, just now.
+
 ## What GCC said, by accident
 
 A step that built C++ inside the viewer's CI job picked up the runner's default **GCC** rather than the pinned

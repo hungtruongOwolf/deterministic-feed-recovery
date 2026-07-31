@@ -105,12 +105,29 @@ fi
 # Namespace count, which the README got wrong by two.
 namespaces="$(find "${here}/include/dfr" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
 words=(zero one two three four five six seven eight nine ten eleven twelve)
-if grep -qiE "All (${words[*]// /|}) namespaces" "${here}/README.md" &&
+# Joined with a real pipe. `${words[*]// /|}` looks like it builds an alternation and does not: bash applies the
+# substitution to each element and then joins with a space, and since no element contains a space the result is
+# "zero one two ...". Both counting guards below used it, so both grepped for a pattern that cannot match, took the
+# else branch, and printed a tick while checking nothing. Found by doing what the last guard taught me to do —
+# breaking the thing on purpose to watch the check fail, and watching it pass instead.
+alternatives="$(IFS='|'; echo "${words[*]}")"
+if grep -qiE "All (${alternatives}) namespaces" "${here}/README.md" &&
    ! grep -qi "All ${words[${namespaces}]} namespaces" "${here}/README.md"; then
   say "✗" "the README miscounts the ${namespaces} namespaces"
   failures=$((failures + 1))
 else
   say "✓" "the README counts ${namespaces} namespaces"
+fi
+
+# The defect count. The README said "nine defects" the moment a tenth was added, and the defects are the strongest
+# thing on the page — an undercount there is the one number a reader would have been given for free.
+findings="$(grep -cE '^    kind: ' "${here}/viewer/src/model/findings.ts" | tr -d ' ')"
+if grep -qE "\*\*[^*]+\*\* — (${alternatives}) defects" "${here}/README.md" &&
+   ! grep -qE "— ${words[${findings}]} defects" "${here}/README.md"; then
+  say "✗" "the README miscounts the ${findings} defects on the page"
+  failures=$((failures + 1))
+else
+  say "✓" "the README counts ${findings} defects"
 fi
 
 # The viewer README has to mention what the page actually opens with. It once described a deleted heading.
