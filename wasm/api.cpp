@@ -123,7 +123,18 @@ const char* dfr_run_trace(double seed, int messages, int faults, int lines, int 
     g_result = "{\"kind\":\"error\",\"message\":\"the publisher produced nothing\"}\n";
     return g_result.c_str();
   }
-  const dfr_tools::run_summary summary = dfr_tools::run_traced(run, stream, recorder, &bodies);
+  dfr_tools::run_summary summary = dfr_tools::run_traced(run, stream, recorder, &bodies);
+  {
+    // The loss-free book, so the page can state the invariant rather than show a quote a reader must interpret.
+    dfr_tools::traced_book reference;
+    for (const auto& [sequence, body] : bodies) {
+      (void)sequence;
+      (void)dfr_tools::apply_to_book(reference, dfr::packet_view{body.data(), body.size()});
+    }
+    summary.reference_bid = reference.bids().best().at.raw();
+    summary.reference_ask = reference.asks().best().at.raw();
+    summary.reference_traded = reference.traded_shares();
+  }
 
   return rendered([&](std::FILE* out) {
     dfr_tools::write_header(out, run, summary, stream.size());

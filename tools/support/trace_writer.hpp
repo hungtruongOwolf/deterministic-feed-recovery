@@ -109,7 +109,8 @@ inline void write_summary(std::FILE* out, const dfr_tools::run_summary& summary,
       "\"retransmit_messages\":%llu,"
       "\"retransmits_served\":%llu,\"retransmit_refusals\":%llu,"
       "\"snapshot_requests\":%llu,\"unfillable_messages\":%llu,"
-      "\"final_state\":\"%s\",\"complete\":%s}\n",
+      "\"final_state\":\"%s\",\"complete\":%s,"
+      "\"reference_bid\":%lld,\"reference_ask\":%lld,\"reference_traded\":%llu}\n",
       trace.size(), static_cast<unsigned long long>(trace.dropped()),
       static_cast<unsigned long long>(summary.messages_delivered),
       static_cast<unsigned long long>(summary.messages_delivered_twice),
@@ -121,7 +122,10 @@ inline void write_summary(std::FILE* out, const dfr_tools::run_summary& summary,
       static_cast<unsigned long long>(summary.snapshot_requests),
       static_cast<unsigned long long>(summary.unfillable_messages),
       dfr::recovery::name_of(summary.final_state).data(),
-      trace.dropped() == 0 ? "true" : "false");
+      trace.dropped() == 0 ? "true" : "false",
+      static_cast<long long>(summary.reference_bid),
+      static_cast<long long>(summary.reference_ask),
+      static_cast<unsigned long long>(summary.reference_traded));
 }
 
 

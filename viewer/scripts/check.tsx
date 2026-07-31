@@ -244,11 +244,33 @@ console.log("\nthe book, which is the point of the message layer");
     check(one.bid_levels > 1 && one.ask_levels > 0, "the book has real depth, not one level");
   }
 
-  // And it draws.
+  // And it draws, and — the part that was missing — it *states the claim* rather than showing two numbers a reader
+  // has to interpret. A bid and an ask on a page tell nobody that they are looking at the project's central
+  // argument.
   const drawn = frame(traces[0]!, 60, 0.5);
   check(drawn.includes('class="quote'), "the quote is drawn");
   check(/THE BOOK/.test(drawn), "and labelled, so a reader knows what they are looking at");
   check(!/NaN|undefined/.test(drawn), "no book figure rendered as NaN or undefined");
+
+  // The verdict, at the end of each act, where the comparison is meaningful.
+  for (const [index, trace] of traces.entries()) {
+    const last = trace.events.length - 1;
+    const shown = frame(trace, last, 0.9);
+    check(/verdict/.test(shown), `act ${index + 1} states a verdict on its book`);
+    const expectMatch = index < 2;
+    check(
+      expectMatch
+        ? /THE BOOK IS RIGHT/.test(shown)
+        : /THE BOOK IS INCOMPLETE/.test(shown),
+      expectMatch
+        ? `act ${index + 1} says the book is right, because it is`
+        : `act ${index + 1} says the book is incomplete, because it is`,
+    );
+  }
+
+  // Mid-run it must not claim either way: a difference halfway through is a film that is not over.
+  const midway = frame(traces[2]!, 20, 0.5);
+  check(/still playing/.test(midway), "mid-run it says the comparison is not due yet rather than reporting a failure");
 }
 
 console.log("\nthe film");

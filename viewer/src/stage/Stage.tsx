@@ -8,8 +8,10 @@ import type { Beat } from "../model/story";
 import type { Trace } from "../model/trace";
 import { BookGrid } from "./BookGrid";
 import { Quote } from "./Quote";
+import { Verdict } from "./Verdict";
+import { verdictAt } from "../model/book";
 import { Planes, rungsFor } from "./Planes";
-import { ROUTES, along, ease, type Point, type RouteName, QUOTE } from "./layout";
+import { ROUTES, along, ease, type Point, type RouteName, QUOTE, VERDICT } from "./layout";
 
 interface Props {
   readonly trace: Trace;
@@ -105,6 +107,8 @@ export function Stage({ trace, beat, progress, trail, messages }: Props) {
       {/* The quote sits under the message grid, which is the right relationship: the grid is what *arrived*, the
           quote is what it *means*. A reader who only looks at one should look at this one. */}
       {beat !== undefined && <Quote event={beat.event} x={QUOTE.x} y={QUOTE.y} />}
+      {/* The claim itself. Without it the quote above is two numbers nobody can interpret. */}
+      <Verdict verdict={verdictAt(trace, beat?.event)} x={VERDICT.x} y={VERDICT.y} />
 
       {trail.map((past, i) => (
         <g key={past.at} opacity={0.08 + 0.1 * (trail.length - i)}>

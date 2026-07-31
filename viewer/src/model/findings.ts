@@ -92,6 +92,16 @@ export const FINDINGS: readonly Finding[] = [
     where: `${REPO}/include/dfr/recovery/client.hpp`,
   },
   {
+    title: "Six million hostile inputs, and the check that made the result mean anything",
+    hid: "Every decoder takes bytes off a network, and the unit tests feed them bytes a person chose — which finds the cases a person thought of. Six targets, sanitizers on, seeded with real IEX packets so every mutation starts from something that parses.",
+    caught:
+      "Nothing, across 6,000,000 mutations. Which is worth nothing unless the fuzzer can find things, so the length check in the DEEP header decoder was deliberately removed to see whether it would.",
+    matters:
+      "It did — by the self-consistency check, not by AddressSanitizer. The sanitizer only reports the over-read when the short message happens to sit at the end of an allocation; \u201ca decode reported a length it did not have\u201d catches it every time.",
+    kind: "hostile input",
+    where: `${REPO}/docs/FUZZING.md`,
+  },
+  {
     title: "A benchmark loop the optimiser deleted",
     hid: "Polling a synchronised client reported 0.0 ns and ninety-seven billion polls a second. The client's state never changed, so the loop was invariant and -O3 computed one answer and kept it.",
     caught: "The number being too good. A barrier on the loop's result does not help — the fix is a real data dependency, so each iteration's input comes from the last one's output.",

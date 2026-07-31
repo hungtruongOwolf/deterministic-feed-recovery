@@ -202,6 +202,9 @@ export const BOOK = { x: stackRight + 34, y: inner.y + 22, w: inner.x + inner.w 
 // layout where they had drifted apart.
 export const QUOTE = { x: BOOK.x + 4, y: BOOK.y + BOOK.h - 72 } as const;
 
+// Under the quote, because it is the sentence that makes the quote mean something.
+export const VERDICT = { x: BOOK.x + 4, y: BOOK.y + BOOK.h - 8 } as const;
+
 export const RAIL = { x: inner.x, y: inner.y + inner.h - 128, w: inner.w, h: 44 } as const;
 export const BLOCK = { x: inner.x, y: RAIL.y + RAIL.h + 14, w: inner.w, h: 54 } as const;
 

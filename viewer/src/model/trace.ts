@@ -109,6 +109,18 @@ export interface RunSummary {
   readonly retransmit_refusals: number;
   readonly snapshot_requests: number;
   readonly unfillable_messages: number;
+
+  /**
+   * The book every published message builds, with nothing lost.
+   *
+   * What the run's own book has to equal. Carried so the page can state the invariant — "this is the book that
+   * would have existed" — rather than showing a bid and an ask a reader has to interpret. Computed by applying the
+   * published bodies in order, not by a second recovery run: the reference is *what the venue sent*, and a
+   * reference that also went through recovery would be comparing recovery to itself.
+   */
+  readonly reference_bid: number;
+  readonly reference_ask: number;
+  readonly reference_traded: number;
   readonly final_state: string;
   /** False when the recorder filled: the trace is a prefix, and the UI must say so. */
   readonly complete: boolean;

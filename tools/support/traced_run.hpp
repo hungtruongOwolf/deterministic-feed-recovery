@@ -94,6 +94,16 @@ struct run_summary {
   std::uint64_t retransmit_refusals{0};
   std::uint64_t snapshot_requests{0};
   std::uint64_t unfillable_messages{0};
+
+  // The book every published message builds, with nothing lost. The run's own book is on every event; this is what
+  // it has to equal, and carrying it means the page can state the invariant rather than show a quote a reader has
+  // to interpret.
+  //
+  // Computed by applying the published bodies in order — not by a second recovery run, because the reference is
+  // "what the venue sent", and a reference that also went through recovery would be comparing recovery to itself.
+  std::int64_t reference_bid{0};
+  std::int64_t reference_ask{0};
+  std::uint64_t reference_traded{0};
   rec::client_state final_state{rec::client_state::synchronising};
   std::vector<chaos::fault> schedule;
 };

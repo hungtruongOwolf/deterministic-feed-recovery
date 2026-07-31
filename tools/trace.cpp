@@ -121,6 +121,19 @@ int main(int argc, char** argv) {
   dfr_tools::run_summary summary =
       dfr_tools::run_traced(options.run, stream, recorder, &bodies);
 
+  // The loss-free book, for the page to compare against. Every published body, in order, nothing dropped.
+  {
+    dfr_tools::traced_book reference;
+    for (const auto& [sequence, body] : bodies) {
+      (void)sequence;
+      (void)dfr_tools::apply_to_book(reference,
+                                     dfr::packet_view{body.data(), body.size()});
+    }
+    summary.reference_bid = reference.bids().best().at.raw();
+    summary.reference_ask = reference.asks().best().at.raw();
+    summary.reference_traded = reference.traded_shares();
+  }
+
   std::FILE* out = stdout;
   if (options.out != nullptr) {
     out = std::fopen(options.out, "wb");
