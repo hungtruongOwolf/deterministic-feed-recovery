@@ -78,6 +78,11 @@ dfr_add_test_suite(dfr_recovery_tests SOURCES
   recovery/client_recovery_test.cpp
 )
 
+dfr_add_test_suite(dfr_venue_tests SOURCES
+  venue/publisher_test.cpp
+  venue/retransmit_facility_test.cpp
+)
+
 # Spans chaos, wire and recovery on purpose: the properties it checks are exactly the ones
 # no single component can be asked about alone.
 dfr_add_test_suite(dfr_integration_tests SOURCES
