@@ -23,6 +23,13 @@ import { buildStory } from "../src/model/story";
 import { ACTS, actAt, buildFilm, prologue, runtimeSeconds } from "../src/model/film";
 import { BEATS_PER_SECOND } from "../src/anim/usePlayback";
 import { ActStrip } from "../src/panels/ActStrip";
+import {
+  PAGE_TAGLINE,
+  PAGE_TITLE,
+  PROJECT_ABBREVIATION,
+  PROJECT_NAME,
+  PROJECT_TAGLINE,
+} from "../src/model/brand";
 import { Sheet } from "../src/stage/Sheet";
 import { Stage } from "../src/stage/Stage";
 import { MARGIN, NESTED, SHEET, boxes, gridFor, type Box } from "../src/stage/layout";
@@ -234,6 +241,39 @@ const midway = renderToStaticMarkup(
 );
 check(midway !== strip, "the strip shows the position moving through the film");
 check(/is-past/.test(midway), "an act already played is marked as behind, not as unchosen");
+
+// ---------------------------------------------------------------------------
+// 5. the name — a reader has to be able to tell that it is one
+// ---------------------------------------------------------------------------
+
+console.log("\nthe name");
+
+check(
+  PROJECT_NAME.split(" ").every((word) => word[0] === word[0]!.toUpperCase()),
+  `the project name is title case (${PROJECT_NAME})`,
+);
+check(PROJECT_ABBREVIATION === PROJECT_ABBREVIATION.toUpperCase(), "the abbreviation is upper case");
+check(
+  PROJECT_ABBREVIATION ===
+    PROJECT_NAME.split(" ")
+      .map((word) => word[0])
+      .join(""),
+  "the abbreviation is the initials of the name, so expanding it is obvious",
+);
+
+const page = readFileSync("index.html", "utf8");
+check(page.includes(PAGE_TITLE), "the browser tab carries the full name");
+check(!/<title>[a-z-]+<\/title>/.test(page), "the tab title is not a bare lower-case slug");
+check(/name="description"/.test(page), "the page says what it is to anything that only reads the head");
+
+for (const [what, line] of [
+  ["the project tagline", PROJECT_TAGLINE],
+  ["the page tagline", PAGE_TAGLINE],
+] as const) {
+  check(!/_/.test(line), `${what} has no field names in it`);
+  check(/[.!]$/.test(line.trim()), `${what} is a sentence`);
+  check(line.length > 40 && line.length < 220, `${what} is one readable length (${line.length} chars)`);
+}
 
 console.log(failures === 0 ? "\nall drawing checks passed" : `\n${failures} drawing checks failed`);
 process.exit(failures === 0 ? 0 : 1);

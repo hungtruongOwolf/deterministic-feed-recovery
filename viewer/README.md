@@ -1,6 +1,12 @@
-# Run viewer
+# Deterministic Feed Recovery — run viewer
 
 Press play and watch a market-data feed be damaged, and watch what the receiver does or cannot do about it.
+
+The name is written out in full and in title case wherever a reader meets it. A lower-case slug is a fine
+thing for a repository and a poor thing for a page: somebody arriving cold reads `deterministic feed
+recovery` as three ordinary words rather than as the name of something. `src/model/brand.ts` holds the name,
+the abbreviation and the two taglines in one place, and `npm run check` asserts the tab title and the header
+still agree.
 It reads a `dfr` trace file and draws it — no server, no live connection.
 
 ```

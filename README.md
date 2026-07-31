@@ -1,6 +1,11 @@
-# deterministic-feed-recovery
+# Deterministic Feed Recovery
 
-A seeded fault injector and a recovery library for exchange market-data feeds.
+**DFR** — a market-data feed broken on purpose, and the C++20 client that puts it back together.
+
+A seeded fault injector and a recovery library for exchange market-data feeds. Every run is a deterministic
+function of its seed, so a failure is a number somebody else can type in and see for themselves.
+
+**[Watch a run →](https://hungtruongowolf.github.io/deterministic-feed-recovery/)**
 
 **Status: `dfr::core`, `dfr::wire`, `dfr::capture` and `dfr::chaos` are
 implemented and tested. `dfr::recovery` is implemented and tested — arbitration, gap tracking,

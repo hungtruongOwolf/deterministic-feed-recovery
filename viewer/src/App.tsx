@@ -10,6 +10,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseTrace, TraceFormatError, type Trace } from "./model/trace";
+import {
+  PAGE_TAGLINE,
+  PROJECT_ABBREVIATION,
+  PROJECT_NAME,
+  PROJECT_TAGLINE,
+} from "./model/brand";
 import { ACTS, actAt, buildFilm, dwellFor, INTERLUDE_BEATS, type Film } from "./model/film";
 import { usePlayback } from "./anim/usePlayback";
 import { Sheet } from "./stage/Sheet";
@@ -111,10 +117,15 @@ export function App() {
   return (
     <div className="app">
       <header className="app__bar">
-        <h1 className="app__title">
-          deterministic feed recovery
-          <small>what a market-data client does when the feed breaks</small>
-        </h1>
+        <div className="app__brand">
+          <h1 className="app__title">
+            {PROJECT_NAME}
+            <span className="app__abbr mono">{PROJECT_ABBREVIATION}</span>
+          </h1>
+          <p className="app__tagline">
+            {PROJECT_TAGLINE} <span className="app__tagline-sub">{PAGE_TAGLINE}</span>
+          </p>
+        </div>
         <div className="spacer" />
         <span className="mono app__note">three acts · one system · nothing to choose</span>
       </header>
