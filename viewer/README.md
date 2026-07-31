@@ -41,29 +41,29 @@ behind it is a hole.
 Damage happens on the left and shows up on the right a few beats later. Watching the second follow the first
 is the argument the whole project is making.
 
-## The three runs are one experiment, not three demos
+## One film, three acts — and nothing to choose
 
-Three chapter buttons, always visible — not a dropdown, because somebody arriving at the page has no way to
-guess that the three are meant to be watched in order. Each removes one more defence, and the plane it
-removed is drawn as an empty outline with its parts struck out.
+There is no dropdown and there are no chapter buttons. Both were tried and both were wrong for the same
+reason: anything you pick between reads as an alternative, so three runs behind a control read as three
+competing methods rather than three layers of one system.
 
-The three defences, cheapest first:
+So the three traces are fetched together and joined into one film that plays straight through. Act II starts
+where act I ends, an interlude card says what was taken away, and the run continues under worse conditions.
+The strip above the drawing is one bar whose fill crosses the act dividers as it plays — that crossing is the
+argument. Clicking an act seeks; it does not select.
 
-| | defence | costs | catches |
+The three acts, each with one more defence removed:
+
+| | act | what is taken away | how deep it falls |
 |---|---|---|---|
-| ① | **two lines** | bandwidth, continuously | loss on one path — the common case — and costs no time at all |
-| ② | **ask for it back** | a round trip, and it expires | what both lines missed, if you ask in time |
-| ③ | **rebuild from a snapshot** | seconds, blind while it runs | everything, but you lose your place |
+| **I** | Two lines carry the feed | nothing | stays on the first defence |
+| **II** | Now take the second line away | the second line | falls to the second defence |
+| **III** | And close the retransmit window | the retransmit window too | falls to the third, and still loses data |
 
-Each bundled run **removes one more rung on purpose**, so the one underneath can be watched doing its job. A
-run with redundancy working never exercises retransmission, because there is nothing left for it to do — so
-to see retransmission you take the second line away. The removed rung is drawn struck out, and so is the part
-of the plan it corresponds to.
-
-The third run removes both, and the snapshot arrives reflecting an older moment than the oldest message the
-receiver kept. Twenty messages then exist in neither place. Nothing knows they are gone — and a receiver that
-carried on would publish a book that looks complete and is permanently wrong. This one refuses, which is the
-point of the exercise.
+Pacing is part of the argument. Two thirds of a real feed is heartbeats, so an evenly ticked film of 623
+steps is mostly watching nothing happen. Nothing is skipped — every step still plays and the position axis
+still counts them all — but quiet stretches go past quickly and the moments that matter are held. The whole
+film runs about 114 seconds at 1×, and the checker asserts that.
 
 ## The one rule
 
@@ -89,9 +89,13 @@ The check asserts:
   label fits the box it is drawn in, and the book grid fits its region at 40, 120, 300 and 900 messages;
 - **rendering** — the ladder, the path, the grid and a packet all draw, and **two progress values of the same
   step produce different markup**, so the picture moves rather than being a still with a play button on it;
-- **the experiment is visible** — a run missing a defence draws it struck out, a run with all three does not,
-  and each run **falls exactly as far down the stack as it should**: part 1 stays on plane 1, part 2 reaches
-  plane 2, part 3 reaches plane 3;
+- **the experiment is visible** — an act missing a defence draws it struck out, an act with all three does
+  not, and the acts **fall strictly deeper as the film goes on** (`0 → 1 → 2`). That is the claim the whole
+  page exists to make, so it is asserted rather than hoped for: if it ever stops holding, the page is drawing
+  three unrelated runs and calling them an argument;
+- **there is nothing to choose** — no `<select>` renders anywhere, the acts share one bar rather than having
+  one each, the acts are contiguous and cover the film exactly, and an act already played is marked as
+  *behind* rather than as *unchosen*;
 - **language** — every step is a sentence, no `snake_case` leaked through, and the run that loses data
   explains the loss in words.
 

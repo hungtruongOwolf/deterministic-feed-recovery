@@ -1,72 +1,71 @@
-// The viewer: press play and watch a market-data feed be damaged and repaired.
+// The viewer: press play and watch a market-data feed be damaged and repaired, three times, each time with
+// one fewer defence.
 //
-// It reads a trace file and draws it. No server, no live connection, and no domain logic — every number on
-// screen is a field the trace already carries. See viewer/README.md for why that rule is not tidiness.
+// There is deliberately nothing to choose. The three runs are one film that plays through, because offering
+// them as options — a dropdown, then buttons — made them read as three competing methods rather than three
+// layers of one system. See src/model/film.ts.
+//
+// It reads trace files and draws them. No server, no live connection, and no domain logic: every number on
+// screen is a field a trace already carries. See viewer/README.md for why that rule is not tidiness.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseTrace, TraceFormatError, type Trace } from "./model/trace";
-import { buildStory } from "./model/story";
+import { ACTS, actAt, buildFilm, dwellFor, INTERLUDE_BEATS, type Film } from "./model/film";
 import { usePlayback } from "./anim/usePlayback";
 import { Sheet } from "./stage/Sheet";
 import { Stage } from "./stage/Stage";
 import { Transport } from "./panels/Transport";
 import { ActCard } from "./panels/ActCard";
-import { Overture } from "./panels/Overture";
-import { Chapters, CHAPTERS } from "./panels/Chapters";
+import { Prologue } from "./panels/Prologue";
+import { ActStrip } from "./panels/ActStrip";
+import { Interlude } from "./panels/Interlude";
 import { EventRail } from "./panels/EventRail";
 import { Summary } from "./panels/Summary";
 import { Ledger } from "./panels/Ledger";
 import { LineHealth } from "./panels/LineHealth";
 
-const NOTE: Record<string, string> = {
-  "redundant-ab.jsonl": "part 1 · every defence in place",
-  "recovering-seed4711.jsonl": "part 2 · the second line removed",
-  "glimpse-race.jsonl": "part 3 · the second line and the retransmit window both gone",
-};
-
 export function App() {
-  const [choice, setChoice] = useState<string>(CHAPTERS[0]!.file);
-  const [trace, setTrace] = useState<Trace | undefined>();
+  const [film, setFilm] = useState<Film | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [started, setStarted] = useState(false);
 
-  const story = useMemo(() => (trace === undefined ? [] : buildStory(trace)), [trace]);
-  const playback = usePlayback(story.length);
-
-  const load = useCallback((text: string) => {
-    try {
-      setTrace(parseTrace(text));
-      setError(undefined);
-      setStarted(false);
-    } catch (cause) {
-      setTrace(undefined);
-      setError(cause instanceof TraceFormatError ? cause.message : String(cause));
-    }
-  }, []);
+  // Pacing belongs to the story, not to the clock: quiet stretches go past, notable moments are held.
+  const dwell = useCallback((at: number) => (film === undefined ? 1 : dwellFor(film, at)), [film]);
+  const playback = usePlayback(film?.moments.length ?? 0, dwell);
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`traces/${choice}`)
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
-      .then((text) => {
+    Promise.all(
+      ACTS.map(async (act) => {
+        const response = await fetch(`traces/${act.file}`);
+        if (!response.ok) {
+          throw new Error(`traces/${act.file}: ${response.status}`);
+        }
+        return parseTrace(await response.text());
+      }),
+    )
+      .then((traces: readonly Trace[]) => {
         if (!cancelled) {
-          load(text);
+          setFilm(buildFilm(traces));
+          setError(undefined);
+          setStarted(false);
         }
       })
       .catch((cause: unknown) => {
         if (!cancelled) {
-          setError(`could not fetch traces/${choice}: ${String(cause)}`);
+          setFilm(undefined);
+          setError(cause instanceof TraceFormatError ? cause.message : String(cause));
         }
       });
     return () => {
       cancelled = true;
     };
-  }, [choice, load]);
+  }, []);
 
   // Space to play, arrows to step: the shortcuts anybody tries on something that moves.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) {
+      if (e.target instanceof HTMLInputElement) {
         return;
       }
       if (e.code === "Space") {
@@ -82,23 +81,32 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, [playback]);
 
-  const at = Math.min(story.length - 1, Math.floor(playback.position));
-  const beat = at >= 0 ? story[at] : undefined;
-  const progress = playback.position - at;
-  const trail = useMemo(
-    () => story.slice(Math.max(0, at - 3), at).filter((b) => b.fate === "arrive"),
-    [story, at],
-  );
-  const messages = useMemo(
-    () => story.reduce((most, b) => Math.max(most, b.event.delivered_through, b.event.end), 1),
-    [story],
-  );
-
   const start = useCallback(() => {
     setStarted(true);
     playback.restart();
     playback.play();
   }, [playback]);
+
+  const view = useMemo(() => {
+    if (film === undefined) {
+      return undefined;
+    }
+    const at = Math.max(0, Math.min(film.moments.length - 1, Math.floor(playback.position)));
+    const moment = film.moments[at];
+    if (moment === undefined) {
+      return undefined;
+    }
+    const act = actAt(film, at);
+    // Trailing glyphs come from this act only, so nothing from act one is drawn during act two.
+    const trail = film.moments
+      .slice(Math.max(act.from, at - 3), at)
+      .filter((m) => m.beat.fate === "arrive")
+      .map((m) => m.beat);
+    const messages = film.moments
+      .slice(act.from, act.to)
+      .reduce((most, m) => Math.max(most, m.beat.event.delivered_through, m.beat.event.end), 1);
+    return { at, moment, act, trail, messages };
+  }, [film, playback.position]);
 
   return (
     <div className="app">
@@ -108,24 +116,12 @@ export function App() {
           <small>what a market-data client does when the feed breaks</small>
         </h1>
         <div className="spacer" />
-        <label className="mono app__open">
-          open a trace…
-          <input
-            type="file"
-            accept=".jsonl,.json,.txt"
-            onChange={(e) => {
-              const file = e.currentTarget.files?.[0];
-              if (file !== undefined) {
-                void file.text().then(load);
-              }
-            }}
-          />
-        </label>
+        <span className="mono app__note">three acts · one system · nothing to choose</span>
       </header>
 
       {error !== undefined && (
         <section className="panel app__error">
-          <h2>Could not read that trace</h2>
+          <h2>Could not read the traces</h2>
           <p className="why">
             {error} — the parser is strict on purpose: a viewer that skipped lines it did not understand
             would draw an incomplete run and look like a complete one.
@@ -133,41 +129,52 @@ export function App() {
         </section>
       )}
 
-      {trace !== undefined && (
+      {film !== undefined && view !== undefined && (
         <main className="app__main">
           <div className="app__stage">
-            <Chapters current={choice} onChoose={setChoice} />
+            <ActStrip film={film} position={playback.position} onSeek={(to) => playback.seek(to)} />
+
             <Sheet
-              title="MARKET-DATA RECOVERY · ONE CONTROLLED RUN"
-              subtitle={`seed ${trace.header.seed} · ${NOTE[choice] ?? trace.header.mode}`}
+              title="MARKET-DATA RECOVERY · ONE SYSTEM, THREE TIMES"
+              subtitle={`act ${view.act.ordinal} of III · ${view.act.title.toLowerCase()} · seed ${view.act.trace.header.seed}`}
               figures={[
-                { label: "DELIVERED ONCE", value: String(trace.summary.messages_delivered) },
-                { label: "DELIVERED TWICE", value: String(trace.summary.messages_delivered_twice) },
-                { label: "ASKED FOR BACK", value: String(trace.summary.retransmit_requests) },
-                { label: "LOST FOR GOOD", value: String(trace.summary.unfillable_messages) },
+                { label: "DELIVERED ONCE", value: String(view.act.trace.summary.messages_delivered) },
+                {
+                  label: "DELIVERED TWICE",
+                  value: String(view.act.trace.summary.messages_delivered_twice),
+                },
+                { label: "ASKED FOR BACK", value: String(view.act.trace.summary.retransmit_requests) },
+                { label: "LOST FOR GOOD", value: String(view.act.trace.summary.unfillable_messages) },
               ]}
             >
               <Stage
-                trace={trace}
-                beat={beat}
-                progress={progress}
-                trail={trail}
-                messages={messages}
+                trace={view.act.trace}
+                beat={view.moment.beat}
+                progress={playback.position - view.at}
+                trail={view.trail}
+                messages={view.messages}
               />
             </Sheet>
 
-            {!started && <Overture trace={trace} onStart={start} />}
-            <ActCard beat={beat} />
+            {!started && <Prologue film={film} onStart={start} />}
+            {started && view.moment.opening && (
+              <Interlude act={view.act} through={view.moment.local / INTERLUDE_BEATS} />
+            )}
+            <ActCard beat={view.moment.beat} />
           </div>
 
-          <Transport playback={playback} beats={story.length} caption={beat?.caption ?? ""} />
+          <Transport
+            playback={playback}
+            beats={film.moments.length}
+            caption={view.moment.beat.caption}
+          />
 
-          <EventRail story={story} at={at} onSeek={(to) => playback.seek(to)} />
+          <EventRail film={film} at={view.at} onSeek={(to) => playback.seek(to)} />
 
           <div className="app__aside">
-            <Summary trace={trace} />
-            <LineHealth trace={trace} />
-            <Ledger trace={trace} />
+            <Summary trace={view.act.trace} />
+            <LineHealth trace={view.act.trace} />
+            <Ledger trace={view.act.trace} />
           </div>
         </main>
       )}

@@ -22,10 +22,24 @@ export interface Playback {
   readonly setSpeed: (speed: Speed) => void;
 }
 
-/** Beats per second at 1×. Slow enough to read a caption, fast enough that a 250-beat run is watchable. */
-const BEATS_PER_SECOND = 2.2;
+/** Beats per second at 1×, before pacing. */
+export const BEATS_PER_SECOND = 2.4;
 
-export function usePlayback(beats: number): Playback {
+/**
+ * How long to hold each beat, relative to the others.
+ *
+ * Uniform pacing was fine for one run of 250 beats and is wrong for a film of 623: five minutes of even
+ * ticking, most of it heartbeats. A film paces itself — the quiet stretches go past quickly and the moments
+ * that matter are held long enough to read. Nothing is skipped, so the position axis still means what it
+ * says; only the speed along it varies.
+ *
+ * Supplied by the caller because pacing is a property of the story, and this hook knows only about time.
+ */
+export type Dwell = (beat: number) => number;
+
+const EVEN: Dwell = () => 1;
+
+export function usePlayback(beats: number, dwell: Dwell = EVEN): Playback {
   const [position, setPosition] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState<Speed>(1);
@@ -33,19 +47,21 @@ export function usePlayback(beats: number): Playback {
   // Held in refs so the animation callback never needs to be rebuilt, which would restart the frame loop and
   // make playback stutter every time a caption changed.
   const last = useRef<number | null>(null);
-  const live = useRef({ playing, speed, beats });
-  live.current = { playing, speed, beats };
+  const live = useRef({ playing, speed, beats, dwell });
+  live.current = { playing, speed, beats, dwell };
 
   useEffect(() => {
     let frame = 0;
     const tick = (now: number) => {
       const previous = last.current;
       last.current = now;
-      const { playing: running, speed: rate, beats: total } = live.current;
+      const { playing: running, speed: rate, beats: total, dwell: hold } = live.current;
       if (running && previous !== null && total > 0) {
         const seconds = Math.min(0.25, (now - previous) / 1000);
         setPosition((current) => {
-          const next = current + seconds * BEATS_PER_SECOND * rate;
+          // A long dwell means fewer beats per second, so divide rather than multiply.
+          const held = Math.max(0.05, hold(Math.floor(current)));
+          const next = current + (seconds * BEATS_PER_SECOND * rate) / held;
           if (next >= total - 1) {
             setPlaying(false);
             return total - 1;

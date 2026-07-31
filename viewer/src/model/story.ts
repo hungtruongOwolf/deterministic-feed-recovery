@@ -336,30 +336,3 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
 export function buildStory(trace: Trace): readonly Beat[] {
   return trace.events.map((event, at) => ({ at, event, ...describe(event) }));
 }
-
-/** One or two sentences on what this whole run is, shown before anything moves. */
-export function overture(trace: Trace): { readonly title: string; readonly body: string } {
-  const { header, summary } = trace;
-  if (header.mode === "glimpse") {
-    return {
-      title: "A recovery that fails, honestly",
-      body:
-        "Watch a feed lose packets, watch the client ask for them back, and watch the venue answer too late. " +
-        "The snapshot that arrives is older than what the client kept, so some messages are gone for good — and the point of the run is that the client notices and refuses to pretend otherwise.",
-    };
-  }
-  if (header.lines > 1) {
-    return {
-      title: "Two lines carrying one feed",
-      body:
-        "The venue sends the same messages down two paths that lose different packets. Nearly every hole closes from the other line before the client has to ask anybody for anything — " +
-        `and in this run it asked ${summary.retransmit_requests} times.`,
-    };
-  }
-  return {
-    title: "A feed being damaged, and repaired",
-    body:
-      `Faults are injected into a stream of ${header.packets} packets from seed ${header.seed}. ` +
-      "The client detects what went missing, asks the venue for it, and puts it back — and every message ends up delivered exactly once.",
-  };
-}
