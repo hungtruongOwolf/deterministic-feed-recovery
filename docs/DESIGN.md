@@ -167,16 +167,33 @@ From `tigerbeetle/docs/TIGER_STYLE.md`, verbatim where quoted.
 
 ## 4. Layout
 
+What was planned, and what it became. The shape held; the names moved as the components learned what
+they were.
+
 ```
 include/dfr/
-  core/        packet_view, result<T>, error, assert, attributes, rng, clock
-  wire/        moldudp64.hpp, iextp.hpp, flyweights, bounds_check
-  chaos/       fault_op, schedule, injector<Transport, Clock, Rng>
-  recovery/    gap_tracker, retransmit, snapshot, ab_arbiter
-  venue/       mock exchange, in-memory transport
-  detail/      everything else
-src/dfr.cc     # single optional TU
+  core/        packet_view, mutable_packet_view, result<T>, error, assert, attributes, rng, clock
+  wire/        moldudp64/, iextp/, soupbintcp/, ouch/   (constants · header · cursor · encode, per protocol)
+  capture/     pcap, pcapng/, ethernet, frame           (not planned; the corpus made it necessary)
+  chaos/       fault, schedule, target, injector<Target>
+  recovery/    gap, gap_set, gap_tracker, requester, arbiter, replay_buffer, snapshot, client
+  venue/       publisher<Clock, Target>, retransmit_facility, snapshot_facility, order_entry
+  trace/       event, recorder                          (not planned; the viewer needed a format)
+tools/         inspect, verify, trace
+viewer/        static page over a trace, no domain logic
 ```
+
+Three departures from the plan worth recording, because each was forced rather than chosen:
+
+- **`capture/` was not in the plan.** Verifying the IEX-TP layout against real data required reading pcap
+  and pcapng, and the corpus turned out to contain both with no date boundary between them.
+- **`trace/` was not either.** It exists because a viewer needs a format, and because the alternative —
+  a viewer that reconstructed state from an event sequence — would have been a second implementation of
+  the recovery state machine in another language. See §7b.
+- **No `src/dfr.cc`, no amalgamation, no module markers.** Header-only throughout, and the compiled-TU
+  mechanism below was never needed. Left in the document because the reasoning still applies if a
+  compile-time problem ever appears, but nothing in the repository does it today, and a design document
+  that describes machinery the code does not have is worse than one that admits the plan changed.
 
 - **Header-only by default, one compiled TU optional.** fmt's mechanism: out-of-line bodies in
   `*-inl.hpp` prefixed `DFR_FUNC`, which is `inline` under `DFR_HEADER_ONLY` and empty otherwise

@@ -68,7 +68,7 @@ inline constexpr bool kParanoidAssertionsEnabled =
 struct assert_context {
   std::string_view expression;  // the source text of the condition
   std::string_view message;     // the reason, or empty
-  std::source_location where;
+  std::source_location where{};
 };
 
 namespace detail {

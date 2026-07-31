@@ -268,7 +268,7 @@ class reader {
       return error::message_length_mismatch;
     }
 
-    packet_view data;
+    packet_view data{};
     if (const auto err = body.subview(kEpbBodyMinSize, captured).get(data);
         err != error::ok) DFR_UNLIKELY {
       return error::truncated_block;

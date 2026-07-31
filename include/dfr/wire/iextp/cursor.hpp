@@ -21,7 +21,7 @@ namespace wire::iextp {
 
 struct message {
   std::uint64_t sequence{0};
-  packet_view payload;
+  packet_view payload{};
 
   [[nodiscard]] friend bool operator==(const message&,
                                        const message&) = default;
@@ -56,7 +56,7 @@ class message_cursor {
     // The header declares how many payload bytes follow. Trusting the datagram
     // length instead would accept a packet padded by a switch or truncated by a
     // capture, and silently decode the wrong number of blocks.
-    packet_view payload;
+    packet_view payload{};
     if (const auto err = after_header.prefix(decoded.payload_length).get(payload);
         err != error::ok) DFR_UNLIKELY {
       return error::block_overruns_datagram;

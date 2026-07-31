@@ -16,8 +16,8 @@ namespace detail {
 
 // The full 128-bit product of two 64-bit values.
 struct wide_product {
-  std::uint64_t high;
-  std::uint64_t low;
+  std::uint64_t high{0};
+  std::uint64_t low{0};
 
   [[nodiscard]] friend constexpr bool operator==(wide_product,
                                                  wide_product) = default;

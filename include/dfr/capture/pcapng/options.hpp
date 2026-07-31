@@ -27,7 +27,7 @@ namespace capture::pcapng {
 // One option, as found.
 struct option {
   std::uint16_t code{0};
-  packet_view value;
+  packet_view value{};
 };
 
 // Calls `handler(option)` for each option until the terminator, the end of the
@@ -54,7 +54,7 @@ template <typename Handler>
       return true;
     }
 
-    packet_view value;
+    packet_view value{};
     if (cursor.subview(kOptionHeaderSize, length).get(value) != error::ok) {
       return false;
     }

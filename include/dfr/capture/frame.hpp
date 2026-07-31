@@ -31,7 +31,7 @@ struct frame {
   std::uint64_t timestamp_ns{0};
 
   // The bytes actually stored in the file.
-  packet_view data;
+  packet_view data{};
 
   // The length the frame had on the wire, which exceeds data.size() when the
   // capture was taken with a snaplen shorter than the frame.

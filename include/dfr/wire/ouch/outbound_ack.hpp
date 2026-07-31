@@ -86,6 +86,11 @@ namespace detail {
 // Reads the fields common to both, given where each message puts them. The offsets are passed rather
 // than assumed because the two messages agree on them only up to Order State — and relying on that
 // agreement is how a change to one silently corrupts the other.
+// Deliberately without default member initialisers, unlike every other aggregate in this library.
+//
+// Omitting one of these is a bug: a zero offset would silently read the wrong bytes rather than fail. So
+// -Wmissing-field-initializers is wanted here, and giving the fields defaults would switch off the one
+// check that catches a mistranscribed table.
 struct ack_offsets {
   std::size_t timestamp;
   std::size_t side;

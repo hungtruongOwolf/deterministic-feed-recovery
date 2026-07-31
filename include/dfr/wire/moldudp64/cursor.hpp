@@ -22,7 +22,7 @@ namespace wire::moldudp64 {
 // One message, with the sequence number it occupies.
 struct message {
   std::uint64_t sequence{0};
-  packet_view payload;
+  packet_view payload{};
 
   [[nodiscard]] friend bool operator==(const message&,
                                        const message&) = default;
@@ -67,7 +67,7 @@ class message_cursor {
       return err;
     }
 
-    packet_view payload;
+    packet_view payload{};
     if (const auto err = packet.suffix(kHeaderSize).get(payload);
         err != error::ok) DFR_UNLIKELY {
       return error::truncated_header;

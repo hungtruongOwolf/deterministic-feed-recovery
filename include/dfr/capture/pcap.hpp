@@ -186,7 +186,7 @@ class reader {
       return error::message_length_mismatch;
     }
 
-    packet_view data;
+    packet_view data{};
     if (const auto err = rest_.prefix(captured).get(data); err != error::ok)
         DFR_UNLIKELY {
       rest_ = at_record_start;

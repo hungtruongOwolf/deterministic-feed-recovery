@@ -47,7 +47,7 @@ inline constexpr std::size_t kMaxDelayedPackets = 32;
 // Why a packet came out the way it did, so a caller can build the oracle: it
 // knows what was injected and can assert the receiver reported exactly that.
 struct emission {
-  packet_view packet;
+  packet_view packet{};
   fault_op cause{fault_op::none};
 
   // The source index this packet came from, which is not the current index when

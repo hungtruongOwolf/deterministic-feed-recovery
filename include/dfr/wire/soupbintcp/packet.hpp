@@ -72,7 +72,7 @@ struct packet {
   }
 
   const std::size_t payload_size = static_cast<std::size_t>(declared) - kTypeSize;
-  packet_view payload;
+  packet_view payload{};
   if (payload_size > 0) {
     if (const auto err = stream.subview(kFrameOverhead, payload_size).get(payload);
         err != error::ok) DFR_UNLIKELY {

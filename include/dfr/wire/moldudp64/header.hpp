@@ -44,7 +44,7 @@ enum class packet_kind : std::uint8_t {
 }
 
 struct header {
-  session_id session;
+  session_id session{};
   // The sequence number of the FIRST message in this packet. For a heartbeat,
   // the next sequence the publisher intends to send.
   std::uint64_t sequence{0};

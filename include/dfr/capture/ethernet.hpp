@@ -84,7 +84,7 @@ struct udp_datagram {
   std::uint16_t vlan_id{0};
   int vlan_tags{0};
 
-  packet_view payload;
+  packet_view payload{};
 
   [[nodiscard]] constexpr bool multicast() const noexcept {
     // 224.0.0.0/4. Named because a market-data capture that contains no
