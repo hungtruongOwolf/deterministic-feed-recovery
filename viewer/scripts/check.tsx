@@ -30,6 +30,8 @@ import {
   runtimeSeconds,
 } from "../src/model/film";
 import { Controls } from "../src/panels/Controls";
+import { Performance } from "../src/panels/Performance";
+import { assertionCosts, NOISE_FLOOR, parseBenchmarks, parseHandoff } from "../src/model/perf";
 import { BEATS_PER_SECOND } from "../src/anim/usePlayback";
 import { ActStrip } from "../src/panels/ActStrip";
 import { meaningOf as meaningFor, parseSession } from "../src/model/session";
@@ -444,7 +446,9 @@ console.log("\nthe controls");
     <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live verdict={verdict} />,
   );
   check(holding.includes("WebAssembly"), "the page says the library is running on it");
-  check(/seed/.test(holding) && /faults/.test(holding), "the seed and the fault count are editable");
+  // What used to be checked here — that the words "seed" and "faults" appear — is now checked for its
+  // *absence*, in the language section below. A control the reader cannot form an intention about is worse than
+  // no control, because the page then looks interactive and is not.
   check(holding.includes("is-holding"), "the verdict reads as holding at the committed settings");
   check(!/disabled/.test(holding), "the controls are enabled when the library loaded");
   check(/tendency/.test(holding), "the claim that is only a tendency is labelled as one");
@@ -475,6 +479,103 @@ console.log("\nthe controls");
   );
   check(broken.includes("is-broken"), "a broken invariant is reported as broken");
   check(/does not hold/.test(broken), "and it is said in words, not only in colour");
+}
+
+// ---------------------------------------------------------------------------
+// 8. the performance figures — read, never recomputed, and honest about provenance
+// ---------------------------------------------------------------------------
+
+console.log("\nthe performance figures");
+
+{
+  const perf = {
+    shipping: parseBenchmarks(readFileSync("public/bench/results.json", "utf8"), "shipping"),
+    paranoid: parseBenchmarks(readFileSync("public/bench/results-paranoid.json", "utf8"), "paranoid"),
+    handoff: parseHandoff(readFileSync("public/bench/handoff.json", "utf8"), "handoff"),
+  };
+
+  check(perf.shipping.assertions === "off", "the headline figures are the shipping configuration");
+  check(perf.shipping.allocations_after_init === 0, "the library allocated nothing after start-up");
+  check(perf.shipping.measurements.length >= 5, `${perf.shipping.measurements.length} operations measured`);
+  check(
+    perf.shipping.measurements.every((m) => m.best_ns > 0 && m.p50_ns >= m.best_ns && m.p99_ns >= m.p50_ns),
+    "every measurement is ordered best <= p50 <= p99, so none is a placeholder",
+  );
+  check(
+    perf.shipping.measurements.every((m) => m.unit.length > 8 && !/_/.test(m.unit)),
+    "every measurement names what one operation is, in words",
+  );
+
+  // The hand-off row that refuses has to actually refuse, or it is a row about a condition that did not occur.
+  const refusing = perf.handoff.measurements.filter((h) => h.refused > 0);
+  check(refusing.length >= 1, `the slow-consumer row really did fill the ring (${refusing[0]?.refused.toLocaleString() ?? 0} refused)`);
+
+  // Batching must beat one-at-a-time, or the reason pop_batch exists is unsupported by the numbers on the page.
+  const single = perf.handoff.measurements.find((h) => h.name === "one at a time");
+  const batched = perf.handoff.measurements.find((h) => h.name.includes("batches"));
+  check(
+    single !== undefined && batched !== undefined && batched.ns_per_message < single.ns_per_message,
+    "batched draining is measurably cheaper per message than one at a time",
+  );
+
+  // The assertion cost must be labelled as noise where it is noise. This is the check that stops the page
+  // quoting a 2% difference as a result.
+  const costs = assertionCosts(perf);
+  check(costs.length === perf.shipping.measurements.length, "every operation is priced against paranoid");
+  check(
+    costs.every((c) => c.significant === c.ratio >= NOISE_FLOOR),
+    "a difference inside the noise floor is marked as noise, not reported as a win",
+  );
+  check(costs.some((c) => c.significant), "at least one operation is measurably slower with assertions on");
+
+  const drawn = renderToStaticMarkup(<Performance perf={perf} />);
+  // The provenance disclaimer is load-bearing: every other figure on the page is computed in the reader's
+  // browser and these are not, so the page must not let anybody assume otherwise.
+  check(/Measured natively, not in your browser/.test(drawn), "the panel says where these figures came from");
+  check(/batch means/.test(drawn), "the panel says what the percentiles are over");
+  check(/tick-to-trade/.test(drawn), "the panel names the latency it does not measure");
+  check(!/NaN|undefined|Infinity/.test(drawn), "no figure rendered as NaN, undefined or Infinity");
+  check((drawn.match(/class="cost /g) ?? []).length === costs.length, "every assertion cost is drawn");
+  check(/allocations after start-up/.test(drawn), "the allocation count is one of the headline figures");
+}
+
+// ---------------------------------------------------------------------------
+// 9. the reader's language — no jargon the visitor cannot act on
+// ---------------------------------------------------------------------------
+
+console.log("\nthe reader's language");
+
+{
+  const verdict = verdictOf(film);
+  const controls = renderToStaticMarkup(
+    <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live verdict={verdict} />,
+  );
+
+  // "seed" was the word this page asked a visitor for, and it is a word they cannot form an intention about.
+  // It is still present — reproducibility is the point of the project — but as a footnote naming this pattern.
+  check(/how much goes wrong/.test(controls), "the damage control is phrased as what it means");
+  check(/how much of the feed/.test(controls), "so is the length control");
+  check(
+    /a little|typical|a lot|brutal/.test(controls),
+    "the damage levels are named rather than given as numbers",
+  );
+  check(!/>\s*seed\s*</.test(controls), "nothing on the page asks the reader for a \"seed\"");
+  check(/names the pattern/.test(controls), "the number is explained as the name of a pattern");
+  check(/reproducible/.test(controls), "and the reason it exists at all is stated");
+
+  const session = renderToStaticMarkup(
+    <SessionSection
+      trace={parseSession(readFileSync("public/traces/order-session.jsonl", "utf8"))}
+      settings={{ orders: 3, fill: 40, cancel: true }}
+      onChange={() => {}}
+      live
+    />,
+  );
+  // The old heading — "The other direction: orders coming in" — assumed the reader already knew there were two
+  // directions. A heading that needs the thing it introduces is not a heading.
+  check(!/The other direction/.test(session), "the session heading no longer assumes a direction is known");
+  check(/taking orders/.test(session), "it says what the section is");
+  check(/sending/.test(session) && /listening/.test(session), "and how it relates to everything above");
 }
 
 console.log(failures === 0 ? "\nall drawing checks passed" : `\n${failures} drawing checks failed`);

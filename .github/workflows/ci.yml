@@ -82,6 +82,30 @@ jobs:
           ./scripts/regenerate-traces.sh dev
           git diff --exit-code -- traces/ viewer/public/traces/
 
+  # The benchmarks have to keep compiling and the two hard claims have to keep holding. The *figures* are not
+  # asserted — they move with the machine and a CI runner is a different machine — but "zero allocations after
+  # start-up" and "the ring refuses rather than overwriting" are properties, not measurements, and a runner can
+  # check them as well as a laptop.
+  bench:
+    name: benchmarks build, and the hard claims hold
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build at the shipping configuration
+        run: |
+          cmake -S . -B build/o3-off -DCMAKE_BUILD_TYPE=Release -DDFR_ASSERTIONS=off -DDFR_WARNINGS_AS_ERRORS=ON
+          cmake --build build/o3-off -j 4 --target dfr_recovery_bench dfr_handoff_bench
+
+      # recovery_bench exits non-zero if anything allocated after initialisation, so this is the assertion.
+      - name: Nothing allocates after start-up
+        run: ./build/o3-off/bench/recovery_bench --samples 40
+
+      - name: The hand-off runs and the ring refuses rather than overwriting
+        run: ./build/o3-off/bench/handoff_bench --messages 400000
+
   # The load-bearing check for the WebAssembly build: does the browser produce the same trace as the
   # terminal? Two compilers, two targets, one seed. If the bytes ever differ then something in the library
   # depends on its platform, and "deterministic" was a word rather than a property — so this fails the build

@@ -20,10 +20,30 @@ All seven namespaces are implemented and tested.
 | `dfr::recovery` | arbitration, gap tracking, retransmission, snapshot recovery, one poll-driven client | done |
 | `dfr::venue` | market-data publisher, retransmit and snapshot facilities, OUCH order entry over a SoupBinTCP session | done |
 | `dfr::trace` | recording a run as JSONL, and the viewer that reads it | done |
+| `dfr::concurrent` | a lock-free SPSC ring at the one thread boundary, benchmarked | done |
 
-**676 tests pass under four configurations** — assertions at paranoid, fast and off, and
-AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors, on Apple Clang locally and
-Linux Clang in CI. There is an end-to-end oracle over both synthetic streams and real captures.
+**685 tests pass under five configurations** — assertions at paranoid, fast and off, and
+AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer — all with warnings as errors, on Apple Clang
+locally and Linux Clang in CI. There is an end-to-end oracle over both synthetic streams and real captures.
+
+## What it costs
+
+| | |
+|---|---|
+| take in one packet, end to end | **~41 ns**, ~24 M packets/s on one core |
+| hand a message to another core, batched | **~13 ns**, ~76 M messages/s |
+| allocations after start-up | **0**, counted by replacing global `operator new` |
+| paranoid assertions, tightest operation | 3× |
+| paranoid assertions, the realistic hot path | **below the noise floor** |
+
+That last row is the useful one: **the bounds-checks-everywhere build can ship.** They cost 3× on a header
+decode, which is almost all checks, and nothing measurable on the paths that dominate an ingest.
+
+Not measured, and not measurable here: tick-to-trade, NIC-to-NIC, any wire latency — no NIC timestamping and
+no PMU counters on a laptop or a cloud VM. See [docs/BENCHMARKS.md](docs/BENCHMARKS.md) for the three
+measurement bugs found along the way, and [docs/CONCURRENCY.md](docs/CONCURRENCY.md) for the experiment where
+**ThreadSanitizer passes a deliberately broken ring** and a property test on arm64 catches it 12 times out of
+12.
 
 Not built, on purpose: a matching engine. Matching is the part 1,071 other C++ repositories already
 implement; what is missing from the open-source world is the protocol behaviour *around* it, so executions

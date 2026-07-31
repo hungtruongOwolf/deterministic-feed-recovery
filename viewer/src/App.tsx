@@ -31,6 +31,8 @@ import { loadEngine, type Engine, type SessionParameters } from "./wasm/engine";
 import { Controls } from "./panels/Controls";
 import { parseSession, type SessionTrace } from "./model/session";
 import { SessionSection } from "./session/SessionSection";
+import { parseBenchmarks, parseHandoff, type Performance as PerfData } from "./model/perf";
+import { Performance } from "./panels/Performance";
 import { usePlayback } from "./anim/usePlayback";
 import { Sheet } from "./stage/Sheet";
 import { Stage } from "./stage/Stage";
@@ -50,6 +52,7 @@ export function App() {
   const [engine, setEngine] = useState<Engine | undefined>();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [busy, setBusy] = useState(false);
+  const [perf, setPerf] = useState<PerfData | undefined>();
   const [sessionSettings, setSessionSettings] = useState<SessionParameters>({
     orders: 3,
     fill: 40,
@@ -162,6 +165,37 @@ export function App() {
       cancelled = true;
     };
   }, [engine, sessionSettings]);
+
+  // The benchmark figures. Fetched rather than computed, and the panel says why: WebAssembly cannot time a
+  // two-nanosecond operation, so these are native measurements read from a committed file.
+  useEffect(() => {
+    let cancelled = false;
+    const load = async (name: string) => {
+      const response = await fetch(`bench/${name}`);
+      if (!response.ok) {
+        throw new Error(`bench/${name}: ${response.status}`);
+      }
+      return response.text();
+    };
+    Promise.all([load("results.json"), load("results-paranoid.json"), load("handoff.json")])
+      .then(([shipping, paranoid, handoff]) => {
+        if (!cancelled) {
+          setPerf({
+            shipping: parseBenchmarks(shipping, "the shipping benchmarks"),
+            paranoid: parseBenchmarks(paranoid, "the paranoid benchmarks"),
+            handoff: parseHandoff(handoff, "the hand-off benchmarks"),
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPerf(undefined);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Space to play, arrows to step: the shortcuts anybody tries on something that moves.
   useEffect(() => {
@@ -290,6 +324,8 @@ export function App() {
             <LineHealth trace={view.act.trace} />
             <Ledger trace={view.act.trace} />
           </div>
+
+          {perf !== undefined && <Performance perf={perf} />}
 
           {session !== undefined && (
             <SessionSection

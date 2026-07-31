@@ -25,11 +25,13 @@ export function SessionSection({ trace, settings, onChange, live }: Props) {
   return (
     <section className="session">
       <header className="session__head">
-        <h2 className="session__title">The other direction: orders coming in</h2>
+        <h2 className="session__title">Now the same exchange, taking orders</h2>
         <p className="session__lede">
-          The same venue accepts orders over OUCH 4.2 carried on a SoupBinTCP session. It is the half a
-          feed publisher is not: a counterparty has to answer as well as broadcast. Below is one real
-          session, recorded by <code>tools/session</code> and drawn from the recording.
+          Everything above is the exchange <em>sending</em> — market data going out to everybody, and a client
+          repairing what it loses. This is the exchange <em>listening</em>: one client sends orders, the
+          exchange accepts, fills and cancels them, and answers every one. A venue that only broadcast would
+          not be a venue, so this is the other half rather than a second topic. It speaks OUCH 4.2 over a
+          SoupBinTCP session, which are the protocols NASDAQ actually uses.
         </p>
       </header>
 
