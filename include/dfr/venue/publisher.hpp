@@ -1,26 +1,24 @@
-// Publishing a market-data feed the way a venue does.
+// Publishing a market-data feed the way a venue does, over either protocol.
 //
-// Until now every test stream was built by a test helper. That is fine for checking a decoder
-// and useless for checking a receiver, because a helper produces the packets the test author
-// thought of. A publisher produces the packets a *venue* produces: messages packed until the
-// datagram is full, heartbeats during quiet periods, and both of IEX-TP's redundant chains
-// maintained exactly.
+// Until dfr::venue existed, every test stream in this project was built by a test helper. That is fine
+// for checking a decoder and useless for checking a receiver, because a helper produces the packets the
+// test author thought of. A publisher produces the packets a *venue* produces: messages packed until the
+// datagram is full, heartbeats during quiet periods, and every cross-packet chain maintained exactly.
 //
-// The two chains are the reason this is worth building rather than faking
-// ---------------------------------------------------------------------
-// Sequence numbers count messages; Stream Offset counts payload bytes. A publisher that got
-// either wrong would produce a stream `chain_checker` rejects — and `chain_checker` is the
-// component that held on 460,578 real IEX packets. So the encoder and the decoder check each
-// other here, and the decoder has already been checked against reality. That is a stronger
-// position than either alone.
+// The chains are why this is worth building rather than faking
+// ----------------------------------------------------------
+// IEX-TP numbers messages and *also* counts payload bytes in a Stream Offset. A publisher that got either
+// wrong produces a stream chain_checker rejects — and chain_checker is the component that held on 460,578
+// real IEX packets. So the encoder and the decoder check each other here, and one of them has already been
+// checked against the world. That is a stronger position than either alone.
 //
-// IEX-TP only, for now, and deliberately not generalised
-// ----------------------------------------------------
-// A MoldUDP64 publisher is the same shape with a different encoder and no stream offset. The
-// injector is parameterised over a protocol because two implementations existed to factor;
-// here there is one, and building the policy first would be designing for a case not yet
-// written. dfr::chaos::fault_target is what that abstraction should look like when the second
-// publisher lands.
+// MoldUDP64 has only the sequence, which is the substance of the difference between the two protocols and
+// the reason the target policy carries a `kTracksStreamOffset` flag rather than a byte count nobody reads.
+//
+// Parameterised over the protocol, now that there are two
+// -----------------------------------------------------
+// The policy lives in publisher_target.hpp and was written when the second implementation arrived rather
+// than in anticipation of it. See that file for what actually differed — three things, and only three.
 
 #ifndef DFR_VENUE_PUBLISHER_HPP
 #define DFR_VENUE_PUBLISHER_HPP
@@ -32,8 +30,7 @@
 #include <dfr/core/mutable_packet_view.hpp>
 #include <dfr/core/packet_view.hpp>
 #include <dfr/core/result.hpp>
-#include <dfr/wire/iextp/encode.hpp>
-#include <dfr/wire/iextp/header.hpp>
+#include <dfr/venue/publisher_target.hpp>
 
 #include <array>
 #include <cstddef>
@@ -82,12 +79,13 @@ struct publisher_stats {
                                                  const publisher_stats&) = default;
 };
 
-template <clock_source Clock, std::size_t MaxDatagram = kMaxDatagramBytes>
-class iextp_publisher {
+template <clock_source Clock, publisher_target Target,
+          std::size_t MaxDatagram = kMaxDatagramBytes>
+class publisher {
  public:
   using time_point = typename Clock::time_point;
 
-  explicit constexpr iextp_publisher(publisher_options options) noexcept
+  explicit constexpr publisher(publisher_options options) noexcept
       : options_(options),
         next_sequence_(options.first_sequence),
         next_offset_(options.first_stream_offset) {
@@ -118,9 +116,9 @@ class iextp_publisher {
   template <typename Emit>
   [[nodiscard]] constexpr result<void> submit(packet_view message, time_point now,
                                               Emit&& emit) noexcept {
-    if (message.size() + wire::iextp::kMessageLengthSize +
-            wire::iextp::kHeaderSize >
-        MaxDatagram) DFR_UNLIKELY {
+    // The length prefix each protocol writes before a message body is two bytes in both, so the check is
+    // the header plus that prefix plus the body.
+    if (message.size() + 2 + Target::kHeaderSize > MaxDatagram) DFR_UNLIKELY {
       // No packet could ever carry it, so this is a caller error rather than a full buffer.
       // Reported rather than asserted because the message came from outside.
       return error::invalid_argument;
@@ -194,16 +192,8 @@ class iextp_publisher {
                "a heartbeat must not overtake pending messages");
     open_ = false;
 
-    const wire::iextp::header prototype{.channel = options_.channel,
-                                        .session = options_.session,
-                                        .stream_offset = next_offset_,
-                                        .first_sequence = next_sequence_};
     std::size_t written = 0;
-    if (const auto err =
-            wire::iextp::encode_heartbeat(mutable_packet_view{buffer_.data(),
-                                                              buffer_.size()},
-                                          prototype)
-                .get(written);
+    if (const auto err = Target::heartbeat(scratch(), here()).get(written);
         err != error::ok) DFR_UNLIKELY {
       return err;
     }
@@ -223,14 +213,7 @@ class iextp_publisher {
 
  private:
   [[nodiscard]] constexpr result<void> open() noexcept {
-    const wire::iextp::header prototype{.channel = options_.channel,
-                                        .session = options_.session,
-                                        .stream_offset = next_offset_,
-                                        .first_sequence = next_sequence_};
-    if (const auto err = wire::iextp::packet_builder::into(
-                             mutable_packet_view{buffer_.data(), buffer_.size()},
-                             prototype)
-                             .get(builder_);
+    if (const auto err = Target::open(scratch(), here()).get(builder_);
         err != error::ok) DFR_UNLIKELY {
       return err;
     }
@@ -238,13 +221,28 @@ class iextp_publisher {
     return ok();
   }
 
+  [[nodiscard]] constexpr stream_position here() const noexcept {
+    return stream_position{.session = options_.session,
+                           .channel = options_.channel,
+                           .next_sequence = next_sequence_,
+                           .next_stream_offset = next_offset_};
+  }
+
+  [[nodiscard]] constexpr mutable_packet_view scratch() noexcept {
+    return mutable_packet_view{buffer_.data(), buffer_.size()};
+  }
+
   // Both chains advance here and nowhere else, so there is one place to be wrong and one place
   // to check: sequence numbers by the message count, stream offset by the payload byte count.
   constexpr void advance(packet_view finished, bool is_heartbeat) noexcept {
-    const std::size_t payload = finished.size() - wire::iextp::kHeaderSize;
+    const std::size_t payload = finished.size() - Target::kHeaderSize;
     if (!is_heartbeat) {
       next_sequence_ += builder_.message_count();
-      next_offset_ += static_cast<std::int64_t>(payload);
+      // Only where the protocol carries it. Maintaining an offset MoldUDP64 has no field for would be
+      // arithmetic nobody reads, and a header that pretended to write it would be worse.
+      if constexpr (Target::kTracksStreamOffset) {
+        next_offset_ += static_cast<std::int64_t>(payload);
+      }
       stats_.messages += builder_.message_count();
     }
     ++stats_.packets;
@@ -254,7 +252,7 @@ class iextp_publisher {
 
   publisher_options options_{};
   std::array<std::byte, MaxDatagram> buffer_{};
-  wire::iextp::packet_builder builder_{};
+  typename Target::builder builder_{};
   bool open_{false};
   bool started_{false};
   time_point last_emit_{};
@@ -262,6 +260,15 @@ class iextp_publisher {
   std::int64_t next_offset_{0};
   publisher_stats stats_{};
 };
+
+// The two instantiations, named so a caller says which protocol it means rather than which policy.
+//
+// `iextp_publisher` keeps its name because it had one before the policy existed and callers use it.
+template <clock_source Clock, std::size_t MaxDatagram = kMaxDatagramBytes>
+using iextp_publisher = publisher<Clock, iextp_target, MaxDatagram>;
+
+template <clock_source Clock, std::size_t MaxDatagram = kMaxDatagramBytes>
+using moldudp64_publisher = publisher<Clock, moldudp64_target, MaxDatagram>;
 
 }  // namespace venue
 }  // namespace dfr::inline v1

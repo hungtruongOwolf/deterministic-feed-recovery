@@ -9,7 +9,7 @@ end-to-end oracle over both synthetic and real captures. `dfr::wire` covers Mold
 SoupBinTCP and OUCH 4.2. `dfr::venue` is in progress — the publisher and the retransmit and snapshot
 facilities are done, OUCH order entry is not.**
 
-652 tests pass under four configurations — assertions at paranoid, fast and off,
+658 tests pass under four configurations — assertions at paranoid, fast and off,
 and AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors.
 
 ## What this is meant to be

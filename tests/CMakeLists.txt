@@ -84,6 +84,7 @@ dfr_add_test_suite(dfr_trace_tests SOURCES
 
 dfr_add_test_suite(dfr_venue_tests SOURCES
   venue/publisher_test.cpp
+  venue/moldudp64_publisher_test.cpp
   venue/retransmit_facility_test.cpp
   venue/snapshot_facility_test.cpp
   venue/order_entry_test.cpp
