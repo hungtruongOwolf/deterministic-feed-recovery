@@ -16,15 +16,19 @@ import {
   type Measurement,
   type Performance as PerfData,
 } from "../model/perf";
+import { type LiveRate } from "../model/here";
 import { Disclosure } from "../ui/Disclosure";
+import { HereAndNow } from "./HereAndNow";
 
 const REPO = "https://github.com/hungtruongOwolf/deterministic-feed-recovery/blob/main";
 
 interface Props {
   readonly perf: PerfData;
+  /** The run the reader just caused, or undefined when WebAssembly is not available. */
+  readonly live: LiveRate | undefined;
 }
 
-export function Performance({ perf }: Props) {
+export function Performance({ perf, live }: Props) {
   const costs = assertionCosts(perf);
   const worst = costs.filter((c) => c.significant).sort((a, b) => b.ratio - a.ratio)[0];
   const free = costs.filter((c) => !c.significant).length;
@@ -33,6 +37,8 @@ export function Performance({ perf }: Props) {
 
   return (
     <>
+      <HereAndNow rate={live} nativePerSecond={hot?.per_second} />
+
       <div className="perf__headline">
         <Headline
           value={hot === undefined ? "—" : nanos(hot.best_ns)}
@@ -53,9 +59,8 @@ export function Performance({ perf }: Props) {
       </div>
 
       <p className="perf__note">
-        Measured natively on a laptop, not in your browser — WebAssembly cannot time a two-nanosecond
-        operation. No wire latency is claimed: this is CPU time in one process, and tick-to-trade needs
-        hardware a cloud VM does not have.
+        Measured natively on a laptop, not in your browser. CPU time in one process — no wire latency is
+        claimed, and tick-to-trade needs hardware a cloud VM does not have.
       </p>
 
       <table className="perf__table">

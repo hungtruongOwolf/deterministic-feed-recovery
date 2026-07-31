@@ -22,6 +22,7 @@ import {
   type Film,
   type Settings,
 } from "./model/film";
+import { fastest, ratePerSecond, type LiveRun } from "./model/here";
 import {
   loadEngine,
   type Engine,
@@ -76,6 +77,8 @@ export function App() {
   });
   const [error, setError] = useState<string | undefined>();
   const [started, setStarted] = useState(false);
+  // The one measurement on the page the reader causes. See model/here.ts for what it is and is not.
+  const [live, setLive] = useState<LiveRun | undefined>(undefined);
 
   // Pacing belongs to the story, not to the clock: quiet stretches go past, notable moments are held.
   const dwell = useCallback((at: number) => (film === undefined ? 1 : dwellFor(film, at)), [film]);
@@ -131,6 +134,9 @@ export function App() {
     }
     setBusy(true);
     try {
+      // Timed around the calls themselves, not around React's work: what is being measured is the library, and
+      // including a render would report the page's speed under the library's name.
+      const startedAt = globalThis.performance.now();
       const traces = ACTS.map((act) =>
         parseTrace(
           engine.runTrace({
@@ -142,6 +148,10 @@ export function App() {
             staleness: act.staleness,
           }),
         ),
+      );
+      const elapsedMs = globalThis.performance.now() - startedAt;
+      setLive((previous) =>
+        fastest(previous, { elapsedMs, messages: settings.messages * ACTS.length, runs: 1 }),
       );
       setFilm(buildFilm(traces));
       setError(undefined);
@@ -474,7 +484,7 @@ export function App() {
                 The recovery path only runs when something has already gone wrong, which is exactly the code
                 nobody benchmarks.
               </p>
-              <Performance perf={perf} />
+              <Performance perf={perf} live={ratePerSecond(live)} />
             </section>
           )}
         </main>

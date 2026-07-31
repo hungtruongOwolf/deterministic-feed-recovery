@@ -302,6 +302,14 @@
 .headline.is-good .headline__value { color: var(--healthy); }
 .headline__label { font-size: 13px; color: var(--ink); }
 .headline__note { font-family: var(--mono); font-size: 9.5px; line-height: 1.4; color: var(--ink-faint); }
+/* The live figure. Boxed, because it is the only number here the reader caused and the boundary says so. */
+.here { border: 1px solid var(--rule-strong); padding: 12px 14px; margin: 0 0 18px; max-width: 62ch; }
+.here--absent { border-style: dashed; font-size: 12px; color: var(--ink-faint); }
+.here__figure { display: flex; align-items: baseline; gap: 9px; }
+.here__value { font-family: var(--serif); font-size: 38px; line-height: 1; color: var(--healthy); }
+.here__unit { font-size: 13px; color: var(--ink); }
+.here__detail { font-size: 12.5px; line-height: 1.5; margin: 6px 0 0; color: var(--ink); }
+
 .perf__table { width: 100%; }
 .perf__table th { text-align: left; }
 .perf__num { text-align: right; }
