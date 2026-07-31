@@ -17,17 +17,16 @@ import { Ledger } from "./panels/Ledger";
 import { LineHealth } from "./panels/LineHealth";
 
 const BUNDLED = [
-  { file: "recovering-seed4711.jsonl", label: "one line · faults injected and repaired" },
-  { file: "redundant-ab.jsonl", label: "two lines · holes closed by the other line" },
-  { file: "glimpse-race.jsonl", label: "the snapshot arrives too old · data lost for good" },
+  { file: "redundant-ab.jsonl", label: "① two lines — nobody has to ask for anything" },
+  { file: "recovering-seed4711.jsonl", label: "② second line removed — ask for it back" },
+  { file: "glimpse-race.jsonl", label: "③ retransmit gone too — the snapshot is too old" },
 ] as const;
 
-const LEGEND = [
-  { swatch: "var(--ink)", label: "market data" },
-  { swatch: "var(--fault)", label: "damaged" },
-  { swatch: "var(--recovery)", label: "repair" },
-  { swatch: "var(--unfillable)", label: "lost for good" },
-] as const;
+const BUNDLED_NOTE: Record<string, string> = {
+  "redundant-ab.jsonl": "defence 1 in place",
+  "recovering-seed4711.jsonl": "defence 1 removed",
+  "glimpse-race.jsonl": "defences 1 and 2 removed",
+};
 
 export function App() {
   const [choice, setChoice] = useState<string>(BUNDLED[0].file);
@@ -94,7 +93,7 @@ export function App() {
     () => story.slice(Math.max(0, at - 3), at).filter((b) => b.fate === "arrive"),
     [story, at],
   );
-  const highest = useMemo(
+  const messages = useMemo(
     () => story.reduce((most, b) => Math.max(most, b.event.delivered_through, b.event.end), 1),
     [story],
   );
@@ -149,16 +148,21 @@ export function App() {
         <main className="app__main">
           <div className="app__stage">
             <Sheet
-              title="MARKET-DATA RECOVERY · ONE RUN"
-              subtitle={`seed ${trace.header.seed} · ${trace.header.mode} · ${trace.header.lines === 1 ? "single line" : "redundant pair"}`}
-              legend={LEGEND}
+              title="MARKET-DATA RECOVERY · ONE CONTROLLED RUN"
+              subtitle={`seed ${trace.header.seed} · ${BUNDLED_NOTE[choice] ?? trace.header.mode}`}
+              figures={[
+                { label: "DELIVERED ONCE", value: String(trace.summary.messages_delivered) },
+                { label: "DELIVERED TWICE", value: String(trace.summary.messages_delivered_twice) },
+                { label: "ASKED FOR BACK", value: String(trace.summary.retransmit_requests) },
+                { label: "LOST FOR GOOD", value: String(trace.summary.unfillable_messages) },
+              ]}
             >
               <Stage
+                trace={trace}
                 beat={beat}
                 progress={progress}
                 trail={trail}
-                highest={highest}
-                lines={trace.header.lines}
+                messages={messages}
               />
             </Sheet>
 
