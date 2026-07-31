@@ -113,6 +113,7 @@ dfr_add_test_suite(dfr_integration_tests SOURCES
   integration/recovery_oracle_test.cpp
   integration/recovery_repair_test.cpp
   integration/book_oracle_test.cpp
+  integration/glimpse_test.cpp
   integration/venue_recovery_test.cpp
   integration/venue_snapshot_test.cpp
 )

@@ -14,7 +14,7 @@ All seven namespaces are implemented and tested.
 | | what it is | state |
 |---|---|---|
 | `dfr::core` | `result<T>`, errors, views, injected clocks | done |
-| `dfr::wire` | MoldUDP64, IEX-TP, SoupBinTCP 3.00, OUCH 4.2 | done |
+| `dfr::wire` | MoldUDP64, IEX-TP, SoupBinTCP 3.00, OUCH 4.2, DEEP 1.0, Glimpse | done |
 | `dfr::capture` | pcap reading, replayed against real IEX HIST files | done |
 | `dfr::chaos` | seeded, protocol-aware fault injection | done |
 | `dfr::recovery` | arbitration, gap tracking, retransmission, snapshot recovery, one poll-driven client | done |
@@ -23,8 +23,9 @@ All seven namespaces are implemented and tested.
 | `dfr::concurrent` | a lock-free SPSC ring at the one thread boundary, benchmarked | done |
 | `dfr::wire::deep` | IEX DEEP 1.0 message decoding, every offset verified against a real capture | done |
 | `dfr::book` | an aggregated order book, and the oracle that turns on it | done |
+| `dfr::wire::glimpse` | the snapshot protocol as bytes, served over SoupBinTCP | done |
 
-**708 tests pass under five configurations** — assertions at paranoid, fast and off, and
+**715 tests pass under five configurations** — assertions at paranoid, fast and off, and
 AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer — all with warnings as errors, on Apple Clang
 locally and Linux Clang in CI. There is an end-to-end oracle over both synthetic streams and real captures.
 
