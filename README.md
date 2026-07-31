@@ -30,6 +30,30 @@ implement; what is missing from the open-source world is the protocol behaviour 
 are driven by the caller and the host's job is to keep the accounting straight and emit the right messages.
 See `include/dfr/venue/order_entry.hpp` for the argument.
 
+## Try it
+
+```sh
+cmake -S . -B build/dev && cmake --build build/dev -j8
+
+# One order-entry session, both directions of the wire.
+# The last three lines are the point: the client counted the sequence itself.
+./build/dev/tools/session
+
+# All 676 tests, assertions at paranoid.
+ctest --test-dir build/dev
+
+# A run recorded as JSONL. The same seed gives byte-identical output; a different seed does not.
+./build/dev/tools/trace --seed 4711 --messages 300 --faults 6 --out /tmp/a.jsonl
+./build/dev/tools/trace --seed 4711 --messages 300 --faults 6 --out /tmp/b.jsonl && diff /tmp/a.jsonl /tmp/b.jsonl
+
+# Against a real capture, if you have an IEX HIST pcap:
+./build/dev/tools/inspect  <capture.pcap>
+./build/dev/tools/verify   <capture.pcap> --seed 4711 --faults 40
+```
+
+Or [watch a run in the browser](https://hungtruongowolf.github.io/deterministic-feed-recovery/), which
+needs nothing installed.
+
 ## What this is meant to be
 
 Three components under the namespace `dfr`, built in this order:

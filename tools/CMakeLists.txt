@@ -18,3 +18,10 @@ add_executable(dfr_trace trace.cpp)
 target_link_libraries(dfr_trace PRIVATE dfr::dfr dfr_dev_flags)
 target_include_directories(dfr_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(dfr_trace PROPERTIES OUTPUT_NAME trace)
+
+# Drives one order-entry session and prints both directions of the wire, with a client cursor counting
+# the server's stream alongside it. The seam between SoupBinTCP and OUCH is the kind of thing that
+# benefits from being watched rather than only asserted.
+add_executable(dfr_session session.cpp)
+target_link_libraries(dfr_session PRIVATE dfr::dfr dfr_dev_flags)
+set_target_properties(dfr_session PROPERTIES OUTPUT_NAME session)
