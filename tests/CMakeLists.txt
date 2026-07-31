@@ -110,6 +110,11 @@ dfr_add_test_suite(dfr_soupbintcp_tests SOURCES
   wire/soupbintcp_session_test.cpp
 )
 
+dfr_add_test_suite(dfr_ouch_tests SOURCES
+  wire/ouch_value_test.cpp
+  wire/ouch_message_test.cpp
+)
+
 dfr_add_test_suite(dfr_iextp_tests SOURCES
   wire/iextp_header_test.cpp
   wire/iextp_cursor_test.cpp
