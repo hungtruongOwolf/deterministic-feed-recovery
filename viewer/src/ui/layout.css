@@ -1,0 +1,51 @@
+.app { display: flex; flex-direction: column; height: 100%; }
+
+.app__bar {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--rule-strong);
+  flex-wrap: wrap;
+}
+.app__bar .spacer { flex: 1; }
+.app__title small { color: var(--ink-soft); font-family: var(--mono); font-size: 12px; margin-left: 10px; }
+
+.app__body {
+  flex: 1;
+  overflow: auto;
+  padding: 18px 20px 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+  gap: 16px;
+  align-content: start;
+}
+.app__wide { grid-column: 1 / -1; }
+
+@media (max-width: 1080px) {
+  .app__body { grid-template-columns: minmax(0, 1fr); }
+}
+
+.stack { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+.readout { display: flex; gap: 22px; flex-wrap: wrap; }
+.readout__cell { min-width: 92px; }
+.readout__label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); }
+.readout__value { font-family: var(--mono); font-size: 17px; }
+
+.band { display: flex; height: 22px; border: 1px solid var(--rule); }
+.band__span { height: 100%; position: relative; }
+.band__legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; font-size: 12px; color: var(--ink-soft); }
+.band__swatch { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border: 1px solid var(--rule-strong); vertical-align: -1px; }
+
+.axis { position: relative; height: 74px; border-left: 1px solid var(--rule-strong); border-bottom: 1px solid var(--rule-strong); margin: 6px 0 4px; }
+.axis__span { position: absolute; top: 12px; height: 20px; }
+.axis__mark { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--ink); }
+.axis__mark span { position: absolute; top: 38px; left: 3px; white-space: nowrap; font-family: var(--mono); font-size: 11px; }
+
+.log { max-height: 260px; overflow: auto; }
+.log table { font-size: 12.5px; }
+.log tr.log--fault td { color: var(--fault); }
+.log tr.log--bad td { color: var(--unfillable); }
+
+.ledger td:first-child { max-width: 34ch; }

@@ -55,6 +55,12 @@ struct run_options {
   std::size_t messages{300};
   std::uint32_t faults{6};
   std::uint64_t staleness_messages{0};
+
+  // How many redundant lines carry the feed. Two is the interesting case: the venue publishes
+  // once and each line loses a different set of packets, so most holes close from the other line
+  // and never become retransmit requests at all.
+  std::size_t lines{1};
+
   run_mode mode{run_mode::recovering};
 };
 
@@ -83,9 +89,12 @@ inline trace_time at_us(std::int64_t micros) {
   return trace_time{} + std::chrono::microseconds{micros};
 }
 
-inline rec::client_options trace_client_options() {
+inline rec::client_options trace_client_options(std::size_t lines) {
   rec::client_options options;
-  options.lines = 1;
+  // Told how many lines it is wired to, because live_lines() is a liveness summary over exactly
+  // that count: a client configured for one line while two are feeding it would report a healthy
+  // pair as a single line and hide the failure that matters.
+  options.lines = lines;
   options.arbitration.detect_divergence = false;
   options.arbitration.liveness_timeout = std::chrono::seconds{10};
   options.retransmission.settle_delay = std::chrono::microseconds{1};

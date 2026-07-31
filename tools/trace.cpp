@@ -1,6 +1,7 @@
 // Records one complete run of the library as JSONL, for a viewer to read.
 //
-//   trace [--seed N] [--messages N] [--faults N] [--glimpse] [--staleness N] [--out FILE]
+//   trace [--seed N] [--messages N] [--faults N] [--lines 1|2] [--glimpse] [--staleness N]
+//         [--out FILE]
 //
 // One JSON object per line: a header describing the run, one line per event, and a summary. The
 // format is a deliverable, not a debug dump — a trace is a deterministic function of the seed, so
@@ -65,6 +66,16 @@ bool parse(int argc, char** argv, cli& into) {
         return false;
       }
       into.run.staleness_messages = std::strtoull(value, nullptr, 10);
+    } else if (std::strcmp(argv[i], "--lines") == 0) {
+      const char* value = next();
+      if (value == nullptr) {
+        return false;
+      }
+      into.run.lines = std::strtoull(value, nullptr, 10);
+      if (into.run.lines == 0 || into.run.lines > 2) {
+        std::fprintf(stderr, "trace: --lines must be 1 or 2\n");
+        return false;
+      }
     } else if (std::strcmp(argv[i], "--glimpse") == 0) {
       into.run.mode = run_mode::glimpse;
       if (into.run.staleness_messages == 0) {
@@ -92,11 +103,12 @@ void write_header(std::FILE* out, const cli& options,
   std::fprintf(out,
                "{\"kind\":\"run\",\"schema\":\"dfr-trace/1\",\"seed\":%llu,"
                "\"messages\":%zu,\"packets\":%zu,\"session\":%u,\"mode\":\"%s\","
-               "\"staleness_messages\":%llu,\"schedule\":[",
+               "\"staleness_messages\":%llu,\"lines\":%zu,\"schedule\":[",
                static_cast<unsigned long long>(options.run.seed),
                options.run.messages, published, dfr_tools::kTraceSession,
                options.run.mode == run_mode::glimpse ? "glimpse" : "recovering",
-               static_cast<unsigned long long>(options.run.staleness_messages));
+               static_cast<unsigned long long>(options.run.staleness_messages),
+               options.run.lines);
 
   for (std::size_t i = 0; i < summary.schedule.size(); ++i) {
     const auto& fault = summary.schedule[i];
@@ -131,13 +143,13 @@ void write_header(std::FILE* out, const cli& options,
 void write_event(std::FILE* out, const dfr::trace::event& event) {
   std::fprintf(out,
                "{\"kind\":\"event\",\"i\":%llu,\"t\":%lld,\"layer\":\"%s\","
-               "\"event\":\"%s\",\"first\":%llu,\"end\":%llu,\"attempt\":%u,"
+               "\"event\":\"%s\",\"line\":%u,\"first\":%llu,\"end\":%llu,\"attempt\":%u,"
                "\"detail\":%llu,\"reason\":\"%s\",\"state\":\"%s\","
                "\"delivered_through\":%llu,\"missing\":%llu,\"holes\":%llu}\n",
                static_cast<unsigned long long>(event.packet_index),
                static_cast<long long>(event.time_ns),
                dfr::trace::name_of(dfr::trace::layer_of(event.kind)).data(),
-               dfr::trace::name_of(event.kind).data(),
+               dfr::trace::name_of(event.kind).data(), event.line,
                static_cast<unsigned long long>(event.first_sequence),
                static_cast<unsigned long long>(event.end_sequence), event.attempt,
                static_cast<unsigned long long>(event.detail),
@@ -180,7 +192,7 @@ int main(int argc, char** argv) {
   if (!parse(argc, argv, options)) {
     std::fprintf(stderr,
                  "usage: trace [--seed N] [--messages N] [--faults N] "
-                 "[--glimpse] [--staleness N] [--out FILE]\n");
+                 "[--lines 1|2] [--glimpse] [--staleness N] [--out FILE]\n");
     return 2;
   }
 

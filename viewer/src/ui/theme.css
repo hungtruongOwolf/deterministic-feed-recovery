@@ -1,0 +1,85 @@
+/* An architectural-drawing look: ink on paper, thin rules, no shadows, no rounded corners.
+ *
+ * Chosen because it suits what this is. A recovery trace is a measurement, and a measurement drawn
+ * with gradients and drop shadows invites the reader to admire the picture rather than read the
+ * numbers. Everything numeric is monospaced so columns line up and a changed digit is visible. */
+
+:root {
+  --paper: #faf9f7;
+  --paper-sunk: #f2f0ec;
+  --ink: #191817;
+  --ink-soft: #6b6862;
+  --rule: #d6d2ca;
+  --rule-strong: #a8a39a;
+
+  /* One colour per meaning, and only four, so a colour in this app always means one thing. */
+  --fault: #a8452c;      /* something was done to the stream */
+  --recovery: #2f5d8c;   /* something is being repaired */
+  --unfillable: #7a1717; /* permanently lost: the only saturated colour in the palette */
+  --healthy: #3c6b4a;
+
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  --text: "Iowan Old Style", Palatino, "Palatino Linotype", Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; margin: 0; }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-weight: 500; margin: 0; letter-spacing: 0.01em; }
+h1 { font-size: 19px; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-soft); }
+
+code, .mono, td.num, th.num { font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+a { color: var(--recovery); }
+
+.panel {
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 14px 16px 16px;
+}
+.panel > h2 { margin-bottom: 10px; }
+.panel .why {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin: 0 0 12px;
+  max-width: 62ch;
+}
+
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 4px 10px 4px 0; border-bottom: 1px solid var(--rule); }
+th { font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-soft); }
+td.num, th.num { text-align: right; padding-right: 0; }
+
+.tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  border: 1px solid var(--rule-strong);
+  padding: 0 5px;
+  white-space: nowrap;
+}
+.tag--fault { border-color: var(--fault); color: var(--fault); }
+.tag--recovery { border-color: var(--recovery); color: var(--recovery); }
+.tag--bad { border-color: var(--unfillable); color: var(--unfillable); background: #fdf3f2; }
+.tag--good { border-color: var(--healthy); color: var(--healthy); }
+
+input[type="range"] { width: 100%; accent-color: var(--recovery); }
+select, button {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  padding: 3px 8px;
+}
+button:hover, select:hover { background: var(--paper-sunk); cursor: pointer; }

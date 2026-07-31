@@ -19,7 +19,7 @@ namespace dfr_tools {
 class traced_pipeline {
  public:
   traced_pipeline(run_options options, trace_recorder& into)
-      : options_(options), trace_(into), client_(trace_client_options()) {}
+      : options_(options), trace_(into), client_(trace_client_options(options.lines)) {}
 
   [[nodiscard]] const run_summary& summary() const { return summary_; }
   [[nodiscard]] trace_client& client() { return client_; }
@@ -40,10 +40,15 @@ class traced_pipeline {
 
   void set_index(std::uint64_t index) { index_ = index; }
 
+  // Which line the events being recorded came in on. Set once per offered packet rather than
+  // threaded through every record() call, because every event of one arrival shares it.
+  void set_line(std::size_t line) { line_ = static_cast<std::uint8_t>(line); }
+
   void record(trc::event_kind kind, rec::sequence_range about = {},
               dfr::error reason = dfr::error::ok, std::uint32_t attempt = 0,
               std::uint64_t detail = 0) {
     auto event = here().with(kind);
+    event.line = line_;
     event.first_sequence = about.first;
     event.end_sequence = about.end;
     event.reason = reason;
@@ -81,7 +86,7 @@ class traced_pipeline {
     const auto before = client_.state();
     rec::ingest_report report;
     const auto outcome =
-        client_.on_packet(0, header.session, header.first_sequence,
+        client_.on_packet(line_, header.session, header.first_sequence,
                           header.message_count, 0, at_us(now_us_));
     if (outcome.get(report) != dfr::error::ok) {
       record(trc::event_kind::packet_discarded, {}, outcome.error_code());
@@ -216,6 +221,7 @@ class traced_pipeline {
   std::map<std::uint64_t, int> deliveries_{};
   std::int64_t now_us_{0};
   std::uint64_t index_{0};
+  std::uint8_t line_{0};
 };
 
 }  // namespace dfr_tools

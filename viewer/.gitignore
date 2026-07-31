@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# package-lock.json is deliberately *not* ignored. A project whose central claim is that a run
+# reproduces from a seed cannot leave its own dependency versions to chance.

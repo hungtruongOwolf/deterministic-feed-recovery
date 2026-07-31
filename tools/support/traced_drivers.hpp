@@ -42,24 +42,46 @@ inline run_summary run_recovering(const run_options& options,
   ven::retransmit_facility<512> facility;
   load_facility(facility, stream);
 
-  chaos::injector<chaos::iextp_target> injector{plan};
+  // One injector per line, with different seeds: the whole point of a redundant pair is that the
+  // two lines lose *different* packets, so a schedule shared between them would arrange for the
+  // redundancy to be useless and the trace would show a feed with no benefit from its second line.
+  chaos::schedule other = plan;
+  if (options.lines > 1) {
+    dfr::prng other_rng{options.seed ^ 0x9E37'79B9'7F4A'7C15ULL};
+    (void)chaos::schedule::generate(other_rng, schedule_options, stream.size())
+        .get(other);
+  }
+  chaos::injector<chaos::iextp_target> line_a{plan};
+  chaos::injector<chaos::iextp_target> line_b{other};
   traced_pipeline pipeline{options, into};
 
-  const auto emit = [&](const chaos::emission& emitted) {
-    pipeline.advance(20);
-    pipeline.set_index(emitted.source_index);
-    pipeline.note_fault(emitted);
-    pipeline.offer(emitted.packet);
-    pipeline.answer(facility);
+  const auto emit_on = [&](std::size_t line) {
+    return [&, line](const chaos::emission& emitted) {
+      pipeline.advance(10);
+      pipeline.set_index(emitted.source_index);
+      pipeline.set_line(line);
+      pipeline.note_fault(emitted);
+      pipeline.offer(emitted.packet);
+      pipeline.answer(facility);
+    };
   };
 
+  const auto emit_a = emit_on(0);
+  const auto emit_b = emit_on(1);
   for (std::uint64_t i = 0; i < stream.size(); ++i) {
     const dfr::packet_view view{stream[i].bytes.data(), stream[i].bytes.size()};
-    if (!injector.offer(view, i, emit)) {
+    if (!line_a.offer(view, i, emit_a)) {
+      break;
+    }
+    if (options.lines > 1 && !line_b.offer(view, i, emit_b)) {
       break;
     }
   }
-  (void)injector.flush(emit);
+  (void)line_a.flush(emit_a);
+  if (options.lines > 1) {
+    (void)line_b.flush(emit_b);
+  }
+  pipeline.set_line(0);
 
   // Keep polling after the stream ends: a hole revealed by the last packet is not due to be
   // requested until the settle delay has passed, and there are no further packets to prompt a poll.

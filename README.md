@@ -155,6 +155,25 @@ The header also carries a generated `limits` array: which claims this run measur
 cannot be measured on the hardware available. It is in the data rather than in prose so it
 cannot drift from what the run actually did.
 
+## Viewer
+
+`viewer/` is a static page that reads a trace and draws it: a time scrubber over the packet axis,
+the client's state as a band across the run, the Glimpse race drawn on a sequence axis, per-line
+health for a redundant pair, and the honesty ledger.
+
+```
+cd viewer && npm install && npm run dev
+```
+
+It contains **no domain logic**. Every number drawn is a field the trace already carries; nothing
+is recomputed. A viewer that reconstructed state from the event sequence would be a second
+implementation of the state machine in another language, and when the two disagreed the picture
+would be wrong with nothing to say so — the exact failure this library exists to prevent,
+reintroduced in the tool built to display it.
+
+`scripts/regenerate-traces.sh` refreshes the committed fixtures; `git diff traces/` afterwards is a
+behavioural regression report.
+
 ## Test data
 
 Real wire-format captures, free and without registration:
