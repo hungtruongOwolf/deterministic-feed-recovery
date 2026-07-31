@@ -21,7 +21,7 @@ import {
   actAt,
   buildFilm,
   DEFAULT_SETTINGS,
-  depthsOf,
+  verdictOf,
   dwellFor,
   INTERLUDE_BEATS,
   type Film,
@@ -242,7 +242,7 @@ export function App() {
             onChange={setSettings}
             busy={busy}
             live={engine !== undefined}
-            depths={depthsOf(film)}
+            verdict={verdictOf(film)}
           />
 
           <div className="app__stage">

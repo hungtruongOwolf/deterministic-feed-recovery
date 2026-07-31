@@ -78,6 +78,14 @@ export interface RunSummary {
   readonly messages_delivered_twice: number;
   readonly messages_missing: number;
   readonly retransmit_requests: number;
+  /**
+   * How many messages those requests covered, as distinct from how many requests there were.
+   *
+   * The two answer different questions and the difference is interesting: a second line that fills the
+   * middle of a hole splits one gap into two, so it can produce more requests while asking for fewer
+   * messages. The format grew a field rather than have the viewer sum event ranges.
+   */
+  readonly retransmit_messages: number;
   readonly retransmits_served: number;
   readonly retransmit_refusals: number;
   readonly snapshot_requests: number;

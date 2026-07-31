@@ -25,7 +25,7 @@ import {
   actAt,
   buildFilm,
   DEFAULT_SETTINGS,
-  depthsOf,
+  verdictOf,
   prologue,
   runtimeSeconds,
 } from "../src/model/film";
@@ -431,34 +431,49 @@ check(
 console.log("\nthe controls");
 
 {
-  const depths = depthsOf(film);
+  const verdict = verdictOf(film);
+
+  // The two properties that survived a 400-seed sweep, asserted on the committed run as well.
+  check(verdict.exactlyOnce, "nothing is delivered twice in any act");
+  check(
+    verdict.recoveryHeld,
+    `nothing is lost until the last defence answers late (${verdict.lost.join(" · ")})`,
+  );
+
   const holding = renderToStaticMarkup(
-    <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live depths={depths} />,
+    <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live verdict={verdict} />,
   );
   check(holding.includes("WebAssembly"), "the page says the library is running on it");
   check(/seed/.test(holding) && /faults/.test(holding), "the seed and the fault count are editable");
-  check(holding.includes("is-holding"), `the verdict holds at the committed settings (${depths.join(" → ")})`);
+  check(holding.includes("is-holding"), "the verdict reads as holding at the committed settings");
   check(!/disabled/.test(holding), "the controls are enabled when the library loaded");
+  check(/tendency/.test(holding), "the claim that is only a tendency is labelled as one");
 
-  // The honest half: with the library unavailable the page must say so and stop pretending the inputs work.
+  // With the library unavailable the page must say so and stop pretending the inputs work.
   const offline = renderToStaticMarkup(
     <Controls
       settings={DEFAULT_SETTINGS}
       onChange={() => {}}
       busy={false}
       live={false}
-      depths={depths}
+      verdict={verdict}
     />,
   );
   check(/did not load/.test(offline), "a failed load is stated rather than hidden");
   check(/disabled/.test(offline), "and the inputs are disabled rather than inert-looking but live");
 
-  // And when the claim stops holding, the page has to say that too rather than keep a caption that has
-  // become false. This is the case a reader reaches by setting the fault count to zero.
+  // And a run that broke an invariant has to be reported as broken. This is the case that would matter: it
+  // means a bug, and a page that swallowed it would be worse than a page with no verdict at all.
   const broken = renderToStaticMarkup(
-    <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live depths={[0, 0, 2]} />,
+    <Controls
+      settings={DEFAULT_SETTINGS}
+      onChange={() => {}}
+      busy={false}
+      live
+      verdict={{ ...verdict, exactlyOnce: false, duplicated: [0, 2, 0] }}
+    />,
   );
-  check(broken.includes("is-broken"), "a run where the claim fails is reported as failing");
+  check(broken.includes("is-broken"), "a broken invariant is reported as broken");
   check(/does not hold/.test(broken), "and it is said in words, not only in colour");
 }
 

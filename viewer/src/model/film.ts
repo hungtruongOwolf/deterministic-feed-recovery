@@ -199,20 +199,42 @@ export function runtimeSeconds(film: Film, beatsPerSecond: number): number {
 }
 
 /**
- * How deep into the stack of defences each act was actually forced.
+ * What this particular run turned out to be true of.
  *
- * Read from the runs rather than from the story, so the page can report what happened instead of what it
- * intended. A reader who sets the fault count to zero should be told the claim stopped holding, not shown a
- * caption that has quietly become false.
+ * Read from the runs rather than from the story, so the page reports what happened instead of what it
+ * intended. Which numbers to report here was settled by measurement, not by taste, and the first two
+ * attempts were both wrong:
+ *
+ *   - "each act reaches one layer deeper than the last" fails often. At seed 7 the second act never needs a
+ *     retransmit at all, so it reaches no deeper than the first.
+ *   - "two lines mean fewer round trips" fails too, and more interestingly. A second line that fills the
+ *     *middle* of a hole splits one gap into two, so it can produce more requests while asking for fewer
+ *     messages (seed 114). And because the injector damages each line separately, two lines are not
+ *     strictly better off either (seed 186). It is a strong tendency and not a law.
+ *
+ * Swept over 400 seeds × 3 acts, exactly two properties held every time, and those are what this reports:
+ * nothing is delivered twice, and nothing is lost until the last defence answers too late.
  */
-export function depthsOf(film: Film): readonly number[] {
-  return film.acts.map((act) =>
-    act.trace.summary.snapshot_requests > 0
-      ? 2
-      : act.trace.summary.retransmit_requests > 0
-        ? 1
-        : 0,
-  );
+export interface Verdict {
+  readonly lost: readonly number[];
+  readonly duplicated: readonly number[];
+  readonly roundTripMessages: readonly number[];
+  /** Acts I and II lose nothing and act III does. The point of the whole film. */
+  readonly recoveryHeld: boolean;
+  /** No act delivered anything twice. The other half of correctness, and easy to forget. */
+  readonly exactlyOnce: boolean;
+}
+
+export function verdictOf(film: Film): Verdict {
+  const lost = film.acts.map((a) => a.trace.summary.unfillable_messages);
+  const duplicated = film.acts.map((a) => a.trace.summary.messages_delivered_twice);
+  return {
+    lost,
+    duplicated,
+    roundTripMessages: film.acts.map((a) => a.trace.summary.retransmit_messages),
+    recoveryHeld: lost.length === 3 && lost[0] === 0 && lost[1] === 0 && lost[2]! > 0,
+    exactlyOnce: duplicated.every((n) => n === 0),
+  };
 }
 
 /** One or two sentences on the whole film, shown before anything moves. */

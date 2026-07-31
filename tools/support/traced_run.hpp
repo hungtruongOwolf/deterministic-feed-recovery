@@ -80,6 +80,14 @@ struct run_summary {
   std::uint64_t messages_delivered_twice{0};
   std::uint64_t messages_missing{0};
   std::uint64_t retransmit_requests{0};
+  // How many *messages* those requests covered, as distinct from how many requests there were.
+  //
+  // Added because the two answer different questions and the difference turned out to be interesting. A
+  // second line that fills the middle of a hole splits one gap into two, so it can produce *more* requests
+  // while asking for *fewer messages* — seed 114 at 300 messages does exactly that: two requests covering 24
+  // messages on two lines, one request covering 27 on one. The count is not monotone in the number of
+  // defences and this is, which makes it the honest quantity to report.
+  std::uint64_t retransmit_messages{0};
   std::uint64_t retransmits_served{0};
   std::uint64_t retransmit_refusals{0};
   std::uint64_t snapshot_requests{0};

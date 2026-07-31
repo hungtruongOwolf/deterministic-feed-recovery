@@ -100,6 +100,7 @@ inline void write_summary(std::FILE* out, const dfr_tools::run_summary& summary,
       "{\"kind\":\"summary\",\"events\":%zu,\"events_dropped\":%llu,"
       "\"messages_delivered\":%llu,\"messages_delivered_twice\":%llu,"
       "\"messages_missing\":%llu,\"retransmit_requests\":%llu,"
+      "\"retransmit_messages\":%llu,"
       "\"retransmits_served\":%llu,\"retransmit_refusals\":%llu,"
       "\"snapshot_requests\":%llu,\"unfillable_messages\":%llu,"
       "\"final_state\":\"%s\",\"complete\":%s}\n",
@@ -108,6 +109,7 @@ inline void write_summary(std::FILE* out, const dfr_tools::run_summary& summary,
       static_cast<unsigned long long>(summary.messages_delivered_twice),
       static_cast<unsigned long long>(summary.messages_missing),
       static_cast<unsigned long long>(summary.retransmit_requests),
+      static_cast<unsigned long long>(summary.retransmit_messages),
       static_cast<unsigned long long>(summary.retransmits_served),
       static_cast<unsigned long long>(summary.retransmit_refusals),
       static_cast<unsigned long long>(summary.snapshot_requests),

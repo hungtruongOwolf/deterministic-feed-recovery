@@ -9,11 +9,12 @@
 // act removes is fixed, because that is the experiment, and a control able to break it would turn the page
 // back into three unrelated runs.
 //
-// The escalation verdict below is the honest part. It reports the depth each act actually reached rather
-// than the depth the story claims, so a reader who sets the fault count to zero sees the claim stop holding
-// and is told so, instead of reading a caption that has quietly become false.
+// The verdict below is the honest part, and getting it honest took three attempts. "Each act reaches one
+// layer deeper" is false at plenty of seeds. "Two lines mean fewer round trips" is false too, and more
+// interestingly — see model/film.ts. What survived a 400-seed sweep is reported here, measured on the run in
+// front of the reader rather than asserted about a recording.
 
-import { DEFAULT_SETTINGS, type Settings } from "../model/film";
+import { DEFAULT_SETTINGS, type Settings, type Verdict } from "../model/film";
 
 interface Props {
   readonly settings: Settings;
@@ -21,8 +22,8 @@ interface Props {
   readonly busy: boolean;
   /** Absent when WebAssembly could not be loaded and the committed traces are being drawn instead. */
   readonly live: boolean;
-  /** The depth each act actually reached, in order. Read from the runs, not from the story. */
-  readonly depths: readonly number[];
+  /** What this run turned out to be true of. Read from the runs, not from the story. */
+  readonly verdict: Verdict;
 }
 
 const NUMBERS: ReadonlyArray<{
@@ -38,8 +39,8 @@ const NUMBERS: ReadonlyArray<{
   { key: "faults", label: "faults", hint: "how much the injector breaks", min: 0, max: 60, step: 1 },
 ];
 
-export function Controls({ settings, onChange, busy, live, depths }: Props) {
-  const holds = depths.length === 3 && depths.every((d, i) => (i === 0 ? true : d > depths[i - 1]!));
+export function Controls({ settings, onChange, busy, live, verdict }: Props) {
+  const good = verdict.recoveryHeld && verdict.exactlyOnce;
 
   return (
     <section className="controls">
@@ -98,27 +99,75 @@ export function Controls({ settings, onChange, busy, live, depths }: Props) {
         </div>
       </div>
 
-      <div className={`controls__verdict ${holds ? "is-holding" : "is-broken"}`}>
-        <span className="controls__verdict-numbers mono">
-          {depths.length === 3 ? depths.join(" → ") : "…"}
-        </span>
-        <span className="controls__verdict-text">
-          {holds ? (
+      <div className={`controls__verdict ${good ? "is-holding" : "is-broken"}`}>
+        <div className="controls__measures">
+          <Measure
+            label="LOST FOR GOOD"
+            values={verdict.lost}
+            ok={verdict.recoveryHeld}
+            note="nothing until the last defence answers too late"
+          />
+          <Measure
+            label="DELIVERED TWICE"
+            values={verdict.duplicated}
+            ok={verdict.exactlyOnce}
+            note="never, on any run — a duplicate corrupts a book as surely as a loss"
+          />
+          <Measure
+            label="MESSAGES ASKED BACK"
+            values={verdict.roundTripMessages}
+            ok
+            note="usually far fewer with two lines, though not a law: see below"
+          />
+        </div>
+
+        <p className="controls__verdict-text">
+          {good ? (
             <>
-              <strong>Each act still falls one layer deeper than the last.</strong> That is the claim the
-              page makes, measured on this run rather than asserted about a recording.
+              <strong>Both invariants hold on this run.</strong> Every message arrives exactly once until the
+              last defence answers with a moment older than the client needs — and then the client refuses to
+              carry on rather than publishing a book it knows to be wrong. Measured here, on your seed, not
+              asserted about a recording.
             </>
           ) : (
             <>
-              <strong>On this run the claim does not hold.</strong> With these parameters an act is not
-              forced deeper than the one before it — most often because there are too few faults for the
-              second act to need a retransmit at all. The page says so rather than keeping a caption that
-              has stopped being true.
+              <strong>An invariant does not hold on this run.</strong> Either something was lost before the
+              last defence was reached, or something was delivered twice. On a page that measures rather than
+              claims, that is worth saying plainly — and worth a bug report if the parameters are ordinary.
             </>
           )}
-        </span>
+        </p>
+
+        <p className="controls__aside">
+          Two lines usually mean far fewer messages needing a round trip, and it is not a law. Swept over 400
+          seeds, two counterexamples: a second line that fills the <em>middle</em> of a hole splits one gap
+          into two, so it can produce more requests while asking for fewer messages — and because the
+          injector damages each line separately, two lines are not strictly better off either. The invariants
+          above held all 400 times; this did not, so it is written as a tendency.
+        </p>
+
         {busy && <span className="controls__busy mono">running…</span>}
       </div>
     </section>
+  );
+}
+
+function Measure({
+  label,
+  values,
+  ok,
+  note,
+}: {
+  readonly label: string;
+  readonly values: readonly number[];
+  readonly ok: boolean;
+  readonly note: string;
+}) {
+  return (
+    <div className={`measure ${ok ? "is-ok" : "is-bad"}`}>
+      <span className="measure__label mono">{label}</span>
+      <span className="measure__values mono">{values.join(" · ")}</span>
+      <span className="measure__note">{note}</span>
+    </div>
   );
 }

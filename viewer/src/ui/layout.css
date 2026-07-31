@@ -275,3 +275,14 @@
 .session__controls-head { font-size: 9px; letter-spacing: 0.13em; color: var(--ink-soft); align-self: center; }
 .session__toggle { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-soft); }
 .session__controls-note { flex: 1 1 32ch; font-size: 11px; line-height: 1.45; color: var(--ink-faint); }
+
+.controls__measures { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 9px; }
+.measure { display: flex; flex-direction: column; gap: 1px; max-width: 34ch; }
+.measure__label { font-size: 9px; letter-spacing: 0.12em; color: var(--ink-soft); }
+.measure__values { font-size: 17px; letter-spacing: 0.06em; color: var(--healthy); }
+.measure.is-bad .measure__values { color: var(--unfillable); }
+.measure__note { font-size: 10px; line-height: 1.4; color: var(--ink-faint); }
+.controls__aside {
+  margin: 9px 0 0; padding-top: 8px; border-top: 1px dotted var(--rule);
+  font-size: 11.5px; line-height: 1.55; color: var(--ink-faint); max-width: 96ch;
+}

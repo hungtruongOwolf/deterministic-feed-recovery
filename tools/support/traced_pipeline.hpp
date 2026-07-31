@@ -152,6 +152,7 @@ class traced_pipeline {
       }
 
       ++summary_.retransmit_requests;
+      summary_.retransmit_messages += decision.range.end - decision.range.first;
       record(trc::event_kind::retransmit_requested, decision.range,
              dfr::error::ok, decision.attempt);
       if (options_.mode == run_mode::glimpse) {

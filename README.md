@@ -104,6 +104,32 @@ catastrophic system failures came from incorrect handling of errors that were ex
 signalled in software, and that 58% could have been caught by simple testing of the
 error-handling code.
 
+## What a 400-seed sweep actually showed
+
+The page reports two properties, and it reports them because they are what survived measurement rather than
+what sounded good. Two earlier claims were tried and both were false:
+
+| claim | held |
+|---|---|
+| nothing is ever delivered twice | **400/400** |
+| nothing is lost until the last defence answers too late | **400/400** |
+| two lines mean fewer messages needing a round trip | 399/400 |
+| each act is forced one layer deeper than the last | fails often |
+
+The two failures are the interesting part.
+
+**"Each act reaches deeper" is false** at any seed where the second act's faults happen to close from a
+retransmit the first act also needed — at seed 7 with six faults, the second act never asks for anything.
+
+**"Two lines mean fewer round trips" is false in two different ways.** At seed 114 the second line fills the
+*middle* of a hole, splitting one 27-message gap into two of 9 and 15: *more* requests, *fewer* messages.
+And at seed 186 two lines need more messages back than one, because the injector damages each line
+separately — redundancy is not a strict subset of the single-line failure, it is a different one.
+
+So the run summary gained `retransmit_messages` alongside `retransmit_requests`, because the two answer
+different questions, and the page states the third row as a tendency rather than a law. That distinction is
+the whole point of the honesty ledger applied to a claim I wanted to make.
+
 ## Verified against real captures
 
 The IEX-TP field offsets were transcribed from a specification whose live URL now
