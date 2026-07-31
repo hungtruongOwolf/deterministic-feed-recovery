@@ -104,6 +104,23 @@ struct context {
   std::uint64_t messages_missing{0};
   std::uint64_t outstanding_ranges{0};
 
+  // The first few outstanding holes, for a consumer that draws them. Filled by the caller from the
+  // tracker's own set, never derived here.
+  std::array<sequence_range, event::kDrawableGaps> gaps{};
+  std::uint8_t gaps_drawn{0};
+
+  // Copies the holes a caller can see into the context, clamping to what a picture can hold.
+  constexpr void observe_gaps(std::span<const sequence_range> holes) noexcept {
+    gaps_drawn = 0;
+    for (const auto& hole : holes) {
+      if (gaps_drawn >= event::kDrawableGaps) {
+        break;
+      }
+      gaps[gaps_drawn] = hole;
+      ++gaps_drawn;
+    }
+  }
+
   [[nodiscard]] constexpr event with(event_kind kind) const noexcept {
     return event{.packet_index = packet_index,
                  .time_ns = time_ns,
@@ -111,7 +128,9 @@ struct context {
                  .client_state = client_state,
                  .delivered_through = delivered_through,
                  .messages_missing = messages_missing,
-                 .outstanding_ranges = outstanding_ranges};
+                 .outstanding_ranges = outstanding_ranges,
+                 .gaps = gaps,
+                 .gaps_drawn = gaps_drawn};
   }
 };
 

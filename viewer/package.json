@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "esbuild scripts/check.tsx --bundle --platform=node --format=esm --jsx=automatic --outfile=node_modules/.cache/check.mjs --external:react --external:react-dom --log-level=warning && node node_modules/.cache/check.mjs"
   },
   "dependencies": {
     "react": "^19.1.0",

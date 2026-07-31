@@ -30,6 +30,14 @@ export interface TraceEvent {
   readonly delivered_through: number;
   readonly missing: number;
   readonly holes: number;
+  /**
+   * The outstanding holes themselves, as `[first, end)` pairs — bounded at four by the writer.
+   *
+   * Present because the viewer needed to *draw* them and the alternative was accumulating them from the
+   * gap events, which is reconstructing recovery state in TypeScript. The format grew instead. When
+   * `holes` exceeds this array's length, say "and N more" rather than drawing a lie.
+   */
+  readonly gaps: ReadonlyArray<readonly [number, number]>;
 }
 
 export interface ScheduledFault {

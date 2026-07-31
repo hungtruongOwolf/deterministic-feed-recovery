@@ -19,13 +19,17 @@
 
 #include <dfr/core/assert.hpp>
 #include <dfr/core/error.hpp>
+#include <dfr/recovery/gap.hpp>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <string_view>
 
 namespace dfr::inline v1 {
 namespace trace {
+
+using recovery::sequence_range;
 
 // Grouped by the layer that produced it, because that is how a reader looks for things: "what did
 // the venue do", "what did chaos do to it", "what did the client make of it".
@@ -184,6 +188,19 @@ struct event {
   std::uint64_t delivered_through{0};
   std::uint64_t messages_missing{0};
   std::uint64_t outstanding_ranges{0};
+
+  // The outstanding holes themselves, not just how many there are.
+  //
+  // Added because a viewer wanted to *draw* them, and the alternative was for it to accumulate them from
+  // the gap_opened and gap_filled events — which is reconstructing recovery state in another language, the
+  // one thing the trace format exists to prevent. So the format grew instead, which is the rule working
+  // rather than an exception to it.
+  //
+  // Bounded at four, because a picture with more than four holes in it stops being a picture. When there
+  // are more, `outstanding_ranges` still says so and a viewer can say "and N more" rather than draw a lie.
+  static constexpr std::size_t kDrawableGaps = 4;
+  std::array<sequence_range, kDrawableGaps> gaps{};
+  std::uint8_t gaps_drawn{0};
 
   [[nodiscard]] friend constexpr bool operator==(const event&, const event&) = default;
 };

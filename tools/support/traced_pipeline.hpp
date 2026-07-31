@@ -28,14 +28,16 @@ class traced_pipeline {
 
   // Where the run currently is, for stamping onto an event.
   [[nodiscard]] trc::context here() const {
-    return trc::context{
+    const auto& holes = client_.tracking().outstanding(rec::channel_id::at(0));
+    trc::context where{
         .packet_index = index_,
         .time_ns = now_us_ * 1'000,
         .client_state = static_cast<std::uint8_t>(client_.state()),
         .delivered_through = client_.delivered_through(),
         .messages_missing = client_.total_missing(),
-        .outstanding_ranges =
-            client_.tracking().outstanding(rec::channel_id::at(0)).size()};
+        .outstanding_ranges = holes.size()};
+    where.observe_gaps(holes.ranges());
+    return where;
   }
 
   void set_index(std::uint64_t index) { index_ = index; }

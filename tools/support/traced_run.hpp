@@ -45,7 +45,10 @@ inline constexpr std::uint32_t kTraceSession = 0xBEEF;
 
 using trace_clock = dfr::manual_clock;
 using trace_time = trace_clock::time_point;
-using trace_recorder = trc::recorder<16'384>;
+// Traces run to a few hundred events. The record grew when it learned to carry the outstanding holes,
+// so the count comes down to match — 16,384 of the wider record would be a megabyte-scale stack member
+// for headroom nothing uses.
+using trace_recorder = trc::recorder<4'096>;
 using trace_client = rec::client<trace_clock, rec::replay_buffer<16'384, 2048>>;
 
 enum class run_mode { recovering, glimpse };

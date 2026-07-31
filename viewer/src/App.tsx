@@ -1,51 +1,58 @@
-// The viewer: reads a trace file and draws it.
+// The viewer: press play and watch a market-data feed be damaged and repaired.
 //
-// No fetch to a server, no live socket, no state beyond which file is loaded and where the scrubber
-// is. That is the point of the trace format existing: the library performs no I/O and reads no
-// clock, and a viewer that needed a running process to talk to would have quietly required both.
+// It reads a trace file and draws it. No server, no live connection, and no domain logic — every number on
+// screen is a field the trace already carries. See viewer/README.md for why that rule is not tidiness.
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseTrace, TraceFormatError, type Trace } from "./model/trace";
-import { Scrubber } from "./panels/Scrubber";
-import { StateBand } from "./panels/StateBand";
-import { GlimpsePanel } from "./panels/GlimpsePanel";
-import { LineHealth } from "./panels/LineHealth";
+import { buildStory } from "./model/story";
+import { usePlayback } from "./anim/usePlayback";
+import { Sheet } from "./stage/Sheet";
+import { Stage } from "./stage/Stage";
+import { Transport } from "./panels/Transport";
+import { ActCard } from "./panels/ActCard";
+import { Overture } from "./panels/Overture";
 import { Summary } from "./panels/Summary";
-import { EventLog } from "./panels/EventLog";
 import { Ledger } from "./panels/Ledger";
+import { LineHealth } from "./panels/LineHealth";
 
-// The traces committed alongside the code. Each is a deterministic function of its seed, so these
-// are fixtures rather than samples: diffing a fresh run against one is a regression test.
 const BUNDLED = [
-  { file: "recovering-seed4711.jsonl", label: "recovering — one line, faults repaired" },
-  { file: "redundant-ab.jsonl", label: "redundant A/B — holes closed by the other line" },
-  { file: "glimpse-race.jsonl", label: "glimpse race — the snapshot arrives too old" },
+  { file: "recovering-seed4711.jsonl", label: "one line · faults injected and repaired" },
+  { file: "redundant-ab.jsonl", label: "two lines · holes closed by the other line" },
+  { file: "glimpse-race.jsonl", label: "the snapshot arrives too old · data lost for good" },
+] as const;
+
+const LEGEND = [
+  { swatch: "var(--ink)", label: "market data" },
+  { swatch: "var(--fault)", label: "damaged" },
+  { swatch: "var(--recovery)", label: "repair" },
+  { swatch: "var(--unfillable)", label: "lost for good" },
 ] as const;
 
 export function App() {
   const [choice, setChoice] = useState<string>(BUNDLED[0].file);
   const [trace, setTrace] = useState<Trace | undefined>();
   const [error, setError] = useState<string | undefined>();
-  const [index, setIndex] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  const story = useMemo(() => (trace === undefined ? [] : buildStory(trace)), [trace]);
+  const playback = usePlayback(story.length);
 
   const load = useCallback((text: string) => {
     try {
-      const parsed = parseTrace(text);
-      setTrace(parsed);
+      setTrace(parseTrace(text));
       setError(undefined);
-      setIndex(0);
+      setStarted(false);
     } catch (cause) {
       setTrace(undefined);
-      setError(
-        cause instanceof TraceFormatError ? cause.message : `could not read the trace: ${String(cause)}`,
-      );
+      setError(cause instanceof TraceFormatError ? cause.message : String(cause));
     }
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     fetch(`traces/${choice}`)
-      .then((response) => (response.ok ? response.text() : Promise.reject(new Error(String(response.status)))))
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
       .then((text) => {
         if (!cancelled) {
           load(text);
@@ -61,32 +68,51 @@ export function App() {
     };
   }, [choice, load]);
 
-  const onFile = useCallback(
-    (file: File | undefined) => {
-      if (file === undefined) {
+  // Space to play, arrows to step: the shortcuts anybody tries on something that moves.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) {
         return;
       }
-      void file.text().then(load);
-    },
-    [load],
+      if (e.code === "Space") {
+        e.preventDefault();
+        playback.toggle();
+      } else if (e.code === "ArrowRight") {
+        playback.step(1);
+      } else if (e.code === "ArrowLeft") {
+        playback.step(-1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [playback]);
+
+  const at = Math.min(story.length - 1, Math.floor(playback.position));
+  const beat = at >= 0 ? story[at] : undefined;
+  const progress = playback.position - at;
+  const trail = useMemo(
+    () => story.slice(Math.max(0, at - 3), at).filter((b) => b.fate === "arrive"),
+    [story, at],
+  );
+  const highest = useMemo(
+    () => story.reduce((most, b) => Math.max(most, b.event.delivered_through, b.event.end), 1),
+    [story],
   );
 
-  const header = useMemo(() => trace?.header, [trace]);
+  const start = useCallback(() => {
+    setStarted(true);
+    playback.restart();
+    playback.play();
+  }, [playback]);
 
   return (
     <div className="app">
-      <div className="app__bar">
+      <header className="app__bar">
         <h1 className="app__title">
-          deterministic-feed-recovery
-          <small>run viewer</small>
+          deterministic feed recovery
+          <small>what a market-data client does when the feed breaks</small>
         </h1>
         <div className="spacer" />
-        {header !== undefined && (
-          <span className="mono" style={{ color: "var(--ink-soft)" }}>
-            seed {header.seed} · {header.packets} packets · {header.lines === 1 ? "1 line" : "A/B"} ·{" "}
-            {header.mode}
-          </span>
-        )}
         <select value={choice} onChange={(e) => setChoice(e.currentTarget.value)}>
           {BUNDLED.map((option) => (
             <option key={option.file} value={option.file}>
@@ -94,44 +120,61 @@ export function App() {
             </option>
           ))}
         </select>
-        <label className="mono" style={{ cursor: "pointer" }}>
+        <label className="mono app__open">
           open a trace…
           <input
             type="file"
             accept=".jsonl,.json,.txt"
-            style={{ display: "none" }}
-            onChange={(e) => onFile(e.currentTarget.files?.[0])}
+            onChange={(e) => {
+              const file = e.currentTarget.files?.[0];
+              if (file !== undefined) {
+                void file.text().then(load);
+              }
+            }}
           />
         </label>
-      </div>
+      </header>
 
-      <div className="app__body">
-        {error !== undefined && (
-          <section className="panel app__wide">
-            <h2>Could not read that trace</h2>
-            <p className="why" style={{ margin: 0 }}>
-              {error} — the parser is strict on purpose: a viewer that skipped lines it did not
-              understand would draw an incomplete run and look like a complete one.
-            </p>
-          </section>
-        )}
+      {error !== undefined && (
+        <section className="panel app__error">
+          <h2>Could not read that trace</h2>
+          <p className="why">
+            {error} — the parser is strict on purpose: a viewer that skipped lines it did not understand
+            would draw an incomplete run and look like a complete one.
+          </p>
+        </section>
+      )}
 
-        {trace !== undefined && (
-          <>
-            <Scrubber trace={trace} index={index} onChange={setIndex} />
-            <StateBand trace={trace} index={index} onChange={setIndex} />
-            <div className="stack">
-              <GlimpsePanel trace={trace} onChange={setIndex} />
-              <LineHealth trace={trace} />
-              <Ledger trace={trace} />
-            </div>
-            <div className="stack">
-              <Summary trace={trace} />
-              <EventLog trace={trace} index={index} />
-            </div>
-          </>
-        )}
-      </div>
+      {trace !== undefined && (
+        <main className="app__main">
+          <div className="app__stage">
+            <Sheet
+              title="MARKET-DATA RECOVERY · ONE RUN"
+              subtitle={`seed ${trace.header.seed} · ${trace.header.mode} · ${trace.header.lines === 1 ? "single line" : "redundant pair"}`}
+              legend={LEGEND}
+            >
+              <Stage
+                beat={beat}
+                progress={progress}
+                trail={trail}
+                highest={highest}
+                lines={trace.header.lines}
+              />
+            </Sheet>
+
+            {!started && <Overture trace={trace} onStart={start} />}
+            <ActCard beat={beat} />
+          </div>
+
+          <Transport playback={playback} beats={story.length} caption={beat?.caption ?? ""} />
+
+          <div className="app__aside">
+            <Summary trace={trace} />
+            <LineHealth trace={trace} />
+            <Ledger trace={trace} />
+          </div>
+        </main>
+      )}
     </div>
   );
 }

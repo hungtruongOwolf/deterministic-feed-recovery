@@ -1,48 +1,72 @@
 # Run viewer
 
-A static page that reads a `dfr` trace and draws it. No server, no live connection, no build-time
-code generation: it opens a JSONL file and renders what is in it.
+Press play and watch a market-data feed be damaged and repaired. It reads a `dfr` trace file and draws it —
+no server, no live connection, no build-time code generation.
 
 ```
 npm install
 npm run dev        # http://localhost:5173
-npm run build      # static bundle in dist/, deployable anywhere
+npm run build      # static bundle in dist/
 npm run typecheck
+npm run check      # renders the scene in node; see below
 ```
 
-`public/traces/` holds the same fixtures as the repository's `traces/`, so a built bundle carries
-its own data and works from a file server or a GitHub Pages subpath without configuration. Use
-**open a trace…** to load one produced locally.
+Space plays and pauses, ← and → step one beat at a time.
+
+## What it shows
+
+A venue on the left, a client on the right, and three tracks between them: market data going out,
+retransmit requests coming back, snapshots coming back. Packets are objects that cross the space. A lost one
+dies part way over. A corrupted one reaches the far side and is refused. A duplicate arrives as two. Under
+all of it, a message axis: solid where messages have been delivered, cut out in red where they are missing.
+
+Every step carries a sentence in plain language, and the steps that change the story interrupt with a card.
+That is deliberate: a panel reading `snapshot_rejected · snapshot_behind_buffer` is legible only to somebody
+who already knows the codebase. *"The snapshot is older than the oldest message the client kept, so twenty
+messages exist in neither"* is legible to anybody.
+
+Three runs ship with it: faults injected and repaired; two redundant lines where nearly every hole closes
+without asking anyone; and the Glimpse race, where the snapshot arrives too old and some messages are gone
+for good.
 
 ## The one rule
 
-**No domain logic lives here.** Every number drawn is a field the trace already carries — the client
-state, the delivered watermark, the messages missing, the unfillable range. Nothing is recomputed.
+**No domain logic lives here.** Every number drawn is a field the trace already carries — the client state,
+the delivered watermark, the outstanding holes. Nothing is recomputed.
 
 That is not tidiness. A viewer that reconstructed state from the event sequence would be a second
-implementation of a C++ state machine, written in TypeScript by somebody reading the first. When the
-two disagreed, the picture would be wrong and nothing would say so — which is the exact failure mode
-the library exists to prevent, reintroduced in the tool built to display it.
+implementation of a C++ state machine, written in TypeScript by somebody reading the first. When the two
+disagreed the picture would be wrong and nothing would say so — which is the exact failure the library exists
+to prevent, reintroduced in the tool built to display it.
 
-So: if a number is not in the file, it is not drawn. When the viewer needs something new, the
-trace format gains a field.
+So when the viewer needs something new, **the trace format gains a field**. It has happened once already: the
+message axis needed the outstanding holes themselves rather than a count of them, and the alternative was
+accumulating them here from the gap events. `dfr::trace::event` grew a bounded `gaps` array instead. That is
+the rule working, not an exception to it.
 
-## Panels
+What *is* added here is presentation: how a packet moves, and what a step means in words. Neither is in the
+file, and neither can be got from a table of field names.
 
-| Panel | Question it answers |
-|---|---|
-| Run position | Where in the run am I, and what is the client's state here? |
-| Client state over the run | When did it stop being live, and what happened just before? |
-| Snapshot recovery | Did the snapshot arrive in time, and if not, how much is permanently gone? |
-| Redundant lines | Is the second line earning its keep, or is it already dead? |
-| Verdict | Was every message delivered exactly once? |
-| At packet N | What happened here, and what fault was scheduled for it? |
-| What this run measured | Which claims are measurements and which cannot be measured at all? |
+## `npm run check`
+
+Renders the scene in node with `react-dom/server` and asserts the three things a build cannot:
+
+- the sheet, a packet, the message axis and the client's lit state all draw;
+- **two progress values of the same beat produce different markup** — otherwise nothing is moving and the
+  page is a still picture with a play button on it;
+- every caption is a sentence, no `snake_case` leaked through, and the Glimpse run reaches its rejection with
+  a non-empty unfillable range.
+
+It cannot tell whether the drawing looks good. Nothing without eyes can, and that limit is stated rather than
+implied.
 
 ## Design
 
-Ink on paper, thin rules, no shadows, no rounded corners, everything numeric monospaced. A recovery
-trace is a measurement, and a measurement drawn with gradients invites the reader to admire the
-picture rather than read the numbers. Four colours only, each meaning exactly one thing: something
-was done to the stream, something is being repaired, something is permanently lost, something is
-healthy.
+An architectural drawing sheet: hairline frame, registration crosshairs, edge ticks, a drawn title block
+carrying the legend instead of a floating overlay. Ink on warm paper, one weight of rule, typography doing
+the work colour usually gets asked to do.
+
+Four colours, each meaning exactly one thing — something crossed the wire, something was damaged, something is
+being repaired, something is gone for good. Nothing decorative is coloured at all. A recovery trace is a
+measurement, and a measurement drawn with gradients invites the reader to admire the picture instead of
+reading it.

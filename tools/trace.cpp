@@ -145,7 +145,7 @@ void write_event(std::FILE* out, const dfr::trace::event& event) {
                "{\"kind\":\"event\",\"i\":%llu,\"t\":%lld,\"layer\":\"%s\","
                "\"event\":\"%s\",\"line\":%u,\"first\":%llu,\"end\":%llu,\"attempt\":%u,"
                "\"detail\":%llu,\"reason\":\"%s\",\"state\":\"%s\","
-               "\"delivered_through\":%llu,\"missing\":%llu,\"holes\":%llu}\n",
+               "\"delivered_through\":%llu,\"missing\":%llu,\"holes\":%llu,\"gaps\":[",
                static_cast<unsigned long long>(event.packet_index),
                static_cast<long long>(event.time_ns),
                dfr::trace::name_of(dfr::trace::layer_of(event.kind)).data(),
@@ -160,6 +160,14 @@ void write_event(std::FILE* out, const dfr::trace::event& event) {
                static_cast<unsigned long long>(event.delivered_through),
                static_cast<unsigned long long>(event.messages_missing),
                static_cast<unsigned long long>(event.outstanding_ranges));
+
+  // The holes themselves, so a viewer can draw them rather than accumulate them.
+  for (std::uint8_t i = 0; i < event.gaps_drawn; ++i) {
+    std::fprintf(out, "%s[%llu,%llu]", i == 0 ? "" : ",",
+                 static_cast<unsigned long long>(event.gaps[i].first),
+                 static_cast<unsigned long long>(event.gaps[i].end));
+  }
+  std::fprintf(out, "]}\n");
 }
 
 void write_summary(std::FILE* out, const dfr_tools::run_summary& summary,

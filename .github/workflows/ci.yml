@@ -102,3 +102,9 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run build
+
+      # Renders the scene in node and checks the three ways it could be silently broken: it draws at all,
+      # consecutive frames of one beat differ so the picture actually moves, and every caption is a sentence
+      # rather than a field name. Nothing without eyes can tell whether it looks good; this tells whether it
+      # works.
+      - run: npm run check
