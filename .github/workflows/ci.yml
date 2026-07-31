@@ -114,6 +114,40 @@ jobs:
       - name: The hand-off runs and the ring refuses rather than overwriting
         run: ./build/o3-off/bench/handoff_bench --messages 400000
 
+  # Hostile bytes, with a real coverage-guided fuzzer.
+  #
+  # The committed corpus is real IEX packets, so every mutation starts from something that parses — which is
+  # where the interesting failures are, rather than noise every decoder rejects at the first byte. Bounded per
+  # target: a CI job is a regression check, not a fuzzing campaign, and the campaign is run by hand.
+  fuzz:
+    name: fuzzing finds nothing new
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure and build the targets
+        run: |
+          cmake -S . -B build/fuzz -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DDFR_ASSERTIONS=paranoid -DDFR_WARNINGS_AS_ERRORS=ON
+          cmake --build build/fuzz -j 4 --target dfr_fuzz_iextp dfr_fuzz_moldudp64 \
+            dfr_fuzz_soupbintcp dfr_fuzz_ouch dfr_fuzz_deep dfr_fuzz_capture
+
+      # Where libFuzzer is available the targets take its flags, so the invocation is libFuzzer's own.
+      - name: Fuzz each target
+        run: |
+          for target in iextp moldudp64 soupbintcp ouch deep capture; do
+            echo "── ${target} ─────────────────────────────────────"
+            if ./build/fuzz/fuzz/fuzz_${target} -help=1 >/dev/null 2>&1; then
+              ./build/fuzz/fuzz/fuzz_${target} "fuzz/corpus/${target}" \
+                -max_total_time=45 -print_final_stats=1 -error_exitcode=1
+            else
+              ./build/fuzz/fuzz/fuzz_${target} --seed 1 --rounds 200000 fuzz/corpus/${target}/*
+            fi
+          done
+
   # The load-bearing check for the WebAssembly build: does the browser produce the same trace as the
   # terminal? Two compilers, two targets, one seed. If the bytes ever differ then something in the library
   # depends on its platform, and "deterministic" was a word rather than a property — so this fails the build

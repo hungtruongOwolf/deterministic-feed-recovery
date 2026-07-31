@@ -129,6 +129,14 @@ endif()
 if(DFR_BUILD_TOOLS)
   add_subdirectory(tools)
 
+  # Fuzz targets. Behind the same switch as the tools because they are tools: a decoder nobody can point hostile
+  # bytes at is a decoder tested only against bytes a person imagined.
+  if(DFR_SANITIZER STREQUAL "none")
+    add_subdirectory(fuzz)
+  else()
+    message(STATUS "dfr: fuzz targets skipped under DFR_SANITIZER=${DFR_SANITIZER} (they set their own)")
+  endif()
+
   # Benchmarks travel with the tools rather than behind their own switch: the point of them is the comparison
   # between assertion levels, which needs the same target present in every preset.
   add_subdirectory(bench)
