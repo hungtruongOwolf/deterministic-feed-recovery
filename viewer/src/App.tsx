@@ -22,9 +22,16 @@ import {
   type Film,
   type Settings,
 } from "./model/film";
-import { loadEngine, type Engine, type SessionParameters } from "./wasm/engine";
+import {
+  loadEngine,
+  type Engine,
+  type SessionParameters,
+  type SnapshotParameters,
+} from "./wasm/engine";
 import { Controls } from "./panels/Controls";
 import { parseSession, type SessionTrace } from "./model/session";
+import { parseSnapshot, type SnapshotTrace } from "./model/snapshot";
+import { SnapshotSection } from "./snapshot/SnapshotSection";
 import { SessionSection } from "./session/SessionSection";
 import { parseBenchmarks, parseHandoff, type Performance as PerfData } from "./model/perf";
 import { Performance } from "./panels/Performance";
@@ -49,6 +56,7 @@ import { LineHealth } from "./panels/LineHealth";
 export function App() {
   const [film, setFilm] = useState<Film | undefined>();
   const [session, setSession] = useState<SessionTrace | undefined>();
+  const [snapshot, setSnapshot] = useState<SnapshotTrace | undefined>();
   const [engine, setEngine] = useState<Engine | undefined>();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [busy, setBusy] = useState(false);
@@ -57,6 +65,11 @@ export function App() {
     orders: 3,
     fill: 40,
     cancel: true,
+  });
+  // 4,096 is where the committed fixture resumes, so the page opens on the same run the repository ships.
+  const [snapshotSettings, setSnapshotSettings] = useState<SnapshotParameters>({
+    levels: 5,
+    resumeFrom: 4096,
   });
   const [error, setError] = useState<string | undefined>();
   const [started, setStarted] = useState(false);
@@ -165,6 +178,34 @@ export function App() {
       cancelled = true;
     };
   }, [engine, sessionSettings]);
+
+  // The snapshot, same arrangement: computed when the library is here, fetched when it is not.
+  useEffect(() => {
+    let cancelled = false;
+    if (engine !== undefined) {
+      try {
+        setSnapshot(parseSnapshot(engine.runSnapshot(snapshotSettings)));
+      } catch {
+        setSnapshot(undefined);
+      }
+      return;
+    }
+    fetch("traces/glimpse-snapshot.jsonl")
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+      .then((text) => {
+        if (!cancelled) {
+          setSnapshot(parseSnapshot(text));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSnapshot(undefined);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [engine, snapshotSettings]);
 
   // The benchmark figures. Fetched rather than computed, and the panel says why: WebAssembly cannot time a
   // two-nanosecond operation, so these are native measurements read from a committed file.
@@ -366,11 +407,31 @@ export function App() {
             </Disclosure>
           </section>
 
-          {/* ---- 3. cost -------------------------------------------------- */}
-          {perf !== undefined && (
+          {/* ---- the snapshot: the third defence, working ------------------ */}
+          {snapshot !== undefined && (
             <section className="act-section">
               <h2 className="act-section__title">
                 <span className="act-section__number mono">3</span>
+                A client rebuilding the book from nothing
+              </h2>
+              <p className="act-section__lede">
+                The last defence, doing its job. Above it is a plane the run falls onto; here a client with no state at
+                all is handed the venue&rsquo;s book one frame at a time, and ends up holding it exactly.
+              </p>
+              <SnapshotSection
+                trace={snapshot}
+                settings={snapshotSettings}
+                onChange={setSnapshotSettings}
+                live={engine !== undefined}
+              />
+            </section>
+          )}
+
+          {/* ---- 4. cost -------------------------------------------------- */}
+          {perf !== undefined && (
+            <section className="act-section">
+              <h2 className="act-section__title">
+                <span className="act-section__number mono">4</span>
                 What it costs
               </h2>
               <p className="act-section__lede">
@@ -380,11 +441,11 @@ export function App() {
               <Performance perf={perf} />
             </section>
           )}
-          {/* ---- 4. orders ------------------------------------------------- */}
+          {/* ---- 5. orders ------------------------------------------------- */}
           {session !== undefined && (
             <section className="act-section">
               <h2 className="act-section__title">
-                <span className="act-section__number mono">4</span>
+                <span className="act-section__number mono">5</span>
                 The same exchange, taking orders
               </h2>
               <p className="act-section__lede">

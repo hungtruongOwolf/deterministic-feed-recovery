@@ -64,7 +64,7 @@ emcc "${here}/wasm/api.cpp" \
   -sSTACK_SIZE=4MB \
   -sINITIAL_MEMORY=32MB \
   -sFILESYSTEM=1 \
-  -sEXPORTED_FUNCTIONS='["_dfr_run_trace","_dfr_run_session","_malloc","_free"]' \
+  -sEXPORTED_FUNCTIONS='["_dfr_run_trace","_dfr_run_session","_dfr_run_glimpse","_malloc","_free"]' \
   -sEXPORTED_RUNTIME_METHODS='["ccall","cwrap","UTF8ToString"]' \
   -sENVIRONMENT=web,worker,node \
   -o "${out}/dfr.js"

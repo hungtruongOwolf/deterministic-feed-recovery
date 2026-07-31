@@ -448,3 +448,51 @@
 .verdict__line { font-family: var(--mono); font-size: 9px; fill: var(--ink-soft); }
 .verdict__line--quiet { fill: var(--ink-faint); }
 .verdict--waiting .verdict__line { fill: var(--ink-faint); }
+
+/* ------------------------------------------------------- the snapshot rebuild
+
+   Two books, and one of them filling up. The third defence was a plane the marker fell onto; this is it working.  */
+
+.rebuild__books { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 14px; }
+.minibook { flex: 1 1 220px; border: 1px solid var(--rule); padding: 9px 12px 10px; }
+.minibook__title { display: block; font-size: 8.5px; letter-spacing: 0.14em; color: var(--ink-soft); }
+.minibook__note { display: block; font-size: 10px; color: var(--ink-faint); margin-bottom: 6px; }
+.minibook__rows { display: grid; grid-template-columns: 2.2rem auto auto 1fr; gap: 2px 10px; align-items: baseline; }
+.minibook__label { font-size: 9px; color: var(--ink-faint); }
+.minibook__price { font-size: 14px; color: var(--ink); }
+.minibook__price--bid { color: var(--healthy); }
+.minibook__price--ask { color: var(--fault); }
+.minibook__size, .minibook__depth { font-size: 9.5px; color: var(--ink-soft); }
+
+.rebuild__join { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.rebuild__join-mark { font-size: 22px; color: var(--ink-faint); }
+.rebuild__join.is-equal .rebuild__join-mark { color: var(--healthy); }
+.rebuild__join-note { font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.rebuild__join.is-equal .rebuild__join-note { color: var(--healthy); }
+
+.rebuild__frames { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.frame {
+  display: grid; grid-template-columns: 1.4rem 8.5rem 1fr auto; gap: 10px; align-items: baseline;
+  padding: 4px 6px; border-bottom: 1px solid var(--rule); cursor: default; outline: none;
+}
+.frame:hover, .frame.is-on, .frame:focus-visible { background: var(--page-sunk); }
+.frame__type { font-size: 10px; color: var(--ink-soft); }
+.frame--S .frame__type { color: var(--ink); }
+.frame--G .frame__type, .frame--g .frame__type { color: var(--recovery); }
+.frame__name { font-size: 12px; }
+.frame__detail { font-size: 9.5px; color: var(--ink-faint); }
+.frame__book { font-size: 9.5px; color: var(--ink-soft); }
+.frame.is-complete .frame__book { color: var(--healthy); }
+.rebuild__caption { margin: 10px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--ink-soft); min-height: 3em; max-width: 96ch; }
+
+@media (max-width: 700px) {
+  .frame { grid-template-columns: 1.4rem 1fr auto; }
+  .frame__detail { grid-column: 2 / span 2; font-size: 9px; }
+}
+
+.snapshot__controls {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-bottom: 14px; padding: 9px 12px; border: 1px solid var(--rule); background: var(--page-sunk);
+}
+.snapshot__controls-head { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+.snapshot__controls-note { flex: 1 1 34ch; font-size: 11px; line-height: 1.45; color: var(--ink-faint); }

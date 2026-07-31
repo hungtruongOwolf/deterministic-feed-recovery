@@ -9,8 +9,9 @@ set -euo pipefail
 preset="${1:-dev-local}"
 trace="build/${preset}/tools/trace"
 session="build/${preset}/tools/session"
+glimpse="build/${preset}/tools/glimpse"
 
-for tool in "${trace}" "${session}"; do
+for tool in "${trace}" "${session}" "${glimpse}"; do
   if [[ ! -x "${tool}" ]]; then
     echo "regenerate-traces: ${tool} not built; run cmake --build --preset ${preset}" >&2
     exit 1
@@ -24,6 +25,10 @@ done
 # The order-entry session, which the viewer draws below the film. Also a fixture: no clock is read and no
 # randomness is involved, so a diff here is a change in the session's behaviour and nothing else.
 "${session}" --quiet --trace traces/order-session.jsonl
+
+# The snapshot session, which the viewer draws as the third defence actually working. Also a fixture: no clock, no
+# randomness, so a diff here is a change in the service or the client and nothing else.
+"${glimpse}" --quiet --levels 5 --resume 4096 --trace traces/glimpse-snapshot.jsonl
 
 # The viewer serves them from its own public/ so that a static build carries its fixtures with it.
 cp traces/*.jsonl viewer/public/traces/

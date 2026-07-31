@@ -27,3 +27,10 @@ target_link_libraries(dfr_session PRIVATE dfr::dfr dfr_dev_flags)
 target_include_directories(dfr_session PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(dfr_session PROPERTIES OUTPUT_NAME session)
 
+
+# Serves a Glimpse snapshot and records what a client rebuilds from the bytes. The third defence was the one nobody
+# could watch; this is what the viewer draws.
+add_executable(dfr_glimpse glimpse.cpp)
+target_link_libraries(dfr_glimpse PRIVATE dfr::dfr dfr_dev_flags)
+target_include_directories(dfr_glimpse PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties(dfr_glimpse PROPERTIES OUTPUT_NAME glimpse)

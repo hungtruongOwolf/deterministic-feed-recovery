@@ -25,6 +25,7 @@
 // viewer's rule is that it draws a trace file and knows nothing about the state machine that produced it.
 // Handing JavaScript a live object graph would have broken that rule under the guise of efficiency.
 
+#include "support/glimpse_run.hpp"
 #include "support/session_trace.hpp"
 #include "support/trace_writer.hpp"
 #include "support/traced_drivers.hpp"
@@ -393,6 +394,30 @@ const char* dfr_run_session(int orders, int fill, int cancel) {
     dfr_tools::write_session_summary(out, host.stats(), venue::name_of(host.ending()),
                                      host.orders().live_orders(), host.orders().accounts(),
                                      host.next_sequence(), cursor.next_sequence());
+  });
+}
+
+// One Glimpse snapshot, as JSONL. The same output as `tools/glimpse --trace`.
+//
+// A separate export rather than a mode of the trace run, because a snapshot session is not a feed: it has no faults,
+// no seed and no clock, and folding it into a function that takes six of those would be an interface shaped by
+// convenience rather than by what it does.
+EMSCRIPTEN_KEEPALIVE
+const char* dfr_run_glimpse(int levels, double resume) {
+  const auto depth = static_cast<std::size_t>(clamped(levels, 1, 16));
+  const auto from = static_cast<std::uint64_t>(resume < 1 ? 1 : resume);
+  const auto run = dfr_tools::run_glimpse_session(depth, from);
+
+  return rendered([&](std::FILE* out) {
+    dfr_tools::write_glimpse_header(
+        out, dfr_tools::kTracedSymbol, dfr_tools::kGlimpseSession,
+        static_cast<std::uint16_t>(run.venue.bids().size()),
+        static_cast<std::uint16_t>(run.venue.asks().size()), run.venue.bids().best().at.raw(),
+        run.venue.bids().best().size, run.venue.asks().best().at.raw(),
+        run.venue.asks().best().size, run.resume_from);
+    for (const auto& step : run.steps) {
+      dfr_tools::write_glimpse_step(out, step);
+    }
   });
 }
 

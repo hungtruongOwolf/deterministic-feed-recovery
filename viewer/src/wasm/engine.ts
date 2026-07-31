@@ -28,9 +28,15 @@ export interface SessionParameters {
   readonly cancel: boolean;
 }
 
+export interface SnapshotParameters {
+  readonly levels: number;
+  readonly resumeFrom: number;
+}
+
 export interface Engine {
   readonly runTrace: (parameters: TraceParameters) => string;
   readonly runSession: (parameters: SessionParameters) => string;
+  readonly runSnapshot: (parameters: SnapshotParameters) => string;
 }
 
 interface EmscriptenModule {
@@ -72,10 +78,12 @@ async function instantiate(): Promise<Engine> {
     "number",
   ]);
   const session = module.cwrap("dfr_run_session", "string", ["number", "number", "number"]);
+  const snapshot = module.cwrap("dfr_run_glimpse", "string", ["number", "number"]);
 
   return {
     runTrace: (p) =>
       trace(p.seed, p.messages, p.faults, p.lines, p.glimpse ? 1 : 0, p.staleness),
     runSession: (p) => session(p.orders, p.fill, p.cancel ? 1 : 0),
+    runSnapshot: (p) => snapshot(p.levels, p.resumeFrom),
   };
 }
