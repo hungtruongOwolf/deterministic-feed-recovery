@@ -83,7 +83,16 @@ class order_token {
 
   // The content without its trailing padding, for a report. Not for comparison — comparison is over
   // all fourteen bytes, which is both cheaper and exactly what the wire means.
-  [[nodiscard]] constexpr std::string_view text() const noexcept DFR_LIFETIME_BOUND {
+  // Not `constexpr`, and GCC is the reason it says so out loud.
+//
+  // A `std::string_view` over `std::byte` needs a `reinterpret_cast`, and a reinterpret_cast is **forbidden in
+  // constant evaluation**. Clang accepted the `constexpr` because nothing ever constant-evaluated it, so the
+  // invalid path was never instantiated; GCC 14 diagnoses it eagerly and is right. The keyword was a claim the
+  // function could not honour, and anybody who took it up would have got a hard error rather than a slow function.
+//
+  // Dropping it is the truthful fix. Keeping it would need the bytes to be `char` underneath, which would mean
+  // `packet_view` giving up `std::byte` — and `std::byte` is what stops a byte being arithmetic by accident.
+  [[nodiscard]] std::string_view text() const noexcept DFR_LIFETIME_BOUND {
     std::size_t length = kTokenSize;
     while (length > 0 && bytes_[length - 1] == std::byte{' '}) {
       --length;
@@ -91,7 +100,8 @@ class order_token {
     return std::string_view{reinterpret_cast<const char*>(bytes_.data()), length};
   }
 
-  [[nodiscard]] constexpr bool empty() const noexcept { return text().empty(); }
+  // Not constexpr either, because `text()` cannot be: see above.
+  [[nodiscard]] bool empty() const noexcept { return text().empty(); }
 
   // Exact over all fourteen bytes: case sensitive, padding significant only in that it is part of the
   // field. `from_text("ABC")` and a wire token of "ABC" plus eleven spaces are the same token.

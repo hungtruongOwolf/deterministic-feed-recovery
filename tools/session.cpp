@@ -379,7 +379,10 @@ int main(int argc, char** argv) {
       if (step.from == "venue") {
         arrow = "   (exchange)  ";
       }
-      char number[12] = "     ";
+      // 24, not 12: a uint64 sequence is up to twenty digits, and "#%-4llu" of twenty digits is
+      // twenty-one bytes plus a terminator. GCC did the arithmetic; the previous size silently
+      // truncated a sequence above 99,999,999,999.
+      char number[24] = "     ";
       if (step.sequence != 0) {
         std::snprintf(number, sizeof number, "#%-4llu",
                       static_cast<unsigned long long>(step.sequence));

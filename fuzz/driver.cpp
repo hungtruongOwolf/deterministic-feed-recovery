@@ -18,6 +18,7 @@
 
 #include "checks.hpp"
 
+#include <dfr/core/narrow.hpp>
 #include <dfr/core/rng.hpp>
 
 #include <cstdio>
@@ -62,24 +63,24 @@ void mutate(std::vector<std::uint8_t>& bytes, dfr::prng& rng) {
   }
   switch (rng.next() % 5) {
     case 0: {  // flip one bit
-      const auto at = static_cast<std::size_t>(rng.next() % bytes.size());
+      const auto at = dfr::narrowed<std::size_t>(rng.next() % bytes.size());
       bytes[at] = static_cast<std::uint8_t>(bytes[at] ^ (1U << (rng.next() % 8)));
       return;
     }
     case 1: {  // overwrite one byte
-      const auto at = static_cast<std::size_t>(rng.next() % bytes.size());
+      const auto at = dfr::narrowed<std::size_t>(rng.next() % bytes.size());
       bytes[at] = static_cast<std::uint8_t>(rng.next() & 0xFF);
       return;
     }
     case 2: {  // truncate — the single most productive mutation against a framer
-      const auto keep = static_cast<std::size_t>(rng.next() % bytes.size());
+      const auto keep = dfr::narrowed<std::size_t>(rng.next() % bytes.size());
       bytes.resize(keep);
       return;
     }
     case 3: {  // write an interesting length somewhere a length field might be
       const auto value =
           kInterestingLengths[rng.next() % (sizeof kInterestingLengths / sizeof(std::uint64_t))];
-      const auto at = static_cast<std::size_t>(rng.next() % bytes.size());
+      const auto at = dfr::narrowed<std::size_t>(rng.next() % bytes.size());
       for (std::size_t i = 0; i < 4 && at + i < bytes.size(); ++i) {
         bytes[at + i] = static_cast<std::uint8_t>((value >> (8 * i)) & 0xFF);
       }
@@ -129,7 +130,7 @@ int main(int argc, char** argv) {
 
   dfr::prng rng{seed};
   for (std::uint64_t round = 0; round < rounds; ++round) {
-    auto bytes = seeds[static_cast<std::size_t>(rng.next()) % seeds.size()];
+    auto bytes = seeds[dfr::narrowed<std::size_t>(rng.next()) % seeds.size()];
     // One to four mutations, so a single wrong byte and a thoroughly mangled packet are both reached.
     const auto steps = 1 + rng.next() % 4;
     for (std::uint64_t i = 0; i < steps; ++i) {

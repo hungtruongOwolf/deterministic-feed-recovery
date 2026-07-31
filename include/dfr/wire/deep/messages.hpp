@@ -61,7 +61,16 @@ struct header {
 // Returned as a view into the caller's bytes rather than copied. The trailing spaces are trimmed because a
 // symbol is compared against "WWE" by every caller and "WWE     " by none — but the *padding* is what the wire
 // carries, so a writer must pad and a reader must trim, and doing the trim here means no caller forgets.
-[[nodiscard]] constexpr std::string_view trimmed_symbol(packet_view field) noexcept {
+// Not `constexpr`, and GCC is the reason it says so out loud.
+//
+// A `std::string_view` over `std::byte` needs a `reinterpret_cast`, and a reinterpret_cast is **forbidden in
+// constant evaluation**. Clang accepted the `constexpr` because nothing ever constant-evaluated it, so the
+// invalid path was never instantiated; GCC 14 diagnoses it eagerly and is right. The keyword was a claim the
+// function could not honour, and anybody who took it up would have got a hard error rather than a slow function.
+//
+// Dropping it is the truthful fix. Keeping it would need the bytes to be `char` underneath, which would mean
+// `packet_view` giving up `std::byte` — and `std::byte` is what stops a byte being arithmetic by accident.
+[[nodiscard]] inline std::string_view trimmed_symbol(packet_view field) noexcept {
   std::size_t length = field.size();
   while (length > 0 && field.u8_at(length - 1) == ' ') {
     --length;
