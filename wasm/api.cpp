@@ -37,6 +37,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -115,12 +116,14 @@ const char* dfr_run_trace(double seed, int messages, int faults, int lines, int 
 
   dfr_tools::trace_recorder recorder;
   std::int64_t clock_us = 0;
-  const auto stream = dfr_tools::publish_stream(run.messages, recorder, clock_us);
+  // The message bodies, so the trace can carry the book they build. See support/traced_market.hpp.
+  std::map<std::uint64_t, std::string> bodies;
+  const auto stream = dfr_tools::publish_stream(run.messages, recorder, clock_us, &bodies);
   if (stream.empty()) {
     g_result = "{\"kind\":\"error\",\"message\":\"the publisher produced nothing\"}\n";
     return g_result.c_str();
   }
-  const dfr_tools::run_summary summary = dfr_tools::run_traced(run, stream, recorder);
+  const dfr_tools::run_summary summary = dfr_tools::run_traced(run, stream, recorder, &bodies);
 
   return rendered([&](std::FILE* out) {
     dfr_tools::write_header(out, run, summary, stream.size());

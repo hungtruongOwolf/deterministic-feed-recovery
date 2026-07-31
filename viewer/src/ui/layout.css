@@ -478,3 +478,13 @@
   .finding__body dt { padding-top: 7px; }
   .fact__value { font-size: 26px; }
 }
+
+/* The quote: the top of the book, which is what the message layer was for. */
+.quote__head { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.14em; fill: var(--ink-soft); }
+.quote__label { font-family: var(--mono); font-size: 9px; fill: var(--ink-faint); }
+.quote__price { font-family: var(--mono); font-size: 14px; fill: var(--ink); }
+.quote__price--bid { fill: var(--healthy); }
+.quote__price--ask { fill: var(--fault); }
+.quote__price.is-crossed { fill: var(--unfillable); font-style: italic; }
+.quote__size { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-soft); }
+.quote__depth { font-family: var(--mono); font-size: 8.5px; fill: var(--ink-faint); }

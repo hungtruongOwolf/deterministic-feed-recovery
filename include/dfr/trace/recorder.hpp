@@ -109,6 +109,16 @@ struct context {
   std::array<sequence_range, event::kDrawableGaps> gaps{};
   std::uint8_t gaps_drawn{0};
 
+  // The top of book, as the caller's book reports it. Zero when there is no book — a feed of opaque bytes still
+  // traces perfectly, and a drawing showing an empty book is showing the truth about that run.
+  std::int64_t best_bid{0};
+  std::uint32_t best_bid_size{0};
+  std::int64_t best_ask{0};
+  std::uint32_t best_ask_size{0};
+  std::uint16_t book_bid_levels{0};
+  std::uint16_t book_ask_levels{0};
+  std::uint64_t traded_shares{0};
+
   // Copies the holes a caller can see into the context, clamping to what a picture can hold.
   constexpr void observe_gaps(std::span<const sequence_range> holes) noexcept {
     gaps_drawn = 0;
@@ -130,7 +140,14 @@ struct context {
                  .messages_missing = messages_missing,
                  .outstanding_ranges = outstanding_ranges,
                  .gaps = gaps,
-                 .gaps_drawn = gaps_drawn};
+                 .gaps_drawn = gaps_drawn,
+                 .best_bid = best_bid,
+                 .best_bid_size = best_bid_size,
+                 .best_ask = best_ask,
+                 .best_ask_size = best_ask_size,
+                 .book_bid_levels = book_bid_levels,
+                 .book_ask_levels = book_ask_levels,
+                 .traded_shares = traded_shares};
   }
 };
 

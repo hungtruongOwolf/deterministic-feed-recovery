@@ -27,6 +27,8 @@
 #include <dfr/wire/iextp/chain.hpp>
 #include <dfr/wire/iextp/header.hpp>
 
+#include "support/traced_market.hpp"
+
 #include <chrono>
 #include <cstdint>
 #include <map>
@@ -138,9 +140,12 @@ inline chaos::op_mask traceable_faults() {
 }
 
 // Runs the venue and returns everything it published, in order.
-inline std::vector<traced_packet> publish_stream(std::size_t messages,
-                                                 trace_recorder& into,
-                                                 std::int64_t& now_us) {
+// `bodies` is optional: a caller that only wants the packets passes nullptr, and a caller that wants the trace to
+// carry a book passes a map. Two returns rather than one struct because every existing caller wants the vector and
+// changing all of them to reach through a wrapper would be churn for one new field.
+inline std::vector<traced_packet> publish_stream(
+    std::size_t messages, trace_recorder& into, std::int64_t& now_us,
+    std::map<std::uint64_t, std::string>* bodies = nullptr) {
   ven::iextp_publisher<trace_clock> publisher{trace_publisher_options()};
   std::vector<traced_packet> out;
 
@@ -167,7 +172,17 @@ inline std::vector<traced_packet> publish_stream(std::size_t messages,
   };
 
   for (std::size_t i = 0; i < messages; ++i) {
-    const std::string body = "msg-" + std::to_string(i);
+    // Real DEEP messages, so the trace can carry a book. See support/traced_market.hpp for why every field comes
+    // from the index rather than from a generator.
+    const std::string body = traced_message(i);
+    if (body.empty()) {
+      break;
+    }
+    if (bodies != nullptr) {
+      // Sequence numbering starts at one and one message is submitted per iteration, so the index and the sequence
+      // differ by exactly one. Asserted by the book oracle rather than assumed here.
+      (*bodies)[i + 1] = body;
+    }
     now_us += 5;
     if (!publisher.submit(dfr::packet_view{body.data(), body.size()},
                           at_us(now_us), capture)) {

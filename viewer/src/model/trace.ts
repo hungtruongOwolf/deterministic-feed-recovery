@@ -38,6 +38,25 @@ export interface TraceEvent {
    * `holes` exceeds this array's length, say "and N more" rather than drawing a lie.
    */
   readonly gaps: ReadonlyArray<readonly [number, number]>;
+
+  /**
+   * The top of the order book the delivered messages have built, at this moment.
+   *
+   * The second time the format grew for the viewer, and the rule working rather than an exception to it. A viewer
+   * that applied price levels itself would be a second implementation of an order book written in TypeScript by
+   * somebody reading the C++ — and the strongest thing this project asserts is that the book after loss and repair
+   * equals the book that lost nothing, which a third implementation could only muddy.
+   *
+   * Prices are signed integers at four implied decimals: 208,700 is $20.8700. Zero means no book on that side.
+   */
+  readonly best_bid: number;
+  readonly best_bid_size: number;
+  readonly best_ask: number;
+  readonly best_ask_size: number;
+  /** How many levels exist, so a drawing can say "and N more" rather than imply the book is one level deep. */
+  readonly bid_levels: number;
+  readonly ask_levels: number;
+  readonly traded_shares: number;
 }
 
 export interface ScheduledFault {

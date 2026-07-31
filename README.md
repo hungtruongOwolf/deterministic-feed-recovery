@@ -37,6 +37,11 @@ statement about content, and it is now asserted:
 
 > **The book after loss and repair is the book that would have existed if nothing had been lost.**
 
+It is now visible in the committed traces rather than only in a test. Act I keeps both lines and act II loses one,
+and both end with **the same book** — bid 20.8700, ask 20.9500, 6,831 shares traded. Act III loses data for good
+and ends with a different one: 231 shares. The viewer draws the top of book beside the run, and `npm run check`
+asserts that equality and that difference on the committed data.
+
 That is a much harder invariant. It fails if recovery delivers the right messages in the wrong order, applies a
 repair twice, or drops a size-zero deletion — none of which a sequence count can see.
 

@@ -7,6 +7,7 @@
 #ifndef DFR_TOOLS_SUPPORT_TRACED_PIPELINE_HPP
 #define DFR_TOOLS_SUPPORT_TRACED_PIPELINE_HPP
 
+#include "support/traced_market.hpp"
 #include "support/traced_run.hpp"
 
 #include <cstdint>
@@ -37,10 +38,48 @@ class traced_pipeline {
         .messages_missing = client_.total_missing(),
         .outstanding_ranges = holes.size()};
     where.observe_gaps(holes.ranges());
+
+    // The book the client's deliveries have built. Written here rather than derived by a viewer, which is the same
+    // rule every other field on an event follows: a viewer that applied price levels itself would be a second
+    // implementation of an order book.
+    where.best_bid = book_.bids().best().at.raw();
+    where.best_bid_size = book_.bids().best().size;
+    where.best_ask = book_.asks().best().at.raw();
+    where.best_ask_size = book_.asks().best().size;
+    where.book_bid_levels = static_cast<std::uint16_t>(book_.bids().size());
+    where.book_ask_levels = static_cast<std::uint16_t>(book_.asks().size());
+    where.traded_shares = book_.traded_shares();
     return where;
   }
 
   void set_index(std::uint64_t index) { index_ = index; }
+
+  // The bodies the venue published, so a delivered sequence can reach the book. Optional: a caller tracing a feed
+  // of opaque bytes passes nothing and gets a trace with an empty book, which is the truth about that run.
+  void set_bodies(const std::map<std::uint64_t, std::string>* bodies) { bodies_ = bodies; }
+
+  [[nodiscard]] const traced_book& book() const { return book_; }
+
+  // Applies a delivered message to the book, in **sequence order**.
+  //
+  // Not arrival order, and the difference is the hardest thing found in this project: while a hole is open the
+  // client keeps delivering later messages on purpose, so a repair arrives after higher sequence numbers. An
+  // aggregated book is last-write-wins, so applying the older update second leaves the wrong size at that price
+  // permanently. See tests/integration/book_oracle_test.cpp, which keeps the mistake alive as a test.
+  //
+  // So deliveries wait here until the sequence below them has been applied.
+  void deliver_to_book(std::uint64_t sequence, dfr::packet_view body) {
+    pending_[sequence] = std::string{reinterpret_cast<const char*>(body.data()), body.size()};
+    while (true) {
+      const auto found = pending_.find(next_to_apply_);
+      if (found == pending_.end()) {
+        break;
+      }
+      (void)apply_to_book(book_, dfr::packet_view{found->second.data(), found->second.size()});
+      pending_.erase(found);
+      ++next_to_apply_;
+    }
+  }
 
   // Which line the events being recorded came in on. Set once per offered packet rather than
   // threaded through every record() call, because every event of one arrival shares it.
@@ -207,14 +246,36 @@ class traced_pipeline {
   }
 
   void deliver(const rec::ingest_report& report) {
-    for (std::uint64_t s = report.accepted.first; s < report.accepted.end; ++s) {
-      ++deliveries_[s];
-    }
+    // Repairs first, then what this packet newly carried. Both go to the book, which orders them by sequence
+    // itself — see deliver_to_book for why arrival order is not good enough.
     for (const auto& repaired : client_.last_recovered().ranges()) {
       for (std::uint64_t s = repaired.first; s < repaired.end; ++s) {
         ++deliveries_[s];
+        offer_to_book(s);
       }
     }
+    for (std::uint64_t s = report.accepted.first; s < report.accepted.end; ++s) {
+      ++deliveries_[s];
+      offer_to_book(s);
+    }
+  }
+
+  // The body for one delivered sequence, from what the venue published.
+  //
+  // Looked up rather than carried through the client, and the distinction matters for what the trace can claim:
+  // recovery decides *which* sequences reach a consumer, *how many times* and *in what order* — it never rewrites a
+  // body. So the lookup is equivalent to carrying it, and the book still shows a repair applied twice or out of
+  // order, which is what the drawing is for.
+  void offer_to_book(std::uint64_t sequence) {
+    if (bodies_ == nullptr) {
+      return;  // a run over opaque bytes still traces; its book is simply empty
+    }
+    const auto found = bodies_->find(sequence);
+    if (found == bodies_->end()) {
+      return;  // a heartbeat's range, or a sequence the venue never published
+    }
+    deliver_to_book(sequence,
+                    dfr::packet_view{found->second.data(), found->second.size()});
   }
 
   run_options options_{};
@@ -224,6 +285,10 @@ class traced_pipeline {
   std::map<std::uint64_t, int> deliveries_{};
   std::int64_t now_us_{0};
   std::uint64_t index_{0};
+  traced_book book_{};
+  std::map<std::uint64_t, std::string> pending_{};
+  std::uint64_t next_to_apply_{1};
+  const std::map<std::uint64_t, std::string>* bodies_{nullptr};
   std::uint8_t line_{0};
 };
 

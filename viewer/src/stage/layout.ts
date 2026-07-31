@@ -197,6 +197,11 @@ export function ease(t: number): number {
 const stackRight = planeBox(0).x + planeBox(0).w;
 
 export const BOOK = { x: stackRight + 34, y: inner.y + 22, w: inner.x + inner.w - (stackRight + 34), h: 430 } as const;
+// The quote sits inside the book region, under the grid. Not a region of its own: the grid and the quote are the
+// same subject — what arrived, and what it means — and giving them separate boxes would let the checker approve a
+// layout where they had drifted apart.
+export const QUOTE = { x: BOOK.x + 4, y: BOOK.y + BOOK.h - 72 } as const;
+
 export const RAIL = { x: inner.x, y: inner.y + inner.h - 128, w: inner.w, h: 44 } as const;
 export const BLOCK = { x: inner.x, y: RAIL.y + RAIL.h + 14, w: inner.w, h: 54 } as const;
 

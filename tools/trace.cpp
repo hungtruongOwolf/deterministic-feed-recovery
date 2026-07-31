@@ -26,6 +26,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <map>
 #include <string>
 
 namespace {
@@ -108,15 +109,17 @@ int main(int argc, char** argv) {
 
   dfr_tools::trace_recorder recorder;
   std::int64_t clock_us = 0;
+  // The message bodies, so the trace can carry the book they build. See support/traced_market.hpp.
+  std::map<std::uint64_t, std::string> bodies;
   const auto stream =
-      dfr_tools::publish_stream(options.run.messages, recorder, clock_us);
+      dfr_tools::publish_stream(options.run.messages, recorder, clock_us, &bodies);
   if (stream.empty()) {
     std::fprintf(stderr, "trace: the publisher produced nothing\n");
     return 1;
   }
 
   dfr_tools::run_summary summary =
-      dfr_tools::run_traced(options.run, stream, recorder);
+      dfr_tools::run_traced(options.run, stream, recorder, &bodies);
 
   std::FILE* out = stdout;
   if (options.out != nullptr) {

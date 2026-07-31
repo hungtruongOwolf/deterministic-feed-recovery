@@ -202,6 +202,28 @@ struct event {
   std::array<sequence_range, kDrawableGaps> gaps{};
   std::uint8_t gaps_drawn{0};
 
+  // ---- the book, so a viewer can draw one without owning one --------------
+  //
+  // The second time the format has grown for the viewer, and the rule working rather than an exception to it. The
+  // strongest thing this project asserts is that the book after loss and repair equals the book that lost nothing,
+  // and until these fields existed that claim lived only in a test file — a visitor could not see it.
+  //
+  // A viewer that applied price levels itself would be a second implementation of an order book, written in
+  // TypeScript by somebody reading the first, and when the two disagreed the drawing would be wrong with nothing to
+  // say so. So the C++ keeps the book and writes down the top of it.
+  //
+  // Top of book only. Full depth would be up to sixteen levels a side on every one of several hundred events, which
+  // is a trace an order of magnitude larger for depth a drawing this size cannot show. `book_levels` says how many
+  // levels exist so a viewer can render "and N more" rather than imply the book is two levels deep.
+  std::int64_t best_bid{0};
+  std::uint32_t best_bid_size{0};
+  std::int64_t best_ask{0};
+  std::uint32_t best_ask_size{0};
+  std::uint16_t book_bid_levels{0};
+  std::uint16_t book_ask_levels{0};
+  // Cumulative, so a viewer can show volume growing without differencing two events.
+  std::uint64_t traded_shares{0};
+
   [[nodiscard]] friend constexpr bool operator==(const event&, const event&) = default;
 };
 

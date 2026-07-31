@@ -68,7 +68,9 @@ inline void write_event(std::FILE* out, const dfr::trace::event& event) {
                "{\"kind\":\"event\",\"i\":%llu,\"t\":%lld,\"layer\":\"%s\","
                "\"event\":\"%s\",\"line\":%u,\"first\":%llu,\"end\":%llu,\"attempt\":%u,"
                "\"detail\":%llu,\"reason\":\"%s\",\"state\":\"%s\","
-               "\"delivered_through\":%llu,\"missing\":%llu,\"holes\":%llu,\"gaps\":[",
+               "\"delivered_through\":%llu,\"missing\":%llu,\"holes\":%llu,"
+               "\"best_bid\":%lld,\"best_bid_size\":%u,\"best_ask\":%lld,\"best_ask_size\":%u,"
+               "\"bid_levels\":%u,\"ask_levels\":%u,\"traded_shares\":%llu,\"gaps\":[",
                static_cast<unsigned long long>(event.packet_index),
                static_cast<long long>(event.time_ns),
                dfr::trace::name_of(dfr::trace::layer_of(event.kind)).data(),
@@ -82,7 +84,11 @@ inline void write_event(std::FILE* out, const dfr::trace::event& event) {
                    .data(),
                static_cast<unsigned long long>(event.delivered_through),
                static_cast<unsigned long long>(event.messages_missing),
-               static_cast<unsigned long long>(event.outstanding_ranges));
+               static_cast<unsigned long long>(event.outstanding_ranges),
+               static_cast<long long>(event.best_bid), event.best_bid_size,
+               static_cast<long long>(event.best_ask), event.best_ask_size,
+               event.book_bid_levels, event.book_ask_levels,
+               static_cast<unsigned long long>(event.traded_shares));
 
   // The holes themselves, so a viewer can draw them rather than accumulate them.
   for (std::uint8_t i = 0; i < event.gaps_drawn; ++i) {

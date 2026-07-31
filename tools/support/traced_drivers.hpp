@@ -9,6 +9,9 @@
 
 #include "support/traced_pipeline.hpp"
 
+#include <map>
+#include <string>
+
 #include <cstdint>
 #include <vector>
 
@@ -31,7 +34,8 @@ inline void load_facility(ven::retransmit_facility<512>& facility,
 // The ordinary run: faults are injected and the facility repairs them.
 inline run_summary run_recovering(const run_options& options,
                                   const std::vector<traced_packet>& stream,
-                                  trace_recorder& into) {
+                                  trace_recorder& into,
+                               const std::map<std::uint64_t, std::string>* bodies) {
   chaos::schedule plan;
   dfr::prng rng{options.seed};
   chaos::schedule_options schedule_options;
@@ -54,6 +58,7 @@ inline run_summary run_recovering(const run_options& options,
   chaos::injector<chaos::iextp_target> line_a{plan};
   chaos::injector<chaos::iextp_target> line_b{other};
   traced_pipeline pipeline{options, into};
+  pipeline.set_bodies(bodies);
 
   const auto emit_on = [&](std::size_t line) {
     return [&, line](const chaos::emission& emitted) {
@@ -105,7 +110,8 @@ inline run_summary run_recovering(const run_options& options,
 // dropped both before escalation and after it.
 inline run_summary run_glimpse(const run_options& options,
                                const std::vector<traced_packet>& stream,
-                               trace_recorder& into) {
+                               trace_recorder& into,
+                               const std::map<std::uint64_t, std::string>* bodies) {
   // A hand-written schedule rather than a seed: a run that has to reach one specific state names
   // the fault it needs instead of hunting for a seed that happens to produce it.
   chaos::schedule plan;
@@ -123,6 +129,7 @@ inline run_summary run_glimpse(const run_options& options,
 
   chaos::injector<chaos::iextp_target> injector{plan};
   traced_pipeline pipeline{options, into};
+  pipeline.set_bodies(bodies);
 
   const std::size_t escalate_by = stream.size() / 4;
   const auto emit = [&](const chaos::emission& emitted) {
@@ -203,9 +210,10 @@ inline run_summary run_glimpse(const run_options& options,
 
 inline run_summary run_traced(const run_options& options,
                               const std::vector<traced_packet>& stream,
-                              trace_recorder& into) {
-  return options.mode == run_mode::glimpse ? run_glimpse(options, stream, into)
-                                           : run_recovering(options, stream, into);
+                              trace_recorder& into,
+                              const std::map<std::uint64_t, std::string>* bodies = nullptr) {
+  return options.mode == run_mode::glimpse ? run_glimpse(options, stream, into, bodies)
+                                           : run_recovering(options, stream, into, bodies);
 }
 
 
