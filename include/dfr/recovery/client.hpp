@@ -1,15 +1,10 @@
-// A recovery client: the four components wired together into one poll-driven object.
+// A recovery client: arbiter → gap_tracker → requester, with a replay_buffer standing by for
+// the snapshot path, given one order and one state.
 //
-// arbiter → gap_tracker → requester, with a replay_buffer standing by for the snapshot path.
-// Each of those is independently testable and independently useful; this is the object that
-// gives them one order and one state.
+// Performs no I/O and reads no clock: poll() says what to send and the caller sends it, time
+// arrives as an argument, and nothing allocates after construction.
 //
-// The library still performs no I/O and reads no clock: poll() says what to send and the
-// caller sends it, time arrives as an argument, and nothing here allocates after
-// construction.
-//
-// Three composition decisions are argued in docs/DESIGN.md §7b rather than here, because
-// they are decisions about the shape of the component rather than about this code: one client
+// Three composition decisions are argued in docs/DESIGN.md §7b rather than here — one client
 // per channel, a message-granular replay buffer under packet-granular sequencing, and why the
 // arbiter's position and the tracker's expectation are kept in step explicitly.
 
@@ -53,13 +48,8 @@ class client {
 
   [[nodiscard]] constexpr client_state state() const noexcept { return state_; }
 
-  // The highest sequence actually handed downstream.
-  //
-  // Deliberately not the arbiter's watermark, which means "seen on the merged stream". The
-  // two are equal while live and diverge while recovering, because messages held for
-  // replay have been seen and not delivered — and using the arbiter's number in that state
-  // would tell plan_snapshot() that everything buffered had already gone downstream, so
-  // every snapshot would be classified stale and recovery would never complete.
+  // The highest sequence actually handed downstream — deliberately not the arbiter's
+  // watermark, which means "seen on the merged stream". See docs/DESIGN.md §7b.
   [[nodiscard]] constexpr std::uint64_t delivered_through() const noexcept {
     return delivered_through_;
   }
@@ -214,10 +204,8 @@ class client {
     return report;
   }
 
-  // Hands over one message the report said was held for replay.
-  //
-  // Separate from on_packet() because splitting a packet into messages needs the wire
-  // cursor, and the wire layer is deliberately not a dependency of recovery.
+  // Hands over one message the report said was held for replay. Separate from on_packet()
+  // for the reason argued in docs/DESIGN.md §7b.
   [[nodiscard]] constexpr result<void> buffer_message(std::uint64_t sequence,
                                                       packet_view message) noexcept {
     DFR_ASSERT(state_ == client_state::recovering,
@@ -229,6 +217,24 @@ class client {
       state_ = client_state::failed;
       failure_ = err.error_code();
       return err;
+    }
+    return ok();
+  }
+
+  // Records that the venue refused a retransmit request.
+  //
+  // Without it, a client whose data has aged out of the publisher's window would spend every
+  // remaining attempt asking a facility that has already said the messages are gone, reaching a
+  // snapshot late by timing out instead of promptly by being told. A fatal reason escalates at
+  // once; a transient one is left to the retry schedule, since "busy, try later" is not evidence
+  // that the data is unrecoverable.
+  [[nodiscard]] constexpr result<void> on_retransmit_refused(
+      sequence_range range, error reason) noexcept {
+    if (state_ == client_state::failed) DFR_UNLIKELY {
+      return failure_;
+    }
+    if (is_fatal(reason)) DFR_UNLIKELY {
+      escalate(reason, range);
     }
     return ok();
   }
@@ -279,11 +285,8 @@ class client {
   // Applies the outcome of a snapshot request.
   //
   // Returns the plan so the caller can act on it — which messages to discard and which to
-  // replay — rather than the client silently doing something with data it does not own.
-  //
-  // Takes no time argument, deliberately. Nothing here is timed: the snapshot has already
-  // arrived, and whether it is usable depends only on sequence numbers. An unused `now`
-  // parameter would suggest otherwise and would eventually acquire a use.
+  // replay — rather than the client silently doing something with data it does not own. Takes no
+  // time argument: whether a snapshot is usable depends only on sequence numbers.
   [[nodiscard]] constexpr result<snapshot_plan> on_snapshot(
       std::uint32_t session, std::uint64_t snapshot_next_sequence) noexcept {
     if (state_ == client_state::failed) DFR_UNLIKELY {

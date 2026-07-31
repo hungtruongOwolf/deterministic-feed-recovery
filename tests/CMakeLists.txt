@@ -81,6 +81,7 @@ dfr_add_test_suite(dfr_recovery_tests SOURCES
 dfr_add_test_suite(dfr_venue_tests SOURCES
   venue/publisher_test.cpp
   venue/retransmit_facility_test.cpp
+  venue/snapshot_facility_test.cpp
 )
 
 # Spans chaos, wire and recovery on purpose: the properties it checks are exactly the ones
@@ -88,6 +89,8 @@ dfr_add_test_suite(dfr_venue_tests SOURCES
 dfr_add_test_suite(dfr_integration_tests SOURCES
   integration/recovery_oracle_test.cpp
   integration/recovery_repair_test.cpp
+  integration/venue_recovery_test.cpp
+  integration/venue_snapshot_test.cpp
 )
 
 # One suite per protocol, one file per concept within it.
