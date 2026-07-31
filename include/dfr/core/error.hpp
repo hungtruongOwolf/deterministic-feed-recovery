@@ -32,6 +32,14 @@ enum class error : std::uint8_t {
   // ---- success ------------------------------------------------------------
   ok = 0,
 
+  // ---- not an error, and not a result either ------------------------------
+  // A byte stream ended mid-packet. Distinct from truncated_header, which says the
+  // data is wrong: this says only that there is not enough of it yet. TCP has this
+  // condition and UDP does not — a datagram is a unit, a stream is not — and
+  // conflating the two makes a reader discard a packet that had merely not
+  // finished arriving.
+  need_more_bytes,
+
   // ---- framing: this datagram is unusable, the stream is not -------------
   truncated_header,
   truncated_block,
@@ -120,6 +128,7 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
       return true;
 
     case error::ok:
+    case error::need_more_bytes:
     case error::truncated_header:
     case error::truncated_block:
     case error::block_count_overstated:
@@ -185,6 +194,7 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
     case error::retransmit_timed_out:       return "retransmit_timed_out";
     case error::snapshot_behind_buffer:     return "snapshot_behind_buffer";
     case error::snapshot_stale:             return "snapshot_stale";
+    case error::need_more_bytes:            return "need_more_bytes";
     case error::recovery_buffer_overflow:   return "recovery_buffer_overflow";
     case error::lines_diverged:             return "lines_diverged";
     case error::invalid_argument:           return "invalid_argument";
@@ -237,6 +247,8 @@ inline constexpr auto kErrorCount = static_cast<std::size_t>(error::count_);
              "between them can never be filled";
     case error::snapshot_stale:
       return "snapshot is too old to be worth applying";
+    case error::need_more_bytes:
+      return "the stream ended mid-packet; more bytes are needed, not different ones";
     case error::recovery_buffer_overflow:
       return "the recovery buffer filled before the snapshot completed";
     case error::lines_diverged:

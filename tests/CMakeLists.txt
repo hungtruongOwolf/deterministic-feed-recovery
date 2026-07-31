@@ -104,6 +104,12 @@ dfr_add_test_suite(dfr_moldudp64_tests SOURCES
   wire/moldudp64_encode_test.cpp
 )
 
+dfr_add_test_suite(dfr_soupbintcp_tests SOURCES
+  wire/soupbintcp_packet_test.cpp
+  wire/soupbintcp_ascii_test.cpp
+  wire/soupbintcp_session_test.cpp
+)
+
 dfr_add_test_suite(dfr_iextp_tests SOURCES
   wire/iextp_header_test.cpp
   wire/iextp_cursor_test.cpp

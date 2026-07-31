@@ -5,11 +5,11 @@ A seeded fault injector and a recovery library for exchange market-data feeds.
 **Status: `dfr::core`, `dfr::wire`, `dfr::capture` and `dfr::chaos` are
 implemented and tested. `dfr::recovery` is implemented and tested — arbitration, gap tracking,
 retransmission and snapshot recovery, composed into one poll-driven client, with an
-end-to-end oracle over both synthetic and real captures. `dfr::venue` is in progress —
-the publisher and the retransmit and snapshot facilities are done, OUCH order entry is
-not.**
+end-to-end oracle over both synthetic and real captures. `dfr::wire` covers MoldUDP64, IEX-TP and
+SoupBinTCP. `dfr::venue` is in progress — the publisher and the retransmit and snapshot
+facilities are done, OUCH order entry is not.**
 
-564 tests pass under four configurations — assertions at paranoid, fast and off,
+599 tests pass under four configurations — assertions at paranoid, fast and off,
 and AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors.
 
 ## What this is meant to be
