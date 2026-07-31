@@ -19,6 +19,7 @@
 #include "support/measure.hpp"
 
 #include <dfr/concurrent/delivery.hpp>
+#include <dfr/core/narrow.hpp>
 #include <dfr/concurrent/spsc_ring.hpp>
 
 #include <array>
@@ -82,7 +83,7 @@ class unpadded_ring {
   [[nodiscard]] std::size_t pop_batch(T* out, std::size_t limit) noexcept {
     const auto head = head_.load(std::memory_order_relaxed);
     const auto tail = tail_.load(std::memory_order_acquire);
-    const auto available = static_cast<std::size_t>(tail - head);
+    const auto available = dfr::narrowed<std::size_t>(tail - head);
     const std::size_t taking = available < limit ? available : limit;
     for (std::size_t i = 0; i < taking; ++i) {
       out[i] = slots_[(head + i) & (Capacity - 1)];

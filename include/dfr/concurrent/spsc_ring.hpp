@@ -44,6 +44,7 @@
 
 #include <dfr/core/assert.hpp>
 #include <dfr/core/attributes.hpp>
+#include <dfr/core/narrow.hpp>
 
 #include <array>
 #include <atomic>
@@ -54,14 +55,12 @@
 namespace dfr::inline v1 {
 namespace concurrent {
 
-// The line size to pad to. `hardware_destructive_interference_size` is the standard answer and is not
-// available everywhere, so it is used when present and 64 otherwise — correct on x86-64 and on Apple silicon
-// for this purpose, and a padding constant that is too large only wastes bytes.
-#ifdef __cpp_lib_hardware_interference_size
-inline constexpr std::size_t kCacheLine = std::hardware_destructive_interference_size;
-#else
-inline constexpr std::size_t kCacheLine = 64;
-#endif
+// The line size to pad to comes from core/attributes.hpp, and this file used to define its own.
+//
+// Two definitions of the cache line is the bug: fixing the ABI dependency in one of them left the other still
+// reading `std::hardware_destructive_interference_size`, whose value is part of the GCC ABI — so two translation
+// units built with different GCC versions could disagree about how wide this ring's padded members are, which is
+// a layout mismatch rather than a performance question. GCC said so; one definition is the fix.
 
 template <typename T, std::size_t Capacity>
 class spsc_ring {
@@ -98,7 +97,7 @@ class spsc_ring {
   [[nodiscard]] std::size_t size_approx() const noexcept {
     const auto tail = tail_.load(std::memory_order_acquire);
     const auto head = head_.load(std::memory_order_acquire);
-    return static_cast<std::size_t>(tail - head);
+    return narrowed<std::size_t>(tail - head);
   }
 
   // ---- producer side -----------------------------------------------------
@@ -158,7 +157,7 @@ class spsc_ring {
     const auto head = head_.load(std::memory_order_relaxed);
     cached_tail_ = tail_.load(std::memory_order_acquire);
 
-    const auto available = static_cast<std::size_t>(cached_tail_ - head);
+    const auto available = narrowed<std::size_t>(cached_tail_ - head);
     const std::size_t taking = available < limit ? available : limit;
     for (std::size_t i = 0; i < taking; ++i) {
       out[i] = slots_[(head + i) & (Capacity - 1)];
@@ -173,15 +172,15 @@ class spsc_ring {
   // Padded so the producer's writes and the consumer's writes never share a line. Without this, every push
   // invalidates the line the consumer is reading its own index from, and the ring runs an order of magnitude
   // slower for a reason no profiler attributes to the right place.
-  alignas(kCacheLine) std::atomic<std::uint64_t> tail_{0};
+  alignas(kCacheLineSize) std::atomic<std::uint64_t> tail_{0};
   // Producer-private: the consumer's index as the producer last saw it.
-  alignas(kCacheLine) std::uint64_t cached_head_{0};
+  alignas(kCacheLineSize) std::uint64_t cached_head_{0};
 
-  alignas(kCacheLine) std::atomic<std::uint64_t> head_{0};
+  alignas(kCacheLineSize) std::atomic<std::uint64_t> head_{0};
   // Consumer-private.
-  alignas(kCacheLine) std::uint64_t cached_tail_{0};
+  alignas(kCacheLineSize) std::uint64_t cached_tail_{0};
 
-  alignas(kCacheLine) std::atomic<std::uint64_t> refused_{0};
+  alignas(kCacheLineSize) std::atomic<std::uint64_t> refused_{0};
 
   // Records, not pointers. A ring of pointers would move the ownership question somewhere else and add a
   // dependent load on the consumer's critical path.

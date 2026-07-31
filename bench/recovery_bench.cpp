@@ -24,6 +24,7 @@
 #include <dfr/chaos/injector.hpp>
 #include <dfr/chaos/schedule.hpp>
 #include <dfr/core/clock.hpp>
+#include <dfr/core/narrow.hpp>
 #include <dfr/recovery/client.hpp>
 #include <dfr/recovery/gap_set.hpp>
 #include <dfr/venue/publisher.hpp>
@@ -187,7 +188,7 @@ int main(int argc, char** argv) {
     if (std::strcmp(argv[i], "--json") == 0 && i + 1 < argc) {
       json_path = argv[++i];
     } else if (std::strcmp(argv[i], "--samples") == 0 && i + 1 < argc) {
-      samples = static_cast<std::size_t>(std::strtoul(argv[++i], nullptr, 10));
+      samples = dfr::narrowed<std::size_t>(std::strtoul(argv[++i], nullptr, 10));
     } else {
       std::fprintf(stderr, "usage: recovery_bench [--samples N] [--json FILE]\n");
       return 2;
