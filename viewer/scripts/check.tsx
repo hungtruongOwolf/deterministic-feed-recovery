@@ -559,7 +559,21 @@ console.log("\nthe reader's language");
     /a little|typical|a lot|brutal/.test(controls),
     "the damage levels are named rather than given as numbers",
   );
-  check(!/>\s*seed\s*</.test(controls), "nothing on the page asks the reader for a \"seed\"");
+  // Stripped of tags, so this is about what a reader *sees* rather than what the markup contains: the word
+  // survives in class names and prop names, where it belongs, and must not survive in the text.
+  const visible = controls.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+  check(!/seed/i.test(visible), "no visible text asks the reader for a \"seed\"");
+  // Not "the word never appears" — naming the fault injector is informative, and hiding what the thing is
+  // called would be a different kind of condescension. The test is that no *control* asks for a count of
+  // them: every choice a reader makes is a phrase, and the numbers are behind the phrases.
+  const labels = (controls.match(/class="choice__option[^"]*"[^>]*>([^<]+)</g) ?? []).map((m) =>
+    m.replace(/.*>/, ""),
+  );
+  check(labels.length >= 6, `${labels.length} named choices, none of them a raw count`);
+  check(
+    labels.every((label) => !/\d/.test(label)),
+    "no choice a reader makes is expressed as a number",
+  );
   check(/names the pattern/.test(controls), "the number is explained as the name of a pattern");
   check(/reproducible/.test(controls), "and the reason it exists at all is stated");
 
