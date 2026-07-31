@@ -21,10 +21,48 @@ All seven namespaces are implemented and tested.
 | `dfr::venue` | market-data publisher, retransmit and snapshot facilities, OUCH order entry over a SoupBinTCP session | done |
 | `dfr::trace` | recording a run as JSONL, and the viewer that reads it | done |
 | `dfr::concurrent` | a lock-free SPSC ring at the one thread boundary, benchmarked | done |
+| `dfr::wire::deep` | IEX DEEP 1.0 message decoding, every offset verified against a real capture | done |
+| `dfr::book` | an aggregated order book, and the oracle that turns on it | done |
 
-**685 tests pass under five configurations** — assertions at paranoid, fast and off, and
+**708 tests pass under five configurations** — assertions at paranoid, fast and off, and
 AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer — all with warnings as errors, on Apple Clang
 locally and Linux Clang in CI. There is an end-to-end oracle over both synthetic streams and real captures.
+
+## The invariant that needed a message layer
+
+Until the messages meant something, the strongest thing this project could prove was about *bookkeeping*: every
+sequence number arrived exactly once. Necessary, and not what a trading system needs to hear. What it needs is a
+statement about content, and it is now asserted:
+
+> **The book after loss and repair is the book that would have existed if nothing had been lost.**
+
+That is a much harder invariant. It fails if recovery delivers the right messages in the wrong order, applies a
+repair twice, or drops a size-zero deletion — none of which a sequence count can see.
+
+Writing it found something, and not in the library. The first version applied messages in the order the client
+*delivered* them and the books did not match: same 600 messages, same update counts, different book. Recovery
+was right. **While a hole is open the client keeps delivering later messages** — on purpose, because stalling on
+a gap turns one loss into an outage — so a repair arrives *after* higher sequence numbers. An aggregated book is
+last-write-wins, so applying the older update second leaves the wrong size at that price, permanently.
+
+So a correct consumer of a gap-filling feed must apply in **sequence order, not arrival order**. The client makes
+that possible by numbering everything it hands over, and nothing warns you. `book_oracle_test.cpp` keeps a test
+showing the naive version producing a wrong book, because a hazard nobody demonstrates is a hazard everybody
+rediscovers.
+
+### Where the DEEP field offsets came from
+
+Not a specification — its live URL serves a stub, like IEX-TP's. A real IEX HIST capture (2017-08-26, 20,145
+packets, 48,635 messages) was tabulated by type and length *before* any of it was written, which gave the eleven
+message types and their exact sizes as observed facts. The layouts were then confirmed semantically:
+
+- every timestamp decodes to 2017-08-26, the capture's own date;
+- the symbols are real tickers — WWE, IEXT, VIAV;
+- a Price Level Buy at **$20.8900** and a Sell at **$20.9000** on the same symbol at the same instant: a valid
+  one-cent spread, which a wrong price offset cannot produce by accident;
+- a Trade Report at $20.9000 — the ask — for 100 shares.
+
+All 48,635 messages in the capture decode, with **zero unknown types and zero length mismatches**.
 
 ## What it costs
 

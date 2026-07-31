@@ -84,6 +84,13 @@ dfr_add_test_suite(dfr_trace_tests SOURCES
 
 # The one suite that starts threads. Kept separate so a caller can run everything else without them, and so
 # the tsan preset has an obvious target.
+# The message layer and the book it feeds. Separate from the wire suite because the book is not a wire concern
+# and a reader looking for either should not have to compile the other.
+dfr_add_test_suite(dfr_book_tests SOURCES
+  wire/deep_messages_test.cpp
+  book/order_book_test.cpp
+)
+
 dfr_add_test_suite(dfr_concurrent_tests SOURCES
   concurrent/spsc_ring_test.cpp
 )
@@ -105,6 +112,7 @@ dfr_add_test_suite(dfr_venue_tests SOURCES
 dfr_add_test_suite(dfr_integration_tests SOURCES
   integration/recovery_oracle_test.cpp
   integration/recovery_repair_test.cpp
+  integration/book_oracle_test.cpp
   integration/venue_recovery_test.cpp
   integration/venue_snapshot_test.cpp
 )
