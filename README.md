@@ -210,6 +210,16 @@ ctest --preset dev
 Other presets: `release` (optimised, assertions still on at the fast level),
 `bench` (assertions off, for measuring what they cost), `asan`, `tsan`.
 
+**A change is not done until all four of `dev`, `release`, `bench` and `asan` pass.** The matrix
+is not decoration: two defects in this repository were invisible in one configuration and fatal in
+another — a dangling `span` into a destroyed temporary that `-O0` had not yet reused the stack for,
+and a test asserting that a disabled assertion does not evaluate its condition, which the
+assertions-off build reported as an unused declaration.
+
+`.github/workflows/ci.yml` runs the same four, checks the committed traces still reproduce, and
+builds the viewer. Clang only, because this project is developed on a machine with no real GCC and a
+GCC job would be a configuration nobody had verified before committing it.
+
 ## Documents
 
 - `RESEARCH-DOSSIER.md` — how this problem was selected, and what was ruled out.

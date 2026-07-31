@@ -1,0 +1,104 @@
+# Builds and tests the library the same four ways a change is verified locally.
+#
+# The matrix is not decoration. Two real defects in this repository were invisible in one configuration
+# and fatal in another: a dangling span into a destroyed temporary that -O0 had not yet reused the stack
+# for, and a test asserting that a disabled assertion does not evaluate its condition, which the
+# assertions-off build reported as an unused declaration. So all four run, and all four are required.
+#
+# Clang only, and that is a stated limit rather than a preference: the local development machine has no
+# real GCC, so a GCC job would be a configuration nobody had verified before committing it. The warning
+# set in CMakeLists.txt already branches on the compiler, so adding GCC is a small change — it just has
+# not been run.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.preset }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [dev, release, bench, asan]
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compiler and CMake versions
+        run: |
+          clang++ --version
+          cmake --version
+
+      # Catch2 is fetched by FetchContent and pinned to a tag, so the cache key needs nothing but the
+      # file that pins it.
+      - name: Cache the Catch2 build
+        uses: actions/cache@v4
+        with:
+          path: build/${{ matrix.preset }}/_deps
+          key: deps-${{ matrix.preset }}-${{ hashFiles('tests/CMakeLists.txt') }}
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }} -j 4
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+
+  traces:
+    name: traces reproduce
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure and build
+        run: |
+          cmake --preset dev
+          cmake --build --preset dev -j 4
+
+      # The committed traces are fixtures, not samples: each is a deterministic function of its seed. So a
+      # non-empty diff here is a behavioural change, and it is worth failing on rather than noticing later.
+      - name: Regenerate and compare
+        run: |
+          ./scripts/regenerate-traces.sh dev
+          git diff --exit-code -- traces/ viewer/public/traces/
+
+  viewer:
+    name: viewer typechecks and builds
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: viewer
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: viewer/package-lock.json
+
+      # `npm ci` rather than `npm install`, because the lock file is committed on purpose: a project whose
+      # central claim is that a run reproduces from a seed cannot leave its own dependency versions to
+      # chance.
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build

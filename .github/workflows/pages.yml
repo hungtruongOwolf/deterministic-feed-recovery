@@ -1,0 +1,53 @@
+# Publishes the trace viewer to GitHub Pages.
+#
+# Manual trigger only, deliberately. Deploying needs Pages set to "GitHub Actions" in the repository
+# settings, which only the repository owner can do, and a workflow that ran automatically before that
+# would fail on every push for a reason nobody caused.
+#
+# To turn it on:
+#   1. Settings → Pages → Build and deployment → Source: GitHub Actions.
+#   2. Actions → pages → Run workflow.
+#   3. If you want it on every push, add `push: {branches: [main]}` to the triggers below.
+
+name: pages
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: viewer/package-lock.json
+
+      - name: Build the viewer
+        working-directory: viewer
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          # vite.config.ts sets a relative base, so the bundle works from a Pages subpath without a
+          # deploy-time rewrite.
+          path: viewer/dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
