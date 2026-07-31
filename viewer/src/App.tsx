@@ -306,7 +306,8 @@ export function App() {
             </h2>
             <p className="act-section__lede">
               Three acts, played straight through. Each one takes away a defence the last one had, so you watch
-              the same system fall a layer deeper.
+              the same system fall a layer deeper. Underneath, a separate test asserts the thing that actually
+              matters: the order book rebuilt after loss and repair equals the book that lost nothing.
             </p>
 
             <ActStrip film={film} position={playback.position} onSeek={(to) => playback.seek(to)} />

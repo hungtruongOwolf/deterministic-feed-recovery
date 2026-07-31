@@ -712,7 +712,7 @@ console.log("\nwhat a visitor can see");
   // Thirty seconds: what it is, that somebody checked it, and where the code is — without pressing anything.
   check(/broken on purpose/.test(hero), "the first line says what was built");
   check(new RegExp(`>${TEST_COUNT}<`).test(hero), `the test count (${TEST_COUNT}) is visible without opening anything`);
-  check(/>5</.test(hero) && /sanitiser/.test(hero), "so is how many configurations run them");
+  check(/>3</.test(hero) && /compilers/.test(hero), "so is how many compilers check them");
   check(/>0</.test(hero) && /allocations/.test(hero), "and the allocation count");
   check(/github\.com/.test(hero), "the code is one click away from the first screen");
   check(/computed in your browser/.test(hero), "and the page says it is running rather than replaying");
@@ -732,6 +732,11 @@ console.log("\nwhat a visitor can see");
   check(
     FINDINGS.some((f) => /12 runs out of 12|12 out of 12/.test(f.caught)),
     "the ThreadSanitizer counterexample is on the page with its numbers",
+  );
+  // The strongest finding in the repository has to be the first thing an engineer reads, not the fifth.
+  check(
+    /wrong book/.test(FINDINGS[0]!.title),
+    "the hardest finding is first, not buried in the middle",
   );
   check(
     FINDINGS.filter((f) => /assert|seemed obviously true|I had asserted|my own/i.test(f.hid + f.caught)).length >= 1,

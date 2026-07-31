@@ -32,6 +32,26 @@ const REPO = "https://github.com/hungtruongOwolf/deterministic-feed-recovery/blo
 
 export const FINDINGS: readonly Finding[] = [
   {
+    title: "A correct feed handler, consumed correctly, still gives the wrong book",
+    hid: "The invariant is that the book after loss and repair equals the book that lost nothing. It failed on the first run — same 600 messages, same update counts, same trades, different book — and nothing in the library was wrong.",
+    caught:
+      "Building an order book and comparing it against a clean replay. No sequence-number check can see it: every number arrived exactly once.",
+    matters:
+      "While a hole is open the client keeps delivering later messages — on purpose, because stalling on a gap turns one loss into an outage. So a repair arrives after higher sequence numbers, and an aggregated book is last-write-wins. A consumer must apply in sequence order, not arrival order, and nothing warns it.",
+    kind: "the hardest one",
+    where: `${REPO}/tests/integration/book_oracle_test.cpp`,
+  },
+  {
+    title: "Three functions claimed constexpr and could not deliver it",
+    hid: "All three build a string_view over std::byte, which needs a reinterpret_cast — forbidden in constant evaluation. Clang accepts them because nothing ever constant-evaluates them, so the invalid path is never instantiated.",
+    caught:
+      "Adding a GCC job. It diagnoses eagerly and is right. Over four rounds the same job also found an ABI dependency in a lock-free structure, a silently truncated buffer, and nine redundant casts.",
+    matters:
+      "The keyword was a claim the function could not honour: anyone using it in a constant expression got a hard error. I had already fixed this exact defect once elsewhere and missed three more — a habit of remembering does not scale, a compiler does.",
+    kind: "portability",
+    where: `${REPO}/docs/BENCHMARKS.md`,
+  },
+  {
     title: "ThreadSanitizer passes a lock-free ring that is wrong",
     hid: "Replace the ring's release/acquire with relaxed and it can publish an index before the record's bytes. TSan reports nothing: it does not model relaxed atomics precisely, so it cannot tell a sufficient ordering from an insufficient one.",
     caught: "A property test on arm64 — weakly ordered, so it actually reorders. It failed 12 runs out of 12. On x86-64 the same broken code would very likely pass.",
@@ -102,9 +122,16 @@ export function evidence(tests: number, allocations: number, perPacket: string):
     {
       value: String(tests),
       label: "tests",
-      title: "run under five configurations: assertions paranoid, fast and off, plus AddressSanitizer and ThreadSanitizer",
+      title: "under five configurations: assertions paranoid, fast and off, plus AddressSanitizer and ThreadSanitizer",
     },
-    { value: "5", label: "sanitiser and assertion builds", title: "dev, release, bench, asan, tsan — all with warnings as errors" },
+    {
+      value: "3",
+      label: "compilers, all with warnings as errors",
+      title:
+        "Apple Clang locally, Linux Clang and GCC 14 in CI. Each has found defects the others never mention — " +
+        "and the direction is not fixed: GCC caught three false constexpr claims, and the local arm64 machine is " +
+        "the only place a broken memory ordering is visible at all.",
+    },
     { value: String(allocations), label: "allocations after start-up", title: "counted by replacing the global operator new across a whole recovery run" },
     { value: perPacket, label: "to take in one packet", title: "one core, no I/O in the loop, measured natively" },
   ];

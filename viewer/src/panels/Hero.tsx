@@ -27,7 +27,8 @@ export function Hero({ tests, allocations, perPacket, live, onWatch }: Props) {
     <section className="hero">
       <p className="hero__what">
         A market-data feed is broken on purpose — packets lost, duplicated, reordered, a line diverging — and a
-        C++20 client puts it back together. Then it is asked to prove it did.
+        C++20 client puts it back together. Then it has to prove the <em>book</em> it rebuilt is the book that
+        would have existed if nothing had been lost.
       </p>
 
       <div className="hero__evidence">
