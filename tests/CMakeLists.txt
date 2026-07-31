@@ -115,9 +115,12 @@ dfr_add_test_suite(dfr_integration_tests SOURCES
   integration/recovery_repair_test.cpp
   integration/book_oracle_test.cpp
   integration/glimpse_test.cpp
+  integration/threaded_book_test.cpp
   integration/venue_recovery_test.cpp
   integration/venue_snapshot_test.cpp
 )
+# The threaded book test starts a consumer thread, so this suite links Threads too.
+target_link_libraries(dfr_integration_tests PRIVATE Threads::Threads)
 
 # One suite per protocol, one file per concept within it.
 dfr_add_test_suite(dfr_moldudp64_tests SOURCES

@@ -27,6 +27,14 @@ inline replay_result replay_clean(const feed& source) {
   return out;
 }
 
+// The same replay, but the deliveries go to a caller-supplied sink instead of straight into a book.
+//
+// Exists for the threaded test, where the book is on another core. Factored rather than copied: a second replay
+// would be a second chance to get the sequence-order rule wrong, and that rule is the hardest thing in the project.
+template <typename Sink>
+inline void replay_recovered_into(const feed& source, std::uint64_t seed, std::uint32_t faults,
+                                  Sink&& sink);
+
 // The subject: the same packets through the injector and the recovery client.
 //
 // Retransmits are answered from the published stream, which is a harness with the whole day in memory rather
@@ -187,6 +195,109 @@ inline replay_result replay_recovered(const feed& source, std::uint64_t seed, st
     out.failed = true;
   }
   return out;
+}
+
+// One implementation, two consumers: the in-process book, and a sink that carries messages elsewhere.
+//
+// `replay_recovered` is the in-process case and is left as it was, because it is what four existing tests call. This
+// runs the same pipeline and hands every delivered sequence out — same injector, same client, same ordering rules.
+template <typename Sink>
+inline void replay_recovered_into(const feed& source, std::uint64_t seed, std::uint32_t faults,
+                                  Sink&& sink) {
+  replay_result ignored;
+  feed_client client{detail::feed_client_options()};
+  std::int64_t now = 0;
+
+  chaos::schedule plan;
+  if (faults > 0) {
+    dfr::prng rng{seed};
+    chaos::schedule_options options;
+    options.max_faults = faults;
+    options.permitted = detail::book_safe_faults();
+    REQUIRE(chaos::schedule::generate(rng, options, source.packets.size()).get(plan) ==
+            dfr::error::ok);
+  }
+  chaos::injector<chaos::iextp_target> injector{plan};
+
+  const auto hand_out = [&](rec::sequence_range range) {
+    for (std::uint64_t s = range.first; s < range.end; ++s) {
+      const auto found = source.bodies.find(s);
+      if (found == source.bodies.end()) {
+        continue;
+      }
+      sink(s, dfr::packet_view{found->second.data(), found->second.size()});
+    }
+  };
+
+  const auto offer = [&](dfr::packet_view packet) {
+    iex::header header;
+    if (iex::decode_header(packet).get(header) != dfr::error::ok) {
+      return;
+    }
+    if (!iex::message_cursor::over(packet)) {
+      return;
+    }
+    rec::ingest_report report;
+    if (client
+            .on_packet(0, header.session, header.first_sequence, header.message_count, 0,
+                       at_us(now))
+            .get(report) != dfr::error::ok) {
+      return;
+    }
+    if (report.held_for_replay) {
+      for (std::uint64_t s = report.accepted.first; s < report.accepted.end; ++s) {
+        const auto found = source.bodies.find(s);
+        const char filler = 'm';
+        const auto body = found == source.bodies.end()
+                              ? dfr::packet_view{&filler, 1}
+                              : dfr::packet_view{found->second.data(), found->second.size()};
+        if (!client.buffer_message(s, body)) {
+          return;
+        }
+      }
+      return;
+    }
+    for (const auto& repaired : client.last_recovered().ranges()) {
+      hand_out(repaired);
+    }
+    if (report.delivered()) {
+      hand_out(report.accepted);
+    }
+  };
+
+  const auto answer = [&]() {
+    for (int attempt = 0; attempt < 8; ++attempt) {
+      const auto decision = client.poll(at_us(now));
+      if (decision.what != rec::client_action::send_retransmit_request) {
+        return;
+      }
+      for (const auto& candidate : source.packets) {
+        const rec::sequence_range carried{
+            .first = candidate.first_sequence,
+            .end = candidate.first_sequence + candidate.message_count};
+        if (carried.overlaps(decision.range)) {
+          offer(dfr::packet_view{candidate.bytes.data(), candidate.bytes.size()});
+        }
+      }
+    }
+  };
+
+  const auto emit = [&](const chaos::emission& e) {
+    now += 50;
+    offer(e.packet);
+    answer();
+  };
+
+  for (std::uint64_t i = 0; i < source.packets.size(); ++i) {
+    const auto& packet = source.packets[i];
+    REQUIRE(injector.offer(dfr::packet_view{packet.bytes.data(), packet.bytes.size()}, i, emit)
+                .has_value());
+  }
+  REQUIRE(injector.flush(emit).has_value());
+  for (int settle = 0; settle < 32; ++settle) {
+    now += 100;
+    answer();
+  }
 }
 
 }  // namespace dfr_test::oracle

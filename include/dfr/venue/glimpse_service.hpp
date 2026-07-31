@@ -29,7 +29,7 @@
 #include <dfr/core/error.hpp>
 #include <dfr/core/result.hpp>
 #include <dfr/wire/deep/encode.hpp>
-#include <dfr/wire/glimpse/messages.hpp>
+#include <dfr/wire/glimpse.hpp>
 #include <dfr/wire/soupbintcp.hpp>
 
 #include <array>

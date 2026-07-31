@@ -85,6 +85,9 @@ inline feed_time at_us(std::int64_t micros) {
 
 // Four symbols: enough that a message lost for one must not disturb another's book, few enough that a failure
 // names something a reader can follow.
+// The single symbol the threaded test uses, named so two files agree on it rather than repeating a literal.
+inline constexpr std::string_view kTracedSymbolForTest = "ZTEST";
+
 inline constexpr std::string_view kSymbols[]{"ZTEST", "ZIEXT", "ZWWE", "ZAAPL"};
 
 struct feed_packet {

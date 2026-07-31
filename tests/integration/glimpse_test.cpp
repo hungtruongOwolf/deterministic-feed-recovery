@@ -12,7 +12,7 @@
 #include <dfr/book/order_book.hpp>
 #include <dfr/venue/glimpse_service.hpp>
 #include <dfr/wire/deep.hpp>
-#include <dfr/wire/glimpse/messages.hpp>
+#include <dfr/wire/glimpse.hpp>
 #include <dfr/wire/soupbintcp.hpp>
 
 #include <catch2/catch_test_macros.hpp>
