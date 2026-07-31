@@ -162,6 +162,8 @@ cannot drift from what the run actually did.
 the client's state as a band across the run, the Glimpse race drawn on a sequence axis, per-line
 health for a redundant pair, and the honesty ledger.
 
+**Live:** <https://hungtruongowolf.github.io/deterministic-feed-recovery/>
+
 ```
 cd viewer && npm install && npm run dev
 ```
