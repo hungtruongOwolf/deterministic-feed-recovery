@@ -78,6 +78,10 @@ dfr_add_test_suite(dfr_recovery_tests SOURCES
   recovery/client_recovery_test.cpp
 )
 
+dfr_add_test_suite(dfr_trace_tests SOURCES
+  trace/recorder_test.cpp
+)
+
 dfr_add_test_suite(dfr_venue_tests SOURCES
   venue/publisher_test.cpp
   venue/retransmit_facility_test.cpp

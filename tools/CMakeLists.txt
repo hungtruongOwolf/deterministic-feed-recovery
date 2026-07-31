@@ -11,3 +11,10 @@ add_executable(dfr_verify verify.cpp)
 target_link_libraries(dfr_verify PRIVATE dfr::dfr dfr_dev_flags)
 target_include_directories(dfr_verify PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(dfr_verify PROPERTIES OUTPUT_NAME verify)
+
+# Records one complete run of the library as JSONL, for the viewer to read. A trace is a
+# deterministic function of the seed, so it can be committed next to the test that produced it.
+add_executable(dfr_trace trace.cpp)
+target_link_libraries(dfr_trace PRIVATE dfr::dfr dfr_dev_flags)
+target_include_directories(dfr_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties(dfr_trace PROPERTIES OUTPUT_NAME trace)

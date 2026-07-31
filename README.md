@@ -9,7 +9,7 @@ end-to-end oracle over both synthetic and real captures. `dfr::venue` is in prog
 the publisher and the retransmit and snapshot facilities are done, OUCH order entry is
 not.**
 
-552 tests pass under four configurations — assertions at paranoid, fast and off,
+564 tests pass under four configurations — assertions at paranoid, fast and off,
 and AddressSanitizer + UndefinedBehaviorSanitizer — all with warnings as errors.
 
 ## What this is meant to be
@@ -132,6 +132,28 @@ Three things the exercise turned up:
 - **The multicast group, port and session id all vary too** (233.215.21.4:10378 in
   2017, 233.215.21.242:32001 in 2024). Anything hard-coded from one capture is a
   parser that works on exactly one file.
+
+## Recorded runs
+
+`tools/trace` records a whole run — venue publishing, faults injected, the client's every
+decision — as one JSON object per line. A trace is a deterministic function of the seed, so
+it is committed next to the code rather than regenerated: `traces/` holds two, and
+`diff`ing a fresh run against them is a behavioural regression test a human can read.
+
+```
+$ trace --seed 4711 --messages 300 --out run.jsonl
+$ trace --glimpse --out glimpse.jsonl      # loses the Glimpse race on purpose
+```
+
+Every event carries the *resulting* client state and headline numbers. That redundancy is
+deliberate: a viewer must be able to draw any moment by reading one line, because a viewer
+that reconstructed state from the event sequence would be a second implementation of the
+state machine — and when the two disagreed, the picture would be wrong with nothing to say
+so.
+
+The header also carries a generated `limits` array: which claims this run measured and which
+cannot be measured on the hardware available. It is in the data rather than in prose so it
+cannot drift from what the run actually did.
 
 ## Test data
 
