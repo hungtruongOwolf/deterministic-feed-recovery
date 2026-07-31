@@ -115,6 +115,31 @@ class arbiter {
     return delivered_through_;
   }
 
+  // Forgets the merged stream's position and the digest history, for a session change:
+  // the new session renumbers from its own beginning, so a watermark carried across
+  // would make every packet of the new session look like a duplicate.
+  //
+  // Per-line statistics survive deliberately. Whether a line's switch is dropping
+  // traffic is a fact about the wiring, not about the session, and zeroing it at every
+  // session boundary would erase the evidence exactly when someone is looking for it.
+  constexpr void reset_stream() noexcept {
+    delivered_through_ = 0;
+    digest_next_ = 0;
+    digest_count_ = 0;
+  }
+
+  // Declares that everything below `sequence` has been delivered by some route other than
+  // this arbiter — a snapshot, or a replay on top of one.
+  //
+  // Separate from offer() rather than done by feeding a synthetic packet, because a
+  // synthetic packet would land in a line's statistics and in its liveness, and a snapshot
+  // is not evidence that any line is running.
+  constexpr void adopt(std::uint64_t sequence) noexcept {
+    if (sequence > delivered_through_) {
+      delivered_through_ = sequence;
+    }
+  }
+
   [[nodiscard]] constexpr const line_stats& stats(std::size_t line) const noexcept {
     DFR_ASSERT(line < kMaxLines, "line index out of range");
     return stats_[line];

@@ -68,6 +68,36 @@ class gap_set {
     return total;
   }
 
+  // The parts of `arrived` that this set is still missing.
+  //
+  // Exists because "is this packet a duplicate?" and "is this packet useful?" are
+  // different questions, and the arbiter can only answer the first. A retransmit, or the
+  // other line's copy arriving late, lands *below* the merged stream's watermark and looks
+  // like a duplicate while being exactly what recovery was waiting for. The set of holes
+  // is the only thing that can tell them apart.
+  //
+  // The result needs no capacity check: it can hold at most one range per range already
+  // here, since an intersection cannot split anything.
+  [[nodiscard]] constexpr gap_set intersect(sequence_range arrived) const noexcept {
+    gap_set out;
+    if (arrived.empty()) {
+      return out;
+    }
+    for (std::size_t i = 0; i < count_; ++i) {
+      const sequence_range hole = ranges_[i];
+      if (!hole.overlaps(arrived)) {
+        continue;
+      }
+      out.ranges_[out.count_] = sequence_range{
+          .first = hole.first > arrived.first ? hole.first : arrived.first,
+          .end = hole.end < arrived.end ? hole.end : arrived.end};
+      ++out.count_;
+    }
+    DFR_ASSERT_PARANOID(out.is_canonical(),
+                        "intersect() produced a non-canonical set");
+    return out;
+  }
+
   // Records a newly discovered hole, merging it into anything it touches.
   //
   // An empty range is accepted and does nothing, so a caller computing a range

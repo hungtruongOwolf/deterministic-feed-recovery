@@ -74,6 +74,8 @@ dfr_add_test_suite(dfr_recovery_tests SOURCES
   recovery/arbiter_health_test.cpp
   recovery/replay_buffer_test.cpp
   recovery/snapshot_test.cpp
+  recovery/client_test.cpp
+  recovery/client_recovery_test.cpp
 )
 
 # One suite per protocol, one file per concept within it.

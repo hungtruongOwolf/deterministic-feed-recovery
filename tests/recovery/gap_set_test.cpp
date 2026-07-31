@@ -327,6 +327,63 @@ TEST_CASE("discarding below the start of the oldest hole changes nothing",
   CHECK(listed(set) == std::vector{range(10, 20)});
 }
 
+// ---------------------------------------------------------------------------
+// Asking what part of an arrival was actually wanted
+// ---------------------------------------------------------------------------
+
+TEST_CASE("intersect names the part of an arrival that was missing",
+          "[recovery][gap_set]") {
+  // The question the arbiter cannot answer. A retransmit — or the other line's copy
+  // arriving late — lands below the merged stream's watermark and looks like a duplicate
+  // while being exactly what recovery was waiting for.
+  rec::gap_set set;
+  must_open(set, range(10, 20));
+
+  CHECK(listed(set.intersect(range(12, 15))) == std::vector{range(12, 15)});
+  CHECK(listed(set.intersect(range(0, 100))) == std::vector{range(10, 20)});
+  CHECK(listed(set.intersect(range(5, 15))) == std::vector{range(10, 15)});
+  CHECK(listed(set.intersect(range(15, 50))) == std::vector{range(15, 20)});
+}
+
+TEST_CASE("intersect is empty when nothing in the arrival was wanted",
+          "[recovery][gap_set]") {
+  rec::gap_set set;
+  must_open(set, range(10, 20));
+
+  CHECK(set.intersect(range(50, 60)).empty());
+  CHECK(set.intersect(range(20, 30)).empty());  // adjacent, not overlapping
+  CHECK(set.intersect(range(7, 7)).empty());
+  CHECK(rec::gap_set{}.intersect(range(10, 20)).empty());
+}
+
+TEST_CASE("an arrival spanning several holes reports each separately",
+          "[recovery][gap_set]") {
+  // Which is why the answer is a set and not a range. Reporting the span 12..47 instead
+  // would claim the messages between the holes had been missing, and the caller would
+  // deliver them twice.
+  rec::gap_set set;
+  must_open(set, range(10, 20));
+  must_open(set, range(30, 40));
+  must_open(set, range(45, 50));
+
+  const auto wanted = set.intersect(range(12, 47));
+  CHECK(listed(wanted) ==
+        std::vector{range(12, 20), range(30, 40), range(45, 47)});
+  CHECK(wanted.total_missing() == 8 + 10 + 2);
+}
+
+TEST_CASE("intersect leaves the original set untouched",
+          "[recovery][gap_set]") {
+  // It answers a question; closing the holes is fill()'s job. A client consults it *before*
+  // the fill, so an intersect that mutated would make the fill a no-op.
+  rec::gap_set set;
+  must_open(set, range(10, 20));
+  const auto before = listed(set);
+
+  (void)set.intersect(range(12, 15));
+  CHECK(listed(set) == before);
+}
+
 TEST_CASE("clear forgets everything", "[recovery][gap_set]") {
   // For a session change, where every sequence number held refers to a stream that
   // no longer exists.
