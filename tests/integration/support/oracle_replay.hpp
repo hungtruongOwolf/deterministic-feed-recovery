@@ -24,6 +24,9 @@ inline replay_result replay_clean(const feed& source) {
       ++out.delivered;
     }
   }
+  // What apply() can no longer assert for itself, because it also runs on a consumer thread. Here, on the main
+  // thread, where Catch2 is safe to touch.
+  REQUIRE(out.malformed == 0);
   return out;
 }
 

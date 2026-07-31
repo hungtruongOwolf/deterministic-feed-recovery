@@ -61,6 +61,17 @@ jobs:
       - name: Test
         run: ctest --preset ${{ matrix.preset }} --output-on-failure
 
+      # Running a concurrency test once tells you almost nothing, and I proved it on myself: the threaded book test
+      # aborted intermittently, I read "720 tests passed" and shipped it, and it failed here. Looked for on purpose
+      # afterwards, it reproduced on the second run — the flake was in the harness, not the platform.
+      #
+      # The count is measured rather than chosen; scripts/hammer-concurrency.sh has the arithmetic. Skipped under the
+      # sanitisers, where one run already inspects far more than a repetition would and four hundred would take
+      # longer than the rest of this workflow put together.
+      - name: Concurrency tests pass repeatedly, not once
+        if: matrix.preset == 'dev' || matrix.preset == 'release'
+        run: ./scripts/hammer-concurrency.sh ${{ matrix.preset }} 400
+
       # The most useful sentence on the page is its test count, and a number typed into a component becomes a lie
       # the next time a suite is added. Checked here rather than in the viewer job because this one already has a
       # configured build with a pinned compiler — putting a C++ build into the viewer job made it pick up the

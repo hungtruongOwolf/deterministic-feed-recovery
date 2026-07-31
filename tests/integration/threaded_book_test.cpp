@@ -9,6 +9,14 @@
 //
 //   **the book built across a thread boundary equals the book built single-threaded.**
 //
+// Nothing on the consumer thread may touch Catch2
+// -----------------------------------------------
+// This test aborted intermittently — inside `Catch::OutputRedirect::activate`, with no failing expression and a
+// SIGABRT that read as a library defect. It was not one: `detail::apply` used REQUIRE, this calls it from the
+// consumer thread, and Catch2's result capture is single-threaded. It reproduced on the second run once I looked
+// for it, so "the suite passed" had meant "the suite passed once". The consumer now counts and the main thread
+// asserts, and `--repeat until-fail` in CI is what turns a rare abort into a build failure.
+//
 // That is stronger than the ring's own property test. The property test feeds the ring synthetic records in order
 // and checks none are lost or reordered. This feeds it a *damaged* feed's deliveries — out of order, with repairs
 // arriving after later messages — under real contention, and checks the far side arrives at the right book. A ring
@@ -41,6 +49,8 @@ struct threaded_result {
   std::map<std::string, oracle_book> state_by_symbol;
   oracle_book state;
   std::uint64_t consumed{0};
+  /** Copied out of the consumer's own counters before it exits — see replay_result::malformed. */
+  std::uint64_t malformed{0};
   conc::publisher_stats produced{};
 };
 
@@ -64,6 +74,9 @@ threaded_result across_a_boundary(const feed& source, std::uint64_t seed, std::u
       }
     }
     out.state = out.state_by_symbol[std::string{kTracedSymbolForTest}];
+    // Carried across the join rather than asserted here: a Catch2 macro on this thread races the main thread's
+    // result capture and aborts inside its output redirect, which is what made this test flaky.
+    out.malformed = sink.malformed;
   });
 
   replay_recovered_into(source, seed, faults, [&](std::uint64_t sequence, dfr::packet_view body) {
@@ -93,6 +106,7 @@ TEST_CASE("the book built across a thread boundary is the same book", "[integrat
     // And the reordering must actually have happened, or the run proves nothing about the hard case.
     CHECK(through.produced.reordered > 0);
 
+    CHECK(through.malformed == 0);
     CHECK(through.consumed == through.produced.published);
     CHECK(through.state == reference.books.at(std::string{kTracedSymbolForTest}));
   }

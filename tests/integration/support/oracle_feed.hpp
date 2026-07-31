@@ -110,6 +110,16 @@ struct replay_result {
   std::uint64_t gaps_opened{0};
   std::uint64_t unfillable{0};
   std::uint64_t injected{0};
+  /**
+   * Messages `detail::apply` could not decode.
+   *
+   * A counter rather than a REQUIRE inside apply, because apply runs on a consumer thread in
+   * threaded_book_test.cpp and **Catch2's assertion machinery is not thread-safe**. It aborted inside
+   * `OutputRedirect::activate` — a failure in the measuring apparatus that looked like a failure in the library,
+   * and looked platform-specific because I had run the suite once. Every caller asserts this is zero from the
+   * main thread instead.
+   */
+  std::uint64_t malformed{0};
   bool failed{false};
 };
 
@@ -165,22 +175,35 @@ inline rec::client_options feed_client_options() {
 
 // Applies one message to the right book. The only place the two replays share code, on purpose: a difference
 // here would show up as both books being wrong in the same way, which the equality would not catch.
+//
+// No Catch2 macros in here, and that is a requirement rather than a style choice: threaded_book_test.cpp calls this
+// from a consumer thread, and a REQUIRE on a second thread reaches into Catch2's result capture and output redirect
+// concurrently with the main thread. It aborts — `Assertion !m_redirectActive && "redirect is already active"` —
+// with no failing expression, which reads as a library defect and is not one. A decode failure is counted here and
+// asserted by the caller on the main thread.
 inline void apply(std::map<std::string, oracle_book>& books, dfr::packet_view body,
                   replay_result& into) {
   deep::header head;
   if (deep::decode_header(body).get(head) != dfr::error::ok) {
+    ++into.malformed;
     return;
   }
   if (head.type == deep::message_type::price_level_buy ||
       head.type == deep::message_type::price_level_sell) {
     deep::price_level_update update;
-    REQUIRE(deep::decode_price_level(body).get(update) == dfr::error::ok);
+    if (deep::decode_price_level(body).get(update) != dfr::error::ok) {
+      ++into.malformed;
+      return;
+    }
     (void)books[std::string{update.symbol}].apply(update);
     return;
   }
   if (head.type == deep::message_type::trade_report) {
     deep::trade_report trade;
-    REQUIRE(deep::decode_trade(body).get(trade) == dfr::error::ok);
+    if (deep::decode_trade(body).get(trade) != dfr::error::ok) {
+      ++into.malformed;
+      return;
+    }
     books[std::string{trade.symbol}].observe(trade);
     into.trades += 1;
     into.traded_shares += trade.size;
