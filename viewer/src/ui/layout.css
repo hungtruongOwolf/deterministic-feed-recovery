@@ -165,3 +165,69 @@
 .ledger__heading { font-size: 10px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink); margin: 0; }
 .ledger__why { margin: 4px 0 7px; font-size: 11.5px; line-height: 1.45; color: var(--ink-faint); }
 .ledger__note { color: var(--ink-soft); font-size: 13px; }
+
+/* ------------------------------------------------------- the session section
+
+   The other direction of the venue: orders in, where the film above is market data out. Always visible,
+   below rather than behind a control, because the two are two halves of one thing.                       */
+
+.session { grid-column: 1 / -1; margin-top: 30px; padding-top: 22px; border-top: 1px solid var(--rule-strong); }
+.session__head { max-width: 88ch; }
+.session__title { font-size: 22px; margin: 0 0 7px; }
+.session__lede { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-soft); }
+
+.session__claim {
+  display: flex; align-items: stretch; gap: 18px; flex-wrap: wrap;
+  margin: 16px 0 14px; padding: 13px 16px; border: 1px solid var(--rule); background: var(--page-sunk);
+}
+.session__claim-text { flex: 1 1 40ch; min-width: 0; font-size: 13.5px; line-height: 1.55; }
+.session__verdict {
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px;
+  padding: 8px 18px; border: 1px solid var(--healthy); background: var(--page); white-space: nowrap;
+}
+.session__verdict.is-broken { border-color: var(--unfillable); background: #f8ece9; }
+.session__verdict-pair { font-size: 20px; color: var(--ink); letter-spacing: 0.04em; }
+.session__verdict-word { font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--healthy); }
+.session__verdict.is-broken .session__verdict-word { color: var(--unfillable); }
+
+.ladder { display: block; width: 100%; height: auto; background: var(--page); }
+.ladder__frame { fill: none; stroke: var(--rule-strong); stroke-width: 1; }
+.ladder__party {
+  font-family: var(--serif); font-size: 14px; fill: var(--ink); text-anchor: middle;
+}
+.ladder__gutter-head {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  fill: var(--ink-soft); text-anchor: middle;
+}
+.ladder__gutter-sub { font-family: var(--mono); font-size: 8.5px; fill: var(--ink-faint); text-anchor: middle; }
+.ladder__life { stroke: var(--rule); stroke-width: 1; stroke-dasharray: 2 4; }
+
+.rung { cursor: default; outline: none; }
+.rung__hit { fill: transparent; }
+.rung:hover .rung__hit, .rung.is-active .rung__hit, .rung:focus-visible .rung__hit { fill: var(--page-sunk); }
+.rung__arrow { stroke: var(--ink-faint); stroke-width: 1; }
+.rung__head { fill: var(--ink-faint); }
+.rung.is-numbered .rung__arrow { stroke: var(--ink); stroke-width: 1.5; }
+.rung.is-numbered .rung__head { fill: var(--ink); }
+.rung--venue .rung__arrow { stroke: var(--fault); stroke-dasharray: 3 3; }
+.rung__name { font-family: var(--mono); font-size: 10.5px; fill: var(--ink); }
+.rung.is-numbered .rung__name { font-size: 11px; }
+.rung__detail { font-family: var(--mono); font-size: 9px; fill: var(--ink-faint); }
+.rung__count { font-family: var(--mono); font-size: 14px; fill: var(--ink-soft); text-anchor: middle; }
+.rung.is-numbered .rung__count { fill: var(--ink); }
+.rung__seq { font-family: var(--mono); font-size: 10px; fill: var(--recovery); }
+.rung__book { font-family: var(--mono); font-size: 9px; fill: var(--ink-faint); }
+
+.session__caption {
+  display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap;
+  min-height: 3.2em; margin: 10px 0 0; padding: 9px 12px; border: 1px solid var(--rule);
+}
+.session__caption-idle { font-size: 13px; color: var(--ink-faint); }
+.session__caption-name { font-size: 11px; letter-spacing: 0.06em; color: var(--ink-soft); white-space: nowrap; }
+.session__caption-body { flex: 1 1 40ch; font-size: 14px; line-height: 1.5; }
+
+.session__figures { display: flex; gap: 26px; flex-wrap: wrap; margin-top: 14px; }
+.session__figure { display: flex; flex-direction: column; gap: 2px; }
+.session__figure-label { font-size: 9px; letter-spacing: 0.12em; color: var(--ink-soft); }
+.session__figure-value { font-family: var(--serif); font-size: 17px; color: var(--ink); }
+.session__foot { margin: 14px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-faint); max-width: 90ch; }

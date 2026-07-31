@@ -17,6 +17,8 @@ import {
   PROJECT_TAGLINE,
 } from "./model/brand";
 import { ACTS, actAt, buildFilm, dwellFor, INTERLUDE_BEATS, type Film } from "./model/film";
+import { parseSession, type SessionTrace } from "./model/session";
+import { SessionSection } from "./session/SessionSection";
 import { usePlayback } from "./anim/usePlayback";
 import { Sheet } from "./stage/Sheet";
 import { Stage } from "./stage/Stage";
@@ -32,6 +34,7 @@ import { LineHealth } from "./panels/LineHealth";
 
 export function App() {
   const [film, setFilm] = useState<Film | undefined>();
+  const [session, setSession] = useState<SessionTrace | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [started, setStarted] = useState(false);
 
@@ -61,6 +64,27 @@ export function App() {
         if (!cancelled) {
           setFilm(undefined);
           setError(cause instanceof TraceFormatError ? cause.message : String(cause));
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The order-entry session, fetched separately and drawn below. Its absence must not stop the film: two
+  // halves of one page, and one failing to load is a reason to show the other rather than neither.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("traces/order-session.jsonl")
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+      .then((text) => {
+        if (!cancelled) {
+          setSession(parseSession(text));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setSession(undefined);
         }
       });
     return () => {
@@ -187,6 +211,8 @@ export function App() {
             <LineHealth trace={view.act.trace} />
             <Ledger trace={view.act.trace} />
           </div>
+
+          {session !== undefined && <SessionSection trace={session} />}
         </main>
       )}
     </div>

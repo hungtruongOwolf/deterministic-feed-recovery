@@ -71,6 +71,27 @@ steps is mostly watching nothing happen. Nothing is skipped — every step still
 still counts them all — but quiet stretches go past quickly and the moments that matter are held. The whole
 film runs about 114 seconds at 1×, and the checker asserts that.
 
+## The other direction: orders coming in
+
+Below the film is a second sheet, always visible, drawn from a recording of one OUCH order-entry session
+over SoupBinTCP. It is there because a counterparty that only publishes is not one: the venue has to
+answer as well as broadcast.
+
+A ladder rather than a stack, because the subject is different. The recovery drawing is about three layers
+of one system, which is spatial. A session is two parties taking turns, which is temporal — and the thing
+worth seeing is in the two outer columns:
+
+**SoupBinTCP puts the sequence number of a packet nowhere in the packet.** The exchange assigns it; the
+client derives it by counting what arrives. The two gutters hold those two numbers, and they are equal on
+every rung while no arrow between them ever carries the number. That agreement is the only evidence either
+side is right, and `npm run check` asserts it from the recording rather than computing it — a viewer doing
+its own third count could not demonstrate agreement, only muddy it.
+
+Static rather than animated, deliberately. The film moves because a lost packet is an *event* and motion is
+the only way to show something failing to arrive. A session is a transcript: it fits on one sheet, and the
+lockstep of the counters is visible all at once in a way it would not be one rung at a time. Hovering a
+rung says what that step means in words.
+
 ## The one rule
 
 **No domain logic lives here.** Every number drawn is a field the trace already carries — the client state,

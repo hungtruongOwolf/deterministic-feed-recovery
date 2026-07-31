@@ -24,4 +24,5 @@ set_target_properties(dfr_trace PROPERTIES OUTPUT_NAME trace)
 # benefits from being watched rather than only asserted.
 add_executable(dfr_session session.cpp)
 target_link_libraries(dfr_session PRIVATE dfr::dfr dfr_dev_flags)
+target_include_directories(dfr_session PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(dfr_session PROPERTIES OUTPUT_NAME session)
