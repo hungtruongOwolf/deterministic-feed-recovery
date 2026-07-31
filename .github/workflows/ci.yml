@@ -37,7 +37,7 @@ jobs:
       CC: clang
       CXX: clang++
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Compiler and CMake versions
         run: |
@@ -47,7 +47,7 @@ jobs:
       # Catch2 is fetched by FetchContent and pinned to a tag, so the cache key needs nothing but the
       # file that pins it.
       - name: Cache the Catch2 build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: build/${{ matrix.preset }}/_deps
           key: deps-${{ matrix.preset }}-${{ hashFiles('tests/CMakeLists.txt') }}
@@ -95,7 +95,7 @@ jobs:
       CC: clang
       CXX: clang++
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Configure and build
         run: |
@@ -120,7 +120,7 @@ jobs:
       CC: clang
       CXX: clang++
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build at the shipping configuration
         run: |
           cmake -S . -B build/o3-off -DCMAKE_BUILD_TYPE=Release -DDFR_ASSERTIONS=off -DDFR_WARNINGS_AS_ERRORS=ON
@@ -147,7 +147,7 @@ jobs:
       CC: gcc-14
       CXX: g++-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure and build
         run: |
           cmake -S . -B build/gcc -DCMAKE_BUILD_TYPE=RelWithDebInfo \
@@ -168,7 +168,7 @@ jobs:
       CC: clang
       CXX: clang++
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Configure and build the targets
         run: |
@@ -201,12 +201,12 @@ jobs:
       CC: clang
       CXX: clang++
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: mymindstorm/setup-emsdk@v14
         with:
           version: 4.0.7
           actions-cache-folder: emsdk-cache
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
 
@@ -239,8 +239,8 @@ jobs:
       run:
         working-directory: viewer
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
