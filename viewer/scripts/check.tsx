@@ -19,7 +19,7 @@ import { parseTrace } from "../src/model/trace";
 import { buildStory, overture } from "../src/model/story";
 import { Sheet } from "../src/stage/Sheet";
 import { Stage } from "../src/stage/Stage";
-import { BLOCK, MARGIN, NESTED, SHEET, boxes, gridFor, type Box } from "../src/stage/layout";
+import { MARGIN, NESTED, SHEET, boxes, gridFor, type Box } from "../src/stage/layout";
 
 let failures = 0;
 function check(ok: boolean, what: string) {
@@ -83,14 +83,12 @@ console.log("geometry");
   // Labels are monospace; 0.62em advance is a safe over-estimate for the stacks in theme.css.
   const fits = (text: string, size: number, width: number) => text.length * size * 0.62 <= width;
   const labels: Array<[string, string, number, number]> = [
-    ["engine title", "MATCHING", 8.5, byName.get("engine")!.w],
-    ["receiver title", "RECEIVER", 8.5, byName.get("receiver")!.w],
-    ["retx title", "RETRANSMIT", 8.5, byName.get("retransmit server")!.w],
-    ["retx sub", "unreachable in this run", 7.5, byName.get("retransmit server")!.w],
-    ["snap sub", "rebuilds the book", 7.5, byName.get("snapshot server")!.w],
-    ["switch name", "SW·A1", 8.5, byName.get("SW·A1")!.w],
-    ["ladder name", "REBUILD FROM A SNAPSHOT", 9.5, BLOCK.w / 3 - 38],
-    ["ladder cost", "removed in this run, on purpose", 8, BLOCK.w / 3 - 38],
+    ["engine title", "MATCHING", 8, byName.get("matching engine")!.w],
+    ["receiver title", "RECEIVER", 8, byName.get("receiver")!.w],
+    ["retx title", "RETRANSMIT", 8, byName.get("retransmit server")!.w],
+    ["retx sub", "too late in this run", 7, byName.get("retransmit server")!.w],
+    ["snap sub", "rebuilds the book", 7, byName.get("snapshot server")!.w],
+    ["switch name", "SW·A1", 8, byName.get("SW·A1")!.w],
   ];
   const tight = labels.filter(([, text, size, width]) => !fits(text, size, width));
   for (const [name, text, size, width] of tight) {
@@ -133,8 +131,9 @@ for (const file of readdirSync("public/traces").sort()) {
 
   const at = Math.min(6, story.length - 1);
   const drawn = frame(trace, at, 0.5);
-  check(drawn.includes('class="ladder__rung'), "the three defences are drawn");
-  check(drawn.includes('class="plan__route plan__route--a"'), "the multicast path is drawn");
+  check((drawn.match(/plane__face/g) ?? []).length === 3, "all three defence planes are drawn");
+  check(drawn.includes("plan__column"), "the escalation column between the planes is drawn");
+  check(drawn.includes('class="plan__route'), "the multicast paths are drawn");
   check(drawn.includes("book__cell--have") || drawn.includes("book__cell--ahead"), "the book grid is drawn");
   check(drawn.includes('class="packet'), "a packet is drawn");
   check(frame(trace, at, 0.1) !== frame(trace, at, 0.9), "the picture moves within a step");
@@ -142,10 +141,22 @@ for (const file of readdirSync("public/traces").sort()) {
   // The experiment must be visible: a run without the second line draws it struck out.
   const strike = (drawn.match(/plan__strike/g) ?? []).length;
   if (trace.header.lines === 1) {
-    check(strike > 0, "the removed defence is drawn struck out");
+      check(strike > 0, "the removed defence is drawn struck out");
   } else {
     check(strike === 0, "nothing is struck out when every defence is in place");
   }
+
+  // The run must visibly fall through the layers: an escalating run reaches a lower plane than it starts on.
+  const layers = story.map((b) =>
+    b.lane === "snapshot" || b.event.state === "failed" || b.event.state === "replaying"
+      ? 2
+      : b.lane === "request" || b.event.state === "recovering"
+        ? 1
+        : 0,
+  );
+  const deepest = Math.max(...layers);
+  const expected = trace.summary.snapshot_requests > 0 ? 2 : trace.summary.retransmit_requests > 0 ? 1 : 0;
+  check(deepest === expected, `the run falls exactly as far as it should (plane ${deepest})`);
 
   if (trace.header.mode === "glimpse") {
     const fatal = story.find((b) => b.event.event === "snapshot_rejected");

@@ -138,23 +138,39 @@ td.num, th.num { text-align: right; padding-right: 0; }
 .readout__label { font-family: var(--mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--ink-soft); }
 .readout__value { font-family: var(--mono); font-size: 16px; }
 
-/* ------------------------------------------------------ regions and the plan */
+
+/* ------------------------------------------------------- the stacked planes */
 
 .region__title { font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; fill: var(--ink-soft); }
 .region__sub { font-family: var(--mono); font-size: 8.5px; fill: var(--ink-faint); }
 .plan__region { fill: none; stroke: var(--rule); stroke-width: 0.7; }
 
-.plan__route { fill: none; stroke: var(--rule-strong); stroke-width: 1.1; }
-.plan__route--b { stroke-dasharray: none; }
-.plan__route.is-absent { stroke: var(--rule); stroke-dasharray: 2 5; opacity: 0.55; }
-.plan__route-label { font-family: var(--mono); font-size: 8px; letter-spacing: 0.11em; fill: var(--ink-faint); }
-.plan__route-label.is-absent { fill: var(--rule-strong); }
-.plan__tcp { fill: none; stroke: var(--rule); stroke-width: 0.9; stroke-dasharray: 4 4; }
+.plane__face { fill: var(--page-sunk); fill-opacity: 0.45; stroke: var(--rule-strong); stroke-width: 0.8; }
+.plane.is-reached .plane__face { fill-opacity: 0.7; }
+.plane.is-here .plane__face { stroke: var(--ink); stroke-width: 1.4; fill-opacity: 0.85; }
+.plane.is-absent .plane__face { fill: none; stroke: var(--rule); stroke-dasharray: 4 5; }
+
+.plane__ordinal { font-family: var(--serif); font-size: 26px; fill: var(--ink-faint); }
+.plane.is-reached .plane__ordinal { fill: var(--ink); }
+.plane.is-absent .plane__ordinal { fill: var(--rule-strong); }
+.plane__name { font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em; fill: var(--ink); }
+.plane__cost { font-family: var(--mono); font-size: 8px; fill: var(--ink-faint); }
+.plane.is-absent .plane__name, .plane.is-absent .plane__cost { fill: var(--rule-strong); }
+
+.plan__column { stroke: var(--rule-strong); stroke-width: 0.9; stroke-dasharray: 3 4; fill: none; }
+.plan__stop { fill: var(--page); stroke: var(--rule-strong); stroke-width: 1; }
+.plan__stop.is-past { fill: var(--rule-strong); }
+.plan__stop.is-here { fill: var(--recovery); stroke: var(--recovery); }
+.plan__column-label { font-family: var(--mono); font-size: 8px; letter-spacing: 0.1em; fill: var(--ink-faint); }
+
+.plan__route { fill: none; stroke: var(--rule-strong); stroke-width: 1.2; }
+.plan__route.is-absent { stroke: var(--rule); stroke-dasharray: 2 5; opacity: 0.6; }
+.plan__tcp { fill: none; stroke: var(--rule); stroke-width: 1; stroke-dasharray: 4 4; }
 
 .plan__node rect { fill: var(--page); stroke: var(--rule-strong); stroke-width: 0.9; }
-.plan__node-title { font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.09em; fill: var(--ink); }
-.plan__node-sub { font-family: var(--mono); font-size: 7.5px; fill: var(--ink-faint); }
-.plan__node.is-active rect { stroke: var(--ink); stroke-width: 1.6; fill: var(--page-sunk); }
+.plan__node-title { font-family: var(--mono); font-size: 8px; letter-spacing: 0.08em; fill: var(--ink); }
+.plan__node-sub { font-family: var(--mono); font-size: 7px; fill: var(--ink-faint); }
+.plan__node.is-active rect { stroke: var(--ink); stroke-width: 1.7; fill: var(--page-sunk); }
 .plan__node.is-struck rect { stroke: var(--rule); }
 .plan__node.is-struck .plan__node-title, .plan__node.is-struck .plan__node-sub { fill: var(--rule-strong); }
 .plan__strike line { stroke: var(--fault); stroke-width: 1.1; opacity: 0.75; }
@@ -183,16 +199,5 @@ td.num, th.num { text-align: right; padding-right: 0; }
 .book__frontier { fill: none; stroke: var(--recovery); stroke-width: 1.6; }
 .book__legend text { font-family: var(--mono); font-size: 8px; fill: var(--ink-soft); }
 .book__more { font-family: var(--mono); font-size: 8px; fill: var(--unfillable); }
-
-/* ------------------------------------------------------------------ ladder */
-
-.ladder__rung rect { fill: var(--page); stroke: var(--rule); stroke-width: 0.8; }
-.ladder__rung.is-on rect { stroke: var(--ink); stroke-width: 1.2; }
-.ladder__rung.is-absent rect { stroke: var(--rule); }
-.ladder__ordinal { font-family: var(--serif); font-size: 17px; fill: var(--ink-faint); }
-.ladder__rung.is-on .ladder__ordinal { fill: var(--ink); }
-.ladder__name { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.11em; fill: var(--ink); }
-.ladder__cost { font-family: var(--mono); font-size: 8px; fill: var(--ink-faint); }
-.ladder__rung.is-absent .ladder__name, .ladder__rung.is-absent .ladder__cost { fill: var(--rule-strong); }
 
 .sheet__block-figure { font-family: var(--mono); font-size: 15px; fill: var(--ink); }

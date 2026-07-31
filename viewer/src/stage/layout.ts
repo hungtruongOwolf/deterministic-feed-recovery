@@ -1,22 +1,24 @@
-// Every position on the sheet, computed from a handful of numbers rather than scattered as literals.
+// The drawing, in axonometric projection, with every position computed rather than placed by eye.
 //
-// The previous layout was written as magic constants and never measured, so a label sat inside the box it
-// described and the title block ran past the frame. Both were invisible to a build and to me. So the rule
-// here: nothing is placed by eye, every region derives from the sheet, and `BOXES` exports what was drawn so
-// a check can assert that no two of them collide and none escapes the frame.
+// Why the three defences are drawn as three stacked planes
+// --------------------------------------------------------
+// They are layers. Not three options a reader picks between — a ladder that a packet *descends* when the
+// layer above it fails. A flat drawing has to say that in words; a stack says it by being a stack, and
+// escalation becomes literal downward movement between planes.
 //
-// The drawing is two spaces side by side, because the system has two
-// -----------------------------------------------------------------
-// **The path** — where a packet physically travels. This is genuinely two-dimensional: an exchange splits
-// its feed across two separate networks that run in parallel and rejoin at the receiver, and a third,
-// slower TCP path exists for asking questions. Drawn as a plan, redundancy explains itself: the same packet
-// is on both arcs, and losing one arc costs nothing.
+//   plane 0  two multicast paths, running in parallel across the depth of the plane
+//   plane 1  the TCP retransmit service — reached only when both paths above missed
+//   plane 2  the snapshot service — reached only when the retransmit came too late
 //
-// **The book** — what the client ends up knowing, as a grid with one cell per message. Delivered cells fill
-// with ink; missing ones stay cut out. This turns "six messages missing" from a number into a shape.
+// The receiver stands at the right-hand edge of all three, and a column drops through them. That column is
+// the escalation: the run is at whichever plane the marker has fallen to.
 //
-// Damage happens in the first space and shows up as holes in the second, a few beats later. That causal
-// link, watched happening, is the whole argument of the project.
+// Axonometric rather than perspective, because this is a drawing sheet: parallel lines stay parallel, a
+// length is a length wherever it sits, and nothing is foreshortened into a lie.
+//
+// Nothing here is a literal. An earlier version placed coordinates by hand and a label ended up inside the
+// box it described while the title block ran past the frame — invisible to a compiler and to me. So the
+// positions derive from the sheet, and `boxes()` exports what was drawn so a check can measure it.
 
 export interface Box {
   readonly name: string;
@@ -25,143 +27,178 @@ export interface Box {
   readonly w: number;
   readonly h: number;
 }
-
 export interface Point {
   readonly x: number;
   readonly y: number;
 }
+/** A point in the drawing's three axes: along the flow, across the plane, and which plane. */
+export interface P3 {
+  readonly x: number;
+  readonly y: number;
+  readonly layer: number;
+}
 
-export const SHEET = { w: 1200, h: 660 } as const;
+export const SHEET = { w: 1280, h: 780 } as const;
 export const MARGIN = 30;
 
-const inner = {
-  x: MARGIN + 22,
-  y: MARGIN + 16,
-  w: SHEET.w - (MARGIN + 22) * 2,
-  h: SHEET.h - (MARGIN + 16) * 2,
-} as const;
-
-/** Stacked rows: the ladder over the two plans, then the narration, then the block. */
-export const LADDER = { x: inner.x, y: inner.y, w: inner.w, h: 48 } as const;
-
-const mainY = LADDER.y + LADDER.h + 14;
-const mainH = 366;
-
-export const PLAN = { x: inner.x, y: mainY, w: 668, h: mainH } as const;
-export const BOOK = {
-  x: PLAN.x + PLAN.w + 28,
-  y: mainY,
-  w: inner.x + inner.w - (PLAN.x + PLAN.w + 28),
-  h: mainH,
-} as const;
-
-export const CAPTION = { x: inner.x, y: mainY + mainH + 18, w: inner.w, h: 46 } as const;
-export const BLOCK = { x: inner.x, y: CAPTION.y + CAPTION.h + 14, w: inner.w, h: 52 } as const;
+const inner = { x: MARGIN + 24, y: MARGIN + 18, w: SHEET.w - (MARGIN + 24) * 2, h: SHEET.h - (MARGIN + 18) * 2 };
 
 // ---------------------------------------------------------------------------
-// Inside the path plan
+// The projection
 // ---------------------------------------------------------------------------
 
-const planMid = PLAN.y + 150;
+/** How far a step into the plane's depth moves right and up on screen. */
+const SHEAR_X = 0.62;
+const SHEAR_Y = 0.5;
+/** The gap between planes, which is what makes the stack readable as separate layers. */
+export const LAYER_DROP = 152;
 
-export const ENGINE = { x: PLAN.x + 22, y: planMid - 28, w: 84, h: 56 } as const;
-export const RECEIVER = { x: PLAN.x + 520, y: planMid - 52, w: 92, h: 104 } as const;
+export const PLANE = { w: 520, d: 158 } as const;
+const ORIGIN = { x: inner.x + 34, y: inner.y + 196 } as const;
 
-/** How far the two multicast paths bow away from each other. Separation *is* the redundancy. */
-const BOW = 62;
-export const LINE_A_Y = planMid - BOW;
-export const LINE_B_Y = planMid + BOW;
+export function project(p: P3): Point {
+  return {
+    x: ORIGIN.x + p.x + p.y * SHEAR_X,
+    y: ORIGIN.y - p.y * SHEAR_Y + p.layer * LAYER_DROP,
+  };
+}
 
-const switchW = 52;
-const switchH = 24;
+/** The four corners of one plane, as a closed path. */
+export function planeOutline(layer: number): string {
+  const corners: P3[] = [
+    { x: 0, y: 0, layer },
+    { x: PLANE.w, y: 0, layer },
+    { x: PLANE.w, y: PLANE.d, layer },
+    { x: 0, y: PLANE.d, layer },
+  ];
+  return corners.map((c, i) => {
+    const p = project(c);
+    return `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
+  }).join(" ") + " Z";
+}
+
+function planeBox(layer: number): Box {
+  const cs = [
+    project({ x: 0, y: 0, layer }),
+    project({ x: PLANE.w, y: 0, layer }),
+    project({ x: PLANE.w, y: PLANE.d, layer }),
+    project({ x: 0, y: PLANE.d, layer }),
+  ];
+  const xs = cs.map((c) => c.x);
+  const ys = cs.map((c) => c.y);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return { name: `plane ${layer}`, x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
+}
+
+// ---------------------------------------------------------------------------
+// What stands on the planes
+// ---------------------------------------------------------------------------
+
+/** Two multicast paths at different depths, so they are visibly two routes and not one drawn twice. */
+export const DEPTH = { lineA: 118, lineB: 40, spine: 79 } as const;
+
+const ENGINE_X = 16;
+const RECEIVER_X = 492;
+export const SWITCH_X = [156, 300] as const;
+
+export interface Size { readonly w: number; readonly h: number }
+export const NODE: Size = { w: 76, h: 34 };
+
+/** A node's screen box, centred on its point in the drawing's axes. */
+export function nodeBox(name: string, at: P3, size: Size = NODE): Box {
+  const p = project(at);
+  return { name, x: p.x - size.w / 2, y: p.y - size.h / 2, w: size.w, h: size.h };
+}
+
+export const ENGINE = nodeBox("matching engine", { x: ENGINE_X, y: DEPTH.spine, layer: 0 }, { w: 92, h: 40 });
+export const RECEIVER = nodeBox("receiver", { x: RECEIVER_X, y: DEPTH.spine, layer: 0 }, { w: 88, h: 46 });
 export const SWITCHES = {
-  a: [
-    { x: PLAN.x + 190, y: LINE_A_Y - switchH / 2, w: switchW, h: switchH, name: "SW·A1" },
-    { x: PLAN.x + 330, y: LINE_A_Y - switchH / 2, w: switchW, h: switchH, name: "SW·A2" },
-  ],
-  b: [
-    { x: PLAN.x + 190, y: LINE_B_Y - switchH / 2, w: switchW, h: switchH, name: "SW·B1" },
-    { x: PLAN.x + 330, y: LINE_B_Y - switchH / 2, w: switchW, h: switchH, name: "SW·B2" },
-  ],
+  a: SWITCH_X.map((x, i) => nodeBox(`SW·A${i + 1}`, { x, y: DEPTH.lineA, layer: 0 }, { w: 54, h: 22 })),
+  b: SWITCH_X.map((x, i) => nodeBox(`SW·B${i + 1}`, { x, y: DEPTH.lineB, layer: 0 }, { w: 54, h: 22 })),
 } as const;
+export const RETX = nodeBox("retransmit server", { x: 120, y: DEPTH.spine, layer: 1 }, { w: 128, h: 38 });
+export const SNAP = nodeBox("snapshot server", { x: 120, y: DEPTH.spine, layer: 2 }, { w: 128, h: 38 });
 
-/** The two TCP services, drawn apart from the multicast plan because they are a different network. */
-export const RETX = { x: PLAN.x + 120, y: PLAN.y + 292, w: 132, h: 38 } as const;
-export const SNAP = { x: PLAN.x + 300, y: PLAN.y + 292, w: 132, h: 38 } as const;
+/** The column the escalation falls down, at the receiver's position, through all three planes. */
+export const ESCALATION = [0, 1, 2].map((layer) => project({ x: RECEIVER_X, y: DEPTH.spine, layer }));
 
-const engineOut: Point = { x: ENGINE.x + ENGINE.w, y: planMid };
-const receiverIn: Point = { x: RECEIVER.x, y: planMid };
-const receiverFoot: Point = { x: RECEIVER.x + RECEIVER.w / 2, y: RECEIVER.y + RECEIVER.h };
+// ---------------------------------------------------------------------------
+// Routes, in the drawing's axes
+// ---------------------------------------------------------------------------
 
-/** A route as a polyline. Interpolation walks it by length, so speed stays even around the bends. */
+const line = (depth: number): P3[] => [
+  { x: ENGINE_X + 46, y: depth, layer: 0 },
+  { x: SWITCH_X[0] - 27, y: depth, layer: 0 },
+  { x: SWITCH_X[0] + 27, y: depth, layer: 0 },
+  { x: SWITCH_X[1] - 27, y: depth, layer: 0 },
+  { x: SWITCH_X[1] + 27, y: depth, layer: 0 },
+  { x: RECEIVER_X - 30, y: depth, layer: 0 },
+];
+
 export const ROUTES = {
-  lineA: [
-    engineOut,
-    { x: PLAN.x + 150, y: LINE_A_Y },
-    { x: SWITCHES.a[0].x + switchW, y: LINE_A_Y },
-    { x: SWITCHES.a[1].x, y: LINE_A_Y },
-    { x: PLAN.x + 460, y: LINE_A_Y },
-    receiverIn,
-  ],
-  lineB: [
-    engineOut,
-    { x: PLAN.x + 150, y: LINE_B_Y },
-    { x: SWITCHES.b[0].x + switchW, y: LINE_B_Y },
-    { x: SWITCHES.b[1].x, y: LINE_B_Y },
-    { x: PLAN.x + 460, y: LINE_B_Y },
-    receiverIn,
-  ],
-  retx: [receiverFoot, { x: RETX.x + RETX.w + 40, y: RETX.y + RETX.h / 2 }, { x: RETX.x + RETX.w, y: RETX.y + RETX.h / 2 }],
-  snap: [receiverFoot, { x: SNAP.x + SNAP.w + 24, y: SNAP.y + SNAP.h / 2 }, { x: SNAP.x + SNAP.w, y: SNAP.y + SNAP.h / 2 }],
+  lineA: line(DEPTH.lineA),
+  lineB: line(DEPTH.lineB),
+  retx: [
+    { x: RECEIVER_X, y: DEPTH.spine, layer: 1 },
+    { x: 120 + 64, y: DEPTH.spine, layer: 1 },
+  ] as P3[],
+  snap: [
+    { x: RECEIVER_X, y: DEPTH.spine, layer: 2 },
+    { x: 120 + 64, y: DEPTH.spine, layer: 2 },
+  ] as P3[],
 } as const;
 
 export type RouteName = keyof typeof ROUTES;
 
-function length(points: readonly Point[]): number[] {
-  const runs: number[] = [];
-  for (let i = 1; i < points.length; i += 1) {
-    const a = points[i - 1] as Point;
-    const b = points[i] as Point;
-    runs.push(Math.hypot(b.x - a.x, b.y - a.y));
-  }
-  return runs;
+export function polyline(route: readonly P3[]): string {
+  return route.map((p, i) => {
+    const s = project(p);
+    return `${i === 0 ? "M" : "L"} ${s.x.toFixed(1)} ${s.y.toFixed(1)}`;
+  }).join(" ");
 }
 
-/** A point `t` of the way along a route, measured by distance so the pace does not jump at a corner. */
-export function along(route: readonly Point[], t: number, reversed = false): Point {
-  const points = reversed ? [...route].reverse() : route;
-  const runs = length(points);
-  const total = runs.reduce((sum, run) => sum + run, 0);
+/** A point `t` of the way along a route, measured on screen so the pace stays even through the projection. */
+export function along(route: readonly P3[], t: number, reversed = false): Point {
+  const pts = (reversed ? [...route].reverse() : route).map(project);
+  const runs: number[] = [];
+  for (let i = 1; i < pts.length; i += 1) {
+    const a = pts[i - 1] as Point;
+    const b = pts[i] as Point;
+    runs.push(Math.hypot(b.x - a.x, b.y - a.y));
+  }
+  const total = runs.reduce((s, r) => s + r, 0);
   if (total === 0) {
-    return points[0] as Point;
+    return pts[0] as Point;
   }
   let want = Math.max(0, Math.min(1, t)) * total;
   for (let i = 0; i < runs.length; i += 1) {
     const run = runs[i] as number;
     if (want <= run || i === runs.length - 1) {
-      const a = points[i] as Point;
-      const b = points[i + 1] as Point;
+      const a = pts[i] as Point;
+      const b = pts[i + 1] as Point;
       const f = run === 0 ? 0 : want / run;
       return { x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f };
     }
     want -= run;
   }
-  return points[points.length - 1] as Point;
+  return pts[pts.length - 1] as Point;
 }
 
-/** Eased travel, so a packet leaves and lands rather than sliding at a constant rate. */
 export function ease(t: number): number {
   const c = Math.max(0, Math.min(1, t));
   return c < 0.5 ? 2 * c * c : 1 - (1 - c) * (1 - c) * 2;
 }
 
-export function path(route: readonly Point[]): string {
-  return route.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
-}
+// ---------------------------------------------------------------------------
+// The book, and the strips
+// ---------------------------------------------------------------------------
 
-// ---------------------------------------------------------------------------
-// Inside the book grid
-// ---------------------------------------------------------------------------
+const stackRight = planeBox(0).x + planeBox(0).w;
+
+export const BOOK = { x: stackRight + 34, y: inner.y + 22, w: inner.x + inner.w - (stackRight + 34), h: 430 } as const;
+export const RAIL = { x: inner.x, y: inner.y + inner.h - 128, w: inner.w, h: 44 } as const;
+export const BLOCK = { x: inner.x, y: RAIL.y + RAIL.h + 14, w: inner.w, h: 54 } as const;
 
 export interface GridPlan {
   readonly cell: number;
@@ -173,17 +210,10 @@ export interface GridPlan {
   readonly h: number;
 }
 
-/**
- * Chooses a cell size so `messages` cells fit the book region and stay near-square.
- *
- * Computed rather than chosen, because the message count differs per run and a grid tuned by hand for one
- * of them would spill out of the frame on another — which is exactly the class of mistake the checker in
- * scripts/check.tsx now looks for.
- */
 export function gridFor(messages: number): GridPlan {
-  const area = { x: BOOK.x + 14, y: BOOK.y + 42, w: BOOK.w - 28, h: BOOK.h - 96 };
+  const area = { x: BOOK.x + 14, y: BOOK.y + 46, w: BOOK.w - 28, h: BOOK.h - 104 };
   const count = Math.max(1, messages);
-  let cell = Math.floor(Math.sqrt((area.w * area.h) / count));
+  let cell = Math.max(4, Math.floor(Math.sqrt((area.w * area.h) / count)));
   let cols = Math.max(1, Math.floor(area.w / cell));
   let rows = Math.ceil(count / cols);
   while (cell > 4 && rows * cell > area.h) {
@@ -201,30 +231,31 @@ export function gridFor(messages: number): GridPlan {
 export function boxes(messages: number): readonly Box[] {
   const grid = gridFor(messages);
   return [
-    { name: "ladder", ...LADDER },
-    { name: "plan", ...PLAN },
+    planeBox(0),
+    planeBox(1),
+    planeBox(2),
     { name: "book", ...BOOK },
-    { name: "caption", ...CAPTION },
+    { name: "event rail", ...RAIL },
     { name: "title block", ...BLOCK },
-    { name: "engine", ...ENGINE },
-    { name: "receiver", ...RECEIVER },
-    ...SWITCHES.a.map((s) => ({ name: s.name, x: s.x, y: s.y, w: s.w, h: s.h })),
-    ...SWITCHES.b.map((s) => ({ name: s.name, x: s.x, y: s.y, w: s.w, h: s.h })),
-    { name: "retransmit server", ...RETX },
-    { name: "snapshot server", ...SNAP },
+    ENGINE,
+    RECEIVER,
+    ...SWITCHES.a,
+    ...SWITCHES.b,
+    RETX,
+    SNAP,
     { name: "book grid", x: grid.x, y: grid.y, w: grid.w, h: grid.h },
   ];
 }
 
-/** Regions that may legitimately sit inside another: a part inside the plan it belongs to. */
+/** Parts that legitimately sit inside a bigger region. */
 export const NESTED: ReadonlyArray<readonly [string, string]> = [
-  ["engine", "plan"],
-  ["receiver", "plan"],
-  ["SW·A1", "plan"],
-  ["SW·A2", "plan"],
-  ["SW·B1", "plan"],
-  ["SW·B2", "plan"],
-  ["retransmit server", "plan"],
-  ["snapshot server", "plan"],
+  ["matching engine", "plane 0"],
+  ["receiver", "plane 0"],
+  ["SW·A1", "plane 0"],
+  ["SW·A2", "plane 0"],
+  ["SW·B1", "plane 0"],
+  ["SW·B2", "plane 0"],
+  ["retransmit server", "plane 1"],
+  ["snapshot server", "plane 2"],
   ["book grid", "book"],
 ];

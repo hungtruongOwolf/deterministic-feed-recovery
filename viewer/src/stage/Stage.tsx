@@ -1,14 +1,13 @@
-// The scene: the ladder above, the path on the left, the book on the right, and a packet moving between them.
+// The scene: three stacked planes on the left, the book on the right, a packet moving through them.
 //
-// The composition carries the argument. Damage happens in the plan; a few beats later a cell in the grid is
-// still blank. Watching the second follow the first is what makes "lost data you do not know about" a thing
-// somebody can see rather than a sentence they have to accept.
+// The composition is the argument. A packet is damaged on plane 0; a few beats later a cell on the right is
+// still blank; and when plane 0 cannot fix it the run falls to plane 1, then to plane 2. Escalation is
+// downward movement, which is what makes the three defences read as one system rather than three options.
 
 import type { Beat } from "../model/story";
 import type { Trace } from "../model/trace";
 import { BookGrid } from "./BookGrid";
-import { Ladder, rungsFor } from "./Ladder";
-import { Plan } from "./Plan";
+import { Planes, rungsFor } from "./Planes";
 import { ROUTES, along, ease, type Point, type RouteName } from "./layout";
 
 interface Props {
@@ -19,7 +18,6 @@ interface Props {
   readonly messages: number;
 }
 
-/** Which drawn route a step travels on, and in which direction. */
 function routeOf(beat: Beat, lines: number): { readonly route: RouteName; readonly reversed: boolean } {
   if (beat.lane === "request") {
     return { route: "retx", reversed: beat.direction === "out" };
@@ -27,9 +25,22 @@ function routeOf(beat: Beat, lines: number): { readonly route: RouteName; readon
   if (beat.lane === "snapshot") {
     return { route: "snap", reversed: beat.direction === "out" };
   }
-  // Alternate the two multicast paths so a redundant run visibly uses both.
   const onB = lines > 1 && beat.event.line === 1;
   return { route: onB ? "lineB" : "lineA", reversed: false };
+}
+
+/** Which plane the run has fallen to, read from the step rather than inferred. */
+function layerOf(beat: Beat | undefined): number {
+  if (beat === undefined) {
+    return 0;
+  }
+  if (beat.lane === "snapshot" || beat.event.state === "failed" || beat.event.state === "replaying") {
+    return 2;
+  }
+  if (beat.lane === "request" || beat.event.state === "recovering") {
+    return 1;
+  }
+  return 0;
 }
 
 function Packet({ beat, progress, lines }: { readonly beat: Beat; readonly progress: number; readonly lines: number }) {
@@ -46,21 +57,21 @@ function Packet({ beat, progress, lines }: { readonly beat: Beat; readonly progr
   return (
     <g className={`packet packet--${beat.tone}`} opacity={opacity} transform={`translate(${at.x}, ${at.y})`}>
       {wide ? (
-        <rect className="packet__body packet__body--wide" x={-22} y={-8} width={44} height={16} />
+        <rect className="packet__body packet__body--wide" x={-20} y={-7} width={40} height={14} />
       ) : beat.lane === "request" ? (
-        <path className="packet__body" d="M -9 0 L 0 -7 L 9 0 L 0 7 Z" />
+        <path className="packet__body" d="M -8 0 L 0 -6 L 8 0 L 0 6 Z" />
       ) : (
-        <rect className="packet__body" x={-9} y={-6} width={18} height={12} />
+        <rect className="packet__body" x={-8} y={-5.5} width={16} height={11} />
       )}
-      {beat.fate === "twin" && <rect className="packet__body packet__body--twin" x={-3} y={-10} width={18} height={12} />}
+      {beat.fate === "twin" && <rect className="packet__body packet__body--twin" x={-3} y={-9} width={16} height={11} />}
       {dying && (
         <g className="packet__burst">
-          <line x1={-8} y1={-8} x2={8} y2={8} />
-          <line x1={8} y1={-8} x2={-8} y2={8} />
+          <line x1={-7} y1={-7} x2={7} y2={7} />
+          <line x1={7} y1={-7} x2={-7} y2={7} />
         </g>
       )}
       {beat.label !== "" && (
-        <text className="packet__label" x={0} y={-13} textAnchor="middle">
+        <text className="packet__label" x={0} y={-12} textAnchor="middle">
           {beat.label}
         </text>
       )}
@@ -88,13 +99,7 @@ export function Stage({ trace, beat, progress, trail, messages }: Props) {
 
   return (
     <g>
-      <Ladder rungs={rungs} />
-      <Plan
-        lines={lines}
-        retransmitAvailable={retransmitAvailable}
-        snapshotUsed={trace.summary.snapshot_requests > 0}
-        active={activeNode(beat)}
-      />
+      <Planes rungs={rungs} retransmitAvailable={retransmitAvailable} atLayer={layerOf(beat)} active={activeNode(beat)} />
       <BookGrid event={beat?.event} messages={messages} />
 
       {trail.map((past, i) => (

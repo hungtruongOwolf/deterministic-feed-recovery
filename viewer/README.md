@@ -11,14 +11,27 @@ npm run typecheck
 npm run check      # measures the drawing; see below
 ```
 
-Space plays and pauses, ← and → step.
+Space plays and pauses, ← and → step. Under the transport is a rail of every moment worth going back to —
+click one and the run jumps there. A scrubber can reach any instant, which sounds better and is worse: the
+instants that matter are a handful out of two hundred, and finding them by dragging is a search.
 
-## Two spaces, because the system has two
+## Three stacked planes, because the defences are layers
 
-**The path**, on the left. Where a packet physically travels: the matching engine, two multicast networks
-that bow apart through separate switches and rejoin at the receiver's two NICs, and — drawn apart, because it
-is a different network — the pair of TCP services you can ask questions of. Redundancy explains itself in
-this drawing: the same packet is on both arcs, so losing one arc costs nothing.
+The left of the sheet is an axonometric stack, drawn back to front:
+
+```
+   plane 1   two multicast paths, running in parallel across the depth of the plane
+   plane 2   the TCP retransmit service — reached only when both paths above missed
+   plane 3   the snapshot service — reached only when the retransmit came too late
+```
+
+They are drawn as a stack because that is what they are: a ladder a packet *descends* when the layer above
+fails. A flat drawing has to say that in words; a stack says it by being one. A column falls through all
+three at the receiver's edge, and the marker on it is where the run currently is — so escalation is literal
+downward movement rather than a state name changing somewhere.
+
+Axonometric rather than perspective, because this is a drawing sheet: parallel lines stay parallel and a
+length is a length wherever it sits.
 
 **The book**, on the right. What the receiver ends up *knowing*, one cell per message. Cells fill with ink as
 data arrives; a hole stays cut out in red. This is what turns "six messages missing" from a number into a
@@ -30,7 +43,11 @@ is the argument the whole project is making.
 
 ## The three runs are one experiment, not three demos
 
-Above the plan is a ladder of the three defences a receiver has against a lost packet, cheapest first:
+Three chapter buttons, always visible — not a dropdown, because somebody arriving at the page has no way to
+guess that the three are meant to be watched in order. Each removes one more defence, and the plane it
+removed is drawn as an empty outline with its parts struck out.
+
+The three defences, cheapest first:
 
 | | defence | costs | catches |
 |---|---|---|---|
@@ -72,8 +89,9 @@ The check asserts:
   label fits the box it is drawn in, and the book grid fits its region at 40, 120, 300 and 900 messages;
 - **rendering** — the ladder, the path, the grid and a packet all draw, and **two progress values of the same
   step produce different markup**, so the picture moves rather than being a still with a play button on it;
-- **the experiment is visible** — a run missing a defence draws it struck out, and a run with all three does
-  not;
+- **the experiment is visible** — a run missing a defence draws it struck out, a run with all three does not,
+  and each run **falls exactly as far down the stack as it should**: part 1 stays on plane 1, part 2 reaches
+  plane 2, part 3 reaches plane 3;
 - **language** — every step is a sentence, no `snake_case` leaked through, and the run that loses data
   explains the loss in words.
 

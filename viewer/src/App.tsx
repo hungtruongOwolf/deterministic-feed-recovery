@@ -12,24 +12,20 @@ import { Stage } from "./stage/Stage";
 import { Transport } from "./panels/Transport";
 import { ActCard } from "./panels/ActCard";
 import { Overture } from "./panels/Overture";
+import { Chapters, CHAPTERS } from "./panels/Chapters";
+import { EventRail } from "./panels/EventRail";
 import { Summary } from "./panels/Summary";
 import { Ledger } from "./panels/Ledger";
 import { LineHealth } from "./panels/LineHealth";
 
-const BUNDLED = [
-  { file: "redundant-ab.jsonl", label: "① two lines — nobody has to ask for anything" },
-  { file: "recovering-seed4711.jsonl", label: "② second line removed — ask for it back" },
-  { file: "glimpse-race.jsonl", label: "③ retransmit gone too — the snapshot is too old" },
-] as const;
-
-const BUNDLED_NOTE: Record<string, string> = {
-  "redundant-ab.jsonl": "defence 1 in place",
-  "recovering-seed4711.jsonl": "defence 1 removed",
-  "glimpse-race.jsonl": "defences 1 and 2 removed",
+const NOTE: Record<string, string> = {
+  "redundant-ab.jsonl": "part 1 · every defence in place",
+  "recovering-seed4711.jsonl": "part 2 · the second line removed",
+  "glimpse-race.jsonl": "part 3 · the second line and the retransmit window both gone",
 };
 
 export function App() {
-  const [choice, setChoice] = useState<string>(BUNDLED[0].file);
+  const [choice, setChoice] = useState<string>(CHAPTERS[0]!.file);
   const [trace, setTrace] = useState<Trace | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [started, setStarted] = useState(false);
@@ -112,13 +108,6 @@ export function App() {
           <small>what a market-data client does when the feed breaks</small>
         </h1>
         <div className="spacer" />
-        <select value={choice} onChange={(e) => setChoice(e.currentTarget.value)}>
-          {BUNDLED.map((option) => (
-            <option key={option.file} value={option.file}>
-              {option.label}
-            </option>
-          ))}
-        </select>
         <label className="mono app__open">
           open a trace…
           <input
@@ -147,9 +136,10 @@ export function App() {
       {trace !== undefined && (
         <main className="app__main">
           <div className="app__stage">
+            <Chapters current={choice} onChoose={setChoice} />
             <Sheet
               title="MARKET-DATA RECOVERY · ONE CONTROLLED RUN"
-              subtitle={`seed ${trace.header.seed} · ${BUNDLED_NOTE[choice] ?? trace.header.mode}`}
+              subtitle={`seed ${trace.header.seed} · ${NOTE[choice] ?? trace.header.mode}`}
               figures={[
                 { label: "DELIVERED ONCE", value: String(trace.summary.messages_delivered) },
                 { label: "DELIVERED TWICE", value: String(trace.summary.messages_delivered_twice) },
@@ -171,6 +161,8 @@ export function App() {
           </div>
 
           <Transport playback={playback} beats={story.length} caption={beat?.caption ?? ""} />
+
+          <EventRail story={story} at={at} onSeek={(to) => playback.seek(to)} />
 
           <div className="app__aside">
             <Summary trace={trace} />

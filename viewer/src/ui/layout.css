@@ -56,3 +56,45 @@
 .overture__title { font-size: 25px; margin: 8px 0 10px; }
 .overture__body { margin: 0 0 18px; font-size: 15px; max-width: 56ch; }
 .overture__go { font-size: 14px; padding: 7px 16px; background: var(--ink); color: var(--page); border-color: var(--ink); }
+
+/* ---------------------------------------------------------------- chapters */
+
+.chapters { margin-bottom: 12px; }
+.chapters__head { font-size: 9.5px; letter-spacing: 0.14em; color: var(--ink-soft); margin-bottom: 6px; }
+.chapters__row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.chapter {
+  display: flex; align-items: flex-start; gap: 10px; text-align: left;
+  padding: 9px 11px; border: 1px solid var(--rule); background: var(--page); cursor: pointer;
+}
+.chapter:hover { background: var(--page-sunk); }
+.chapter.is-on { border-color: var(--ink); border-width: 1px; background: var(--page-sunk); }
+.chapter__ordinal { font-family: var(--serif); font-size: 21px; line-height: 1; color: var(--ink-faint); }
+.chapter.is-on .chapter__ordinal { color: var(--ink); }
+.chapter__text { display: flex; flex-direction: column; gap: 3px; }
+.chapter__title { font-family: var(--serif); font-size: 14px; color: var(--ink); }
+.chapter__removes { font-family: var(--mono); font-size: 9.5px; line-height: 1.4; color: var(--ink-soft); }
+
+@media (max-width: 900px) { .chapters__row { grid-template-columns: 1fr; } }
+
+/* ------------------------------------------------------------- event rail */
+
+.rail { grid-column: 1; border: 1px solid var(--rule); padding: 10px 14px 12px; }
+.rail__head { font-size: 9.5px; letter-spacing: 0.12em; color: var(--ink-soft); display: flex; gap: 12px; }
+.rail__count { margin-left: auto; color: var(--ink-faint); }
+.rail__track { position: relative; height: 26px; margin: 8px 0 4px; }
+.rail__line { position: absolute; left: 0; right: 0; top: 12px; height: 1px; background: var(--rule-strong); }
+.rail__now { position: absolute; top: 2px; width: 1px; height: 22px; background: var(--recovery); }
+.rail__mark {
+  position: absolute; top: 6px; width: 9px; height: 13px; margin-left: -4.5px;
+  padding: 0; border: 1px solid var(--ink-soft); background: var(--page); cursor: pointer;
+}
+.rail__mark:hover { transform: scaleY(1.35); }
+.rail__mark--fault { border-color: var(--fault); }
+.rail__mark--repair { border-color: var(--recovery); }
+.rail__mark--fatal { border-color: var(--unfillable); background: var(--unfillable); }
+.rail__mark.is-now { background: var(--ink); border-color: var(--ink); }
+.rail__legend { font-size: 9px; color: var(--ink-soft); display: flex; align-items: center; gap: 5px; }
+.rail__key { display: inline-block; width: 8px; height: 11px; border: 1px solid var(--ink-soft); margin-left: 10px; }
+.rail__key--fault { border-color: var(--fault); }
+.rail__key--repair { border-color: var(--recovery); }
+.rail__key--fatal { border-color: var(--unfillable); background: var(--unfillable); }
