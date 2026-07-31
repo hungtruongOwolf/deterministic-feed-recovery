@@ -357,3 +357,76 @@
   .headline__value { font-size: 27px; }
   .cost__name { min-width: 0; }
 }
+
+/* --------------------------------------------------------- the redesign
+
+   Three numbered sections instead of thirteen blocks at the same weight, and folds for the detail. The page
+   was 1,504 visible words: every criticism had been answered by adding an explanation, which is how an
+   argument becomes a wall.                                                                                */
+
+.act-section { grid-column: 1 / -1; }
+.act-section + .act-section { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--rule-strong); }
+.act-section__title {
+  display: flex; align-items: baseline; gap: 12px;
+  font-size: 21px; margin: 0 0 5px;
+}
+.act-section__number {
+  font-size: 11px; letter-spacing: 0.1em; color: var(--ink-faint);
+  border: 1px solid var(--rule); padding: 1px 7px; transform: translateY(-2px);
+}
+.act-section__lede { margin: 0 0 16px; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); max-width: 84ch; }
+
+/* Detail that is reachable without being in the way. */
+.fold { margin-top: 12px; border-top: 1px dotted var(--rule); padding-top: 8px; }
+.fold__summary {
+  cursor: pointer; font-size: 11.5px; letter-spacing: 0.01em; color: var(--ink-soft);
+  list-style: none; display: flex; align-items: baseline; gap: 7px;
+}
+.fold__summary::-webkit-details-marker { display: none; }
+.fold__summary::before { content: "▸"; font-size: 9px; color: var(--ink-faint); }
+.fold[open] > .fold__summary::before { content: "▾"; }
+.fold__summary:hover { color: var(--ink); }
+.fold__body { padding: 9px 0 2px 16px; font-size: 12.5px; line-height: 1.6; color: var(--ink-soft); max-width: 96ch; }
+.fold__body p { margin: 0 0 8px; }
+.fold__body p:last-child { margin-bottom: 0; }
+
+/* The controls, now one line under the transport rather than a panel above the drawing. */
+.controls { margin-top: 10px; border: 0; padding: 0; }
+.controls__row {
+  display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+  padding: 9px 12px; border: 1px solid var(--rule); background: var(--page-sunk);
+}
+.controls__pattern { display: flex; flex-direction: column; gap: 2px; }
+.controls__pattern-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+.controls__pattern-input {
+  width: 76px; padding: 3px 6px; font-size: 12px;
+  border: 1px solid var(--rule-strong); background: var(--page); color: var(--ink);
+}
+.controls__dice, .controls__reset { font-size: 11.5px; padding: 3px 9px; }
+.controls__figures { display: flex; gap: 15px; margin-left: auto; }
+.measure { display: flex; flex-direction: column; gap: 0; }
+.measure__values { font-size: 14px; letter-spacing: 0.04em; color: var(--healthy); }
+.measure.is-bad .measure__values { color: var(--unfillable); }
+.controls__verdict {
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--healthy);
+  align-self: center; white-space: nowrap;
+}
+.controls__verdict.is-broken { color: var(--unfillable); }
+.controls__offline {
+  margin: 7px 0 0; padding: 6px 10px; font-size: 12px;
+  border-left: 2px solid var(--fault); color: var(--ink-soft);
+}
+
+/* Performance, without the essay. */
+.perf__headline { display: flex; gap: 34px; flex-wrap: wrap; margin: 0 0 12px; }
+.perf__note { margin: 0 0 16px; font-size: 11.5px; line-height: 1.55; color: var(--ink-faint); max-width: 92ch; }
+.perf__table { width: 100%; margin-bottom: 16px; }
+.perf__costs { margin: 6px 0 10px; padding-left: 18px; }
+.perf__costs li { font-size: 12px; margin-bottom: 2px; }
+.perf__costs li.is-noise { color: var(--ink-faint); }
+
+.app__live {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.06em; color: var(--ink-faint);
+  border: 1px solid var(--rule); padding: 2px 7px; align-self: center;
+}
+.app__live.is-live { color: var(--healthy); border-color: var(--healthy); }

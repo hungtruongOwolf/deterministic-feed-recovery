@@ -140,7 +140,7 @@ const char* dfr_run_trace(double seed, int messages, int faults, int lines, int 
 EMSCRIPTEN_KEEPALIVE
 const char* dfr_run_session(int orders, int fill, int cancel) {
   const int order_count = clamped(orders, 1, 24);
-  const int fill_shares = clamped(fill, 0, 200);
+  const int fill_shares = clamped(fill, 0, static_cast<int>(dfr_tools::shares_for(0)));
   const bool do_cancel = cancel != 0;
 
   dfr::manual_clock clock;
@@ -308,16 +308,20 @@ const char* dfr_run_session(int orders, int fill, int cancel) {
     char text[16];
     std::snprintf(text, sizeof text, "ORDER%04d", i + 1);
     tokens.emplace_back(text);
-    char detail[80];
-    std::snprintf(detail, sizeof detail, "token=%s shares=200 AAPL buy @150.00", text);
+    char detail[96];
+    std::snprintf(detail, sizeof detail, "token=%s %u %.*s %s @%u.00", text,
+                  dfr_tools::shares_for(i),
+                  static_cast<int>(dfr_tools::symbol_for(i).size()), dfr_tools::symbol_for(i).data(),
+                  i % 3 == 2 ? "sell" : "buy", dfr_tools::price_for(i));
     note("client", 'U', "Enter Order", detail, 0);
 
     ouch::enter_order order;
     order.token = token_of(text);
-    order.order_side = ouch::side::buy;
-    order.shares = 200;
-    order.stock = "AAPL";
-    (void)ouch::price::from_dollars_and_ten_thousandths(150, 0).get(order.limit);
+    order.order_side = i % 3 == 2 ? ouch::side::sell : ouch::side::buy;
+    order.shares = dfr_tools::shares_for(i);
+    order.stock = dfr_tools::symbol_for(i);
+    (void)ouch::price::from_dollars_and_ten_thousandths(dfr_tools::price_for(i), 0)
+        .get(order.limit);
     order.time_in_force = ouch::kSystemHours;
     order.firm = "FIRM";
     offer(framed(soup::packet_type::unsequenced_data,
@@ -333,7 +337,8 @@ const char* dfr_run_session(int orders, int fill, int cancel) {
     ouch::price at{};
     (void)ouch::price::from_dollars_and_ten_thousandths(150, 0).get(at);
     char detail[96];
-    std::snprintf(detail, sizeof detail, "ORDER0001 filled %d of 200", fill_shares);
+    std::snprintf(detail, sizeof detail, "ORDER0001 filled %d of %u", fill_shares,
+                  dfr_tools::shares_for(0));
     note("venue", '*', "a fill lands", detail, 0);
     venue::order_outcome outcome{};
     (void)host.execute(token_of("ORDER0001"), static_cast<std::uint32_t>(fill_shares), at,

@@ -10,12 +10,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseTrace, TraceFormatError, type Trace } from "./model/trace";
-import {
-  PAGE_TAGLINE,
-  PROJECT_ABBREVIATION,
-  PROJECT_NAME,
-  PROJECT_TAGLINE,
-} from "./model/brand";
+import { PROJECT_ABBREVIATION, PROJECT_NAME, PROJECT_TAGLINE } from "./model/brand";
 import {
   ACTS,
   actAt,
@@ -33,6 +28,7 @@ import { parseSession, type SessionTrace } from "./model/session";
 import { SessionSection } from "./session/SessionSection";
 import { parseBenchmarks, parseHandoff, type Performance as PerfData } from "./model/perf";
 import { Performance } from "./panels/Performance";
+import { Disclosure } from "./ui/Disclosure";
 import { usePlayback } from "./anim/usePlayback";
 import { Sheet } from "./stage/Sheet";
 import { Stage } from "./stage/Stage";
@@ -245,95 +241,131 @@ export function App() {
 
   return (
     <div className="app">
+      {/* One line, because the page has to say what it is before it says anything else. Everything that used to
+          be here — two taglines, a note, a promise about what there is nothing to choose — was competing with
+          the drawing for the first thing a reader looks at. */}
       <header className="app__bar">
-        <div className="app__brand">
-          <h1 className="app__title">
-            {PROJECT_NAME}
-            <span className="app__abbr mono">{PROJECT_ABBREVIATION}</span>
-          </h1>
-          <p className="app__tagline">
-            {PROJECT_TAGLINE} <span className="app__tagline-sub">{PAGE_TAGLINE}</span>
-          </p>
-        </div>
-        <div className="spacer" />
-        <span className="mono app__note">three acts · one system · nothing to choose</span>
+        <h1 className="app__title">
+          {PROJECT_NAME}
+          <span className="app__abbr mono">{PROJECT_ABBREVIATION}</span>
+        </h1>
+        <p className="app__tagline">{PROJECT_TAGLINE}</p>
+        <span className={`app__live ${engine !== undefined ? "is-live" : ""}`}>
+          {engine !== undefined
+            ? "the C++ is compiled to WebAssembly and running in your browser"
+            : "showing recorded runs — WebAssembly did not load"}
+        </span>
       </header>
 
       {error !== undefined && (
         <section className="panel app__error">
-          <h2>Could not read the traces</h2>
-          <p className="why">
-            {error} — the parser is strict on purpose: a viewer that skipped lines it did not understand
-            would draw an incomplete run and look like a complete one.
-          </p>
+          <h2>Could not read the runs</h2>
+          <p className="why">{error}</p>
         </section>
       )}
 
       {film !== undefined && view !== undefined && (
         <main className="app__main">
-          <Controls
-            settings={settings}
-            onChange={setSettings}
-            busy={busy}
-            live={engine !== undefined}
-            verdict={verdictOf(film)}
-          />
+          {/* ---- 1. the film ------------------------------------------------ */}
+          <section className="act-section">
+            <h2 className="act-section__title">
+              <span className="act-section__number mono">1</span>
+              A feed breaks, and the client repairs it
+            </h2>
+            <p className="act-section__lede">
+              Three acts, played straight through. Each one takes away a defence the last one had, so you watch
+              the same system fall a layer deeper.
+            </p>
 
-          <div className="app__stage">
             <ActStrip film={film} position={playback.position} onSeek={(to) => playback.seek(to)} />
 
-            <Sheet
-              title="MARKET-DATA RECOVERY · ONE SYSTEM, THREE TIMES"
-              subtitle={`act ${view.act.ordinal} of III · ${view.act.title.toLowerCase()} · seed ${view.act.trace.header.seed}`}
-              figures={[
-                { label: "DELIVERED ONCE", value: String(view.act.trace.summary.messages_delivered) },
-                {
-                  label: "DELIVERED TWICE",
-                  value: String(view.act.trace.summary.messages_delivered_twice),
-                },
-                { label: "ASKED FOR BACK", value: String(view.act.trace.summary.retransmit_requests) },
-                { label: "LOST FOR GOOD", value: String(view.act.trace.summary.unfillable_messages) },
-              ]}
-            >
-              <Stage
-                trace={view.act.trace}
-                beat={view.moment.beat}
-                progress={playback.position - view.at}
-                trail={view.trail}
-                messages={view.messages}
-              />
-            </Sheet>
+            <div className="app__stage">
+              <Sheet
+                title="MARKET-DATA RECOVERY"
+                subtitle={`act ${view.act.ordinal} of III · ${view.act.title.toLowerCase()}`}
+                figures={[
+                  { label: "DELIVERED", value: String(view.act.trace.summary.messages_delivered) },
+                  { label: "TWICE", value: String(view.act.trace.summary.messages_delivered_twice) },
+                  { label: "ASKED BACK", value: String(view.act.trace.summary.retransmit_requests) },
+                  { label: "LOST", value: String(view.act.trace.summary.unfillable_messages) },
+                ]}
+              >
+                <Stage
+                  trace={view.act.trace}
+                  beat={view.moment.beat}
+                  progress={playback.position - view.at}
+                  trail={view.trail}
+                  messages={view.messages}
+                />
+              </Sheet>
 
-            {!started && <Prologue film={film} onStart={start} />}
-            {started && view.moment.opening && (
-              <Interlude act={view.act} through={view.moment.local / INTERLUDE_BEATS} />
-            )}
-            <ActCard beat={view.moment.beat} />
-          </div>
+              {!started && <Prologue film={film} onStart={start} />}
+              {started && view.moment.opening && (
+                <Interlude act={view.act} through={view.moment.local / INTERLUDE_BEATS} />
+              )}
+              <ActCard beat={view.moment.beat} />
+            </div>
 
-          <Transport
-            playback={playback}
-            beats={film.moments.length}
-            caption={view.moment.beat.caption}
-          />
-
-          <EventRail film={film} at={view.at} onSeek={(to) => playback.seek(to)} />
-
-          <div className="app__aside">
-            <Summary trace={view.act.trace} />
-            <LineHealth trace={view.act.trace} />
-            <Ledger trace={view.act.trace} />
-          </div>
-
-          {perf !== undefined && <Performance perf={perf} />}
-
-          {session !== undefined && (
-            <SessionSection
-              trace={session}
-              settings={sessionSettings}
-              onChange={setSessionSettings}
-              live={engine !== undefined}
+            <Transport
+              playback={playback}
+              beats={film.moments.length}
+              caption={view.moment.beat.caption}
             />
+
+            {/* Under the transport rather than above the drawing: it changes what you are watching, so it
+                belongs with the other things that do. */}
+            <Controls
+              settings={settings}
+              onChange={setSettings}
+              busy={busy}
+              live={engine !== undefined}
+              verdict={verdictOf(film)}
+            />
+
+            <EventRail film={film} at={view.at} onSeek={(to) => playback.seek(to)} />
+
+            <Disclosure summary="this act in numbers — delivery, line health, and what the run does not claim">
+              <div className="app__aside">
+                <Summary trace={view.act.trace} />
+                <LineHealth trace={view.act.trace} />
+                <Ledger trace={view.act.trace} />
+              </div>
+            </Disclosure>
+          </section>
+
+          {/* ---- 2. orders ------------------------------------------------- */}
+          {session !== undefined && (
+            <section className="act-section">
+              <h2 className="act-section__title">
+                <span className="act-section__number mono">2</span>
+                The same exchange, taking orders
+              </h2>
+              <p className="act-section__lede">
+                Above is the exchange sending. This is the exchange listening — and answering every order with a
+                numbered reply.
+              </p>
+              <SessionSection
+                trace={session}
+                settings={sessionSettings}
+                onChange={setSessionSettings}
+                live={engine !== undefined}
+              />
+            </section>
+          )}
+
+          {/* ---- 3. cost -------------------------------------------------- */}
+          {perf !== undefined && (
+            <section className="act-section">
+              <h2 className="act-section__title">
+                <span className="act-section__number mono">3</span>
+                What it costs
+              </h2>
+              <p className="act-section__lede">
+                The recovery path only runs when something has already gone wrong, which is exactly the code
+                nobody benchmarks.
+              </p>
+              <Performance perf={perf} />
+            </section>
           )}
         </main>
       )}

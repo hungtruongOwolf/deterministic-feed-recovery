@@ -82,13 +82,14 @@ ouch::order_token token_of(std::string_view text) {
   return out;
 }
 
-std::string an_order(std::string_view token_text, std::uint32_t shares) {
+std::string an_order(std::string_view token_text, int index) {
   ouch::enter_order order;
   order.token = token_of(token_text);
-  order.order_side = ouch::side::buy;
-  order.shares = shares;
-  order.stock = "AAPL";
-  (void)ouch::price::from_dollars_and_ten_thousandths(150, 0).get(order.limit);
+  order.order_side = index % 3 == 2 ? ouch::side::sell : ouch::side::buy;
+  order.shares = dfr_tools::shares_for(index);
+  order.stock = dfr_tools::symbol_for(index);
+  (void)ouch::price::from_dollars_and_ten_thousandths(dfr_tools::price_for(index), 0)
+      .get(order.limit);
   order.time_in_force = ouch::kSystemHours;
   order.firm = "FIRM";
   return encode_into(
@@ -292,10 +293,13 @@ int main(int argc, char** argv) {
     char text[16];
     std::snprintf(text, sizeof text, "ORDER%04d", i + 1);
     tokens.emplace_back(text);
-    char detail[80];
-    std::snprintf(detail, sizeof detail, "token=%s shares=200 AAPL buy @150.00", text);
+    char detail[96];
+    std::snprintf(detail, sizeof detail, "token=%s %u %.*s %s @%u.00", text,
+                  dfr_tools::shares_for(i),
+                  static_cast<int>(dfr_tools::symbol_for(i).size()), dfr_tools::symbol_for(i).data(),
+                  i % 3 == 2 ? "sell" : "buy", dfr_tools::price_for(i));
     note("client", 'U', "Enter Order", detail, 0);
-    offer(framed(soup::packet_type::unsequenced_data, an_order(text, 200)));
+    offer(framed(soup::packet_type::unsequenced_data, an_order(text, i)));
   }
 
   if (opts.fill > 0) {
@@ -303,7 +307,8 @@ int main(int argc, char** argv) {
     ouch::price at{};
     (void)ouch::price::from_dollars_and_ten_thousandths(150, 0).get(at);
     char detail[96];
-    std::snprintf(detail, sizeof detail, "ORDER0001 filled %d of 200", opts.fill);
+    std::snprintf(detail, sizeof detail, "ORDER0001 filled %d of %u", opts.fill,
+                  dfr_tools::shares_for(0));
     // Not an arrow from either side: the exchange's own matching, which this project deliberately does
     // not implement, so the caller drives it.
     note("venue", '*', "a fill lands", detail, 0);

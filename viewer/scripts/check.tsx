@@ -445,7 +445,16 @@ console.log("\nthe controls");
   const holding = renderToStaticMarkup(
     <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live verdict={verdict} />,
   );
-  check(holding.includes("WebAssembly"), "the page says the library is running on it");
+  const controls_offline_probe = renderToStaticMarkup(
+    <Controls
+      settings={DEFAULT_SETTINGS}
+      onChange={() => {}}
+      busy={false}
+      live={false}
+      verdict={verdict}
+    />,
+  );
+  check(/switched off|WebAssembly/.test(controls_offline_probe), "an inert control says why it is inert");
   // What used to be checked here — that the words "seed" and "faults" appear — is now checked for its
   // *absence*, in the language section below. A control the reader cannot form an intention about is worse than
   // no control, because the page then looks interactive and is not.
@@ -531,11 +540,11 @@ console.log("\nthe performance figures");
   const drawn = renderToStaticMarkup(<Performance perf={perf} />);
   // The provenance disclaimer is load-bearing: every other figure on the page is computed in the reader's
   // browser and these are not, so the page must not let anybody assume otherwise.
-  check(/Measured natively, not in your browser/.test(drawn), "the panel says where these figures came from");
+  check(/Measured natively/.test(drawn) && /not in your browser/.test(drawn), "the panel says where these figures came from");
   check(/batch means/.test(drawn), "the panel says what the percentiles are over");
   check(/tick-to-trade/.test(drawn), "the panel names the latency it does not measure");
   check(!/NaN|undefined|Infinity/.test(drawn), "no figure rendered as NaN, undefined or Infinity");
-  check((drawn.match(/class="cost /g) ?? []).length === costs.length, "every assertion cost is drawn");
+  check((drawn.match(/class="is-real"|class="is-noise"/g) ?? []).length === costs.length, "every assertion cost is drawn");
   check(/allocations after start-up/.test(drawn), "the allocation count is one of the headline figures");
 }
 
@@ -553,8 +562,8 @@ console.log("\nthe reader's language");
 
   // "seed" was the word this page asked a visitor for, and it is a word they cannot form an intention about.
   // It is still present — reproducibility is the point of the project — but as a footnote naming this pattern.
-  check(/how much goes wrong/.test(controls), "the damage control is phrased as what it means");
-  check(/how much of the feed/.test(controls), "so is the length control");
+  check(/>damage</.test(controls), "the damage control is named for what it is");
+  check(/>length</.test(controls), "so is the length control");
   check(
     /a little|typical|a lot|brutal/.test(controls),
     "the damage levels are named rather than given as numbers",
@@ -574,8 +583,8 @@ console.log("\nthe reader's language");
     labels.every((label) => !/\d/.test(label)),
     "no choice a reader makes is expressed as a number",
   );
-  check(/names the pattern/.test(controls), "the number is explained as the name of a pattern");
-  check(/reproducible/.test(controls), "and the reason it exists at all is stated");
+  check(/names\s+this run|names the pattern/.test(controls), "the number is explained as naming the run");
+  check(/same packets go missing at the same moments/.test(controls), "and why it exists is stated, once");
 
   const session = renderToStaticMarkup(
     <SessionSection
@@ -587,9 +596,98 @@ console.log("\nthe reader's language");
   );
   // The old heading — "The other direction: orders coming in" — assumed the reader already knew there were two
   // directions. A heading that needs the thing it introduces is not a heading.
-  check(!/The other direction/.test(session), "the session heading no longer assumes a direction is known");
-  check(/taking orders/.test(session), "it says what the section is");
-  check(/sending/.test(session) && /listening/.test(session), "and how it relates to everything above");
+  check(!/The other direction/.test(session), "the session panel no longer carries its own heading essay");
+  // The heading moved into App's numbered section, so what this panel must still carry is the one claim the
+  // drawing is for.
+  check(/nowhere in the packet/.test(session), "the panel still states the claim its drawing exists to make");
+}
+
+// ---------------------------------------------------------------------------
+// 10. the page's weight — the failure mode that got it here
+// ---------------------------------------------------------------------------
+//
+// Every criticism of this page was answered by *adding* an explanation, and the explanations were all true. It
+// reached 1,504 visible words across thirteen blocks at the same visual weight: a six-minute read in front of a
+// two-minute film. Prose is the thing this project produces most easily and it is the thing a page can least
+// afford, so the budget is asserted rather than trusted to taste.
+//
+// What is counted is what a reader sees *before opening anything*. Folded detail is not a cost — it is the
+// mechanism that made the cut possible — so the bodies of <details> are removed before counting.
+
+console.log("\nthe page's weight");
+
+{
+  const verdict = verdictOf(film);
+  const perf = {
+    shipping: parseBenchmarks(readFileSync("public/bench/results.json", "utf8"), "shipping"),
+    paranoid: parseBenchmarks(readFileSync("public/bench/results-paranoid.json", "utf8"), "paranoid"),
+    handoff: parseHandoff(readFileSync("public/bench/handoff.json", "utf8"), "handoff"),
+  };
+  const session = parseSession(readFileSync("public/traces/order-session.jsonl", "utf8"));
+
+  const panels: ReadonlyArray<readonly [string, string]> = [
+    [
+      "controls",
+      renderToStaticMarkup(
+        <Controls settings={DEFAULT_SETTINGS} onChange={() => {}} busy={false} live verdict={verdict} />,
+      ),
+    ],
+    ["performance", renderToStaticMarkup(<Performance perf={perf} />)],
+    [
+      "session",
+      renderToStaticMarkup(
+        <SessionSection
+          trace={session}
+          settings={{ orders: 3, fill: 40, cancel: true }}
+          onChange={() => {}}
+          live
+        />,
+      ),
+    ],
+  ];
+
+  // Prose, not data.
+  //
+  // A table cell and an SVG label are the *content* — the numbers and the drawing are what a reader came for,
+  // and counting them would push towards a page that says less about less. What this project over-produces is
+  // paragraphs, so paragraphs are what is budgeted: <p>, <li>, and anything in a prose container. Folded bodies
+  // are excluded, since folding is the mechanism that made the cut possible.
+  const wordsOf = (html: string) => {
+    const folded = html.replace(/<div class="fold__body">[\s\S]*?<\/div>/g, " ");
+    const prose = (folded.match(/<(?:p|li)\b[^>]*>([\s\S]*?)<\/(?:p|li)>/g) ?? []).join(" ");
+    const inline = (folded.match(/class="[^"]*(?:__lede|__note|claim-text|controls__verdict)[^"]*"[^>]*>([\s\S]*?)</g) ?? []).join(" ");
+    const text = `${prose} ${inline}`.replace(/<[^>]*>/g, " ").replace(/&[a-z]+;/g, " ").replace(/\s+/g, " ");
+    return text.split(" ").filter((w) => /[a-z]{2}/i.test(w)).length;
+  };
+
+  let total = 0;
+  for (const [name, html] of panels) {
+    const words = wordsOf(html);
+    total += words;
+    check(words <= 80, `${name}: ${words} words of prose before opening anything`);
+  }
+  check(total <= 180, `${total} words of prose across the three panels, folded`);
+
+  // Every fold has to say what is inside it. "more" promises nothing and is the reason nobody clicks.
+  for (const [name, html] of panels) {
+    const summaries = (html.match(/class="fold__summary">([^<]+)</g) ?? []).map((m) =>
+      m.replace(/.*>/, ""),
+    );
+    check(
+      summaries.every((text) => text.split(" ").length >= 4),
+      `${name}: every fold names what is inside it (${summaries.length} folds)`,
+    );
+  }
+
+  // And no single visible paragraph should be a wall. Forty words is about two lines at this measure.
+  for (const [name, html] of panels) {
+    const folded = html.replace(/<div class="fold__body">[\s\S]*?<\/div>/g, " ");
+    const paragraphs = (folded.match(/<p[^>]*>([\s\S]*?)<\/p>/g) ?? []).map((p) =>
+      p.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(),
+    );
+    const longest = paragraphs.reduce((most, p) => Math.max(most, p.split(" ").length), 0);
+    check(longest <= 45, `${name}: longest visible paragraph is ${longest} words`);
+  }
 }
 
 console.log(failures === 0 ? "\nall drawing checks passed" : `\n${failures} drawing checks failed`);

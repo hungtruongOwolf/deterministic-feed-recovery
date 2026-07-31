@@ -8,6 +8,7 @@ import { useState } from "react";
 import { meaningOf, type SessionTrace } from "../model/session";
 import type { SessionParameters } from "../wasm/engine";
 import { Ladder } from "./Ladder";
+import { Disclosure } from "../ui/Disclosure";
 
 interface Props {
   readonly trace: SessionTrace;
@@ -20,36 +21,21 @@ interface Props {
 export function SessionSection({ trace, settings, onChange, live }: Props) {
   const [hover, setHover] = useState<number | undefined>(undefined);
   const focused = hover === undefined ? undefined : trace.steps[hover];
-  const { summary, header } = trace;
+  const { summary } = trace;
 
   return (
     <section className="session">
-      <header className="session__head">
-        <h2 className="session__title">Now the same exchange, taking orders</h2>
-        <p className="session__lede">
-          Everything above is the exchange <em>sending</em> — market data going out to everybody, and a client
-          repairing what it loses. This is the exchange <em>listening</em>: one client sends orders, the
-          exchange accepts, fills and cancels them, and answers every one. A venue that only broadcast would
-          not be a venue, so this is the other half rather than a second topic. It speaks OUCH 4.2 over a
-          SoupBinTCP session, which are the protocols NASDAQ actually uses.
-        </p>
-      </header>
-
       <div className="session__claim">
         <div className="session__claim-text">
-          <strong>Watch the two outer columns.</strong> SoupBinTCP puts the sequence number of a packet{" "}
-          <em>nowhere in the packet</em>. The exchange assigns it; the client derives it by counting what
-          arrives. They are equal on every rung — and the number never crossed between them. That
-          agreement is the only evidence either side is right, and it is what the session component exists
-          to get correct.
+          <strong>Watch the two outer columns.</strong> SoupBinTCP puts a packet's sequence number{" "}
+          <em>nowhere in the packet</em>. The exchange assigns it, the client counts it, and they match on every
+          rung — without the number ever crossing between them.
         </div>
         <div className={`session__verdict ${summary.agreed ? "is-agreed" : "is-broken"}`}>
           <span className="session__verdict-pair mono">
             {summary.client_next} = {summary.server_next}
           </span>
-          <span className="session__verdict-word">
-            {summary.agreed ? "they agree" : "they disagree"}
-          </span>
+          <span className="session__verdict-word">{summary.agreed ? "agree" : "disagree"}</span>
         </div>
       </div>
 
@@ -94,9 +80,7 @@ export function SessionSection({ trace, settings, onChange, live }: Props) {
           <span>cancel the second order</span>
         </label>
         <span className="session__controls-note">
-          {live
-            ? "Fill all 200 shares and watch the order go from live to dead, and the counters keep step."
-            : "WebAssembly did not load, so this is the committed session and the controls are inert."}
+          {live ? "fill all 200 and the order goes from live to dead" : "recorded run; controls off"}
         </span>
       </div>
 
@@ -126,11 +110,15 @@ export function SessionSection({ trace, settings, onChange, live }: Props) {
         <Figure label="ENDED BY" value={summary.ending.replace(/_/g, " ")} />
       </div>
 
-      <p className="session__foot">
-        {header.orders} orders, a fill of {header.fill} shares driven by the caller
-        {header.cancel ? ", one cancel" : ""}, one logout. There is no matching engine here on purpose — see the ledger for what that means and what
-        else this run does not claim.
-      </p>
+      <Disclosure summary="why there is no matching engine here">
+        <p>
+          Matching is the part a thousand other repositories implement. What is missing from the open-source
+          world is the protocol behaviour <em>around</em> it — which token a given outcome consumes, what a
+          replace does to a partly filled order, what silence means. So fills are driven by the caller and the
+          host's job is to keep the accounting straight and send the right message.
+        </p>
+      </Disclosure>
+
     </section>
   );
 }

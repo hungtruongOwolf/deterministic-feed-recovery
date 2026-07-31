@@ -15,10 +15,43 @@
 #include <dfr/venue/order_session.hpp>
 #include <dfr/wire/soupbintcp.hpp>
 
+#include <cstdint>
 #include <cstdio>
 #include <string_view>
 
 namespace dfr_tools {
+
+// The symbols and prices the scripted session uses.
+//
+// Eight orders all reading `AAPL @150.00` looked exactly like what it was: a hardcoded script. The protocol
+// behaviour does not depend on the symbol, so varying it changes nothing that is being tested — and it changes
+// a great deal about whether a reader believes the page is running anything.
+//
+// Derived from the order's index rather than randomised, because the session trace is a committed fixture and
+// has to reproduce byte for byte.
+inline constexpr std::string_view kSessionSymbols[] = {"AAPL", "MSFT", "NVDA", "TSLA",
+                                                       "AMZN", "GOOG", "META", "AMD"};
+
+[[nodiscard]] inline std::string_view symbol_for(int order_index) noexcept {
+  const auto count = static_cast<int>(sizeof(kSessionSymbols) / sizeof(kSessionSymbols[0]));
+  return kSessionSymbols[order_index % count];
+}
+
+// A price that differs per symbol, in whole dollars. Round numbers on purpose: the price arithmetic is tested
+// exhaustively in the OUCH unit tests, and a session transcript is not the place to also be demonstrating
+// sub-penny rounding.
+[[nodiscard]] inline std::uint32_t price_for(int order_index) noexcept {
+  static constexpr std::uint32_t dollars[] = {150, 410, 880, 240, 190, 175, 520, 165};
+  const auto count = static_cast<int>(sizeof(dollars) / sizeof(dollars[0]));
+  return dollars[order_index % count];
+}
+
+// Shares that are not all 200, for the same reason.
+[[nodiscard]] inline std::uint32_t shares_for(int order_index) noexcept {
+  static constexpr std::uint32_t shares[] = {200, 500, 100, 750, 300, 1'000, 150, 400};
+  const auto count = static_cast<int>(sizeof(shares) / sizeof(shares[0]));
+  return shares[order_index % count];
+}
 
 // One arrow on the ladder.
 struct wire_step {
