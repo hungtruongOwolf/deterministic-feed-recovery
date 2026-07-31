@@ -216,9 +216,17 @@ another — a dangling `span` into a destroyed temporary that `-O0` had not yet 
 and a test asserting that a disabled assertion does not evaluate its condition, which the
 assertions-off build reported as an unused declaration.
 
-`.github/workflows/ci.yml` runs the same four, checks the committed traces still reproduce, and
-builds the viewer. Clang only, because this project is developed on a machine with no real GCC and a
-GCC job would be a configuration nobody had verified before committing it.
+**What the matrix cannot see: the compiler.** It varies optimisation, assertion level and
+sanitizers, all on one toolchain. On its very first run, CI found five call sites that were an
+error under Linux Clang and silent under Apple Clang — a designated initialiser skipping a field,
+where `-Wmissing-field-initializers` is implemented by one and not the other. Four local
+configurations could not have caught it, and a verification story that omits what it cannot see is
+the kind of overclaiming this project criticises elsewhere.
+
+`.github/workflows/ci.yml` runs the same four presets, checks the committed traces still reproduce
+byte-for-byte, and builds the viewer. Clang only for now, because this machine has no real GCC —
+Apple Clang answers to `g++` — and a GCC job would be a configuration nobody had verified before
+committing it.
 
 ## Documents
 
@@ -228,5 +236,9 @@ GCC job would be a configuration nobody had verified before committing it.
 - `LUAN-GIAI-TIENG-VIET.md` — the same reasoning chain in Vietnamese.
 - `docs/DESIGN.md` — mechanism choices, each with the real project and file that proves it works,
   plus why the two existing open-source MoldUDP64 libraries do not meet these requirements.
-- `docs/STYLE.md` — house rules for comments, assertions, README and commits, calibrated against
-  measured comment and assertion density in Linux, SQLite, TigerBeetle, simdjson, quill and others.
+- `docs/STYLE.md` — house rules for comments, assertions, file size, aggregate defaults, README and
+  commits, calibrated against measured comment and assertion density in Linux, SQLite, TigerBeetle,
+  simdjson, quill and others.
+- `viewer/README.md` — the one rule the viewer follows, and why it has no domain logic.
+- `traces/` — recorded runs, committed as fixtures. `scripts/regenerate-traces.sh` then
+  `git diff traces/` is a behavioural regression report.

@@ -114,6 +114,38 @@ and shared fixtures in a `support/` header rather than copied.
 
 ---
 
+## 1.20 Aggregate members and default initialisers
+
+**Give every aggregate member a default initialiser where omission is a legitimate value. Never give one
+where omission is a mistake.**
+
+Found the hard way on 2026-07-30. `moldudp64::header::session` was the only member of its struct without a
+default, and five call sites used a designated initialiser that skipped it. That is an error under Linux
+Clang, which implements `-Wmissing-field-initializers` for C++20 designated initialisers, and silent under
+Apple Clang, which does not — so the code was `-Werror` clean on the development machine and broken on CI's
+first run.
+
+The fix belongs at the declaration, not the call sites: patching five call sites leaves the sixth to be
+written just as wrongly.
+
+Where omission *means* something, say so once:
+
+- a `packet_view payload{}` that is empty because there is no payload;
+- a `std::source_location where{}` that has not been captured;
+- a `wide_product{0, 0}` before it is computed.
+
+Where omission is a bug, leave the defaults off and write down why. `ouch::detail::ack_offsets` — the
+field-offset table shared by two decoders — has none deliberately: a zero offset would silently read the
+wrong bytes rather than fail, so the warning is the protection. The file says so, to stop a later reader
+applying this rule mechanically and removing it.
+
+**The general lesson is about the verification matrix, not the warning.** `dev`/`release`/`bench`/`asan`
+varies optimisation, assertion level and sanitizers on *one toolchain*. A second compiler sees a class of
+defect none of the four can. That is what CI is for, and it is why a red first run is worth reading rather
+than assuming the workflow is wrong.
+
+---
+
 ## 2. Assertions
 
 The discipline, with measured targets:
