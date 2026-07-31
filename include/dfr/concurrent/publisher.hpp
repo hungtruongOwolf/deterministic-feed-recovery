@@ -114,9 +114,24 @@ class publisher {
       ++stats_.refused;
       return false;
     }
+    // Refuse rather than overwrite when the slot is taken by a different sequence.
+    //
+    // The window is indexed `sequence % Pending` and its validity is relative to `next_`, which can *stall* — a full
+    // ring makes a publish fail and leaves entries held. Reasoning about which interleavings can then alias a slot is
+    // exactly the kind of argument that is convincing and wrong: CI aborted twice on x86-64 while every case I
+    // constructed here passed.
+    //
+    // So the check is unconditional and local. A slot may be written when it is free, or when it already holds this
+    // same sequence — a duplicate the client let through. Anything else is refused and counted, which loses a message
+    // the caller is told about instead of publishing one under the wrong number.
+    const auto slot_index = sequence % Pending;
+    if (have_[slot_index] && held_[slot_index].sequence != sequence) DFR_UNLIKELY {
+      ++stats_.refused;
+      return false;
+    }
     ++stats_.reordered;
-    held_[(sequence) % Pending] = record;
-    have_[(sequence) % Pending] = true;
+    held_[slot_index] = record;
+    have_[slot_index] = true;
     return true;
   }
 
@@ -134,8 +149,9 @@ class publisher {
   [[nodiscard]] bool drain_pending() noexcept {
     while (have_[next_ % Pending]) {
       const auto slot = next_ % Pending;
-      // The slot is indexed modulo `Pending`, so a sequence exactly `Pending` ahead would alias one already held.
-      // The bound in offer() is what stops that, and this asserts the two agree rather than trusting they do.
+      // Now a consequence of the check in offer() rather than an argument about interleavings: a slot is only ever
+      // written for the sequence that indexes it. Kept as an assertion because it is the invariant the modulo index
+      // rests on, and an invariant worth relying on is worth checking.
       DFR_ASSERT_PARANOID(held_[slot].sequence == next_,
                           "a held delivery aliased another sequence in the pending window");
       if (!publish(held_[slot])) {

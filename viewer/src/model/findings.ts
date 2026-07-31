@@ -118,7 +118,7 @@ export const FINDINGS: readonly Finding[] = [
  * static page: hardcoding it means it silently becomes a lie the next time a suite is added, and the viewer
  * cannot run ctest. The script fails the build if it drifts, so the page and the build agree or neither ships.
  */
-export const TEST_COUNT = 719;
+export const TEST_COUNT = 720;
 
 /** What a visitor with thirty seconds should be able to read without scrolling or pressing anything. */
 export interface Evidence {

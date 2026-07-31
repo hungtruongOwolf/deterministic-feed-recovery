@@ -151,3 +151,39 @@ TEST_CASE("a gap wider than the window is refused, not buffered without limit",
   CHECK_FALSE(narrow.offer(100, 0, false, view));
   CHECK(narrow.stats().refused == 2);
 }
+
+TEST_CASE("a ring smaller than the reorder window stalls without corrupting anything",
+          "[integration][concurrent]") {
+  // A legitimate configuration and one the design did not think through: the drain fills the ring, a publish fails,
+  // and entries stay held with `next_` stalled. Everything after that has to be refused and counted rather than
+  // written over a slot the window still needs.
+  //
+  // This is where CI's abort came from — twice, on x86-64, while every interleaving constructed by hand here passed.
+  // The fix was to stop arguing about which interleavings can alias a slot and make the check unconditional.
+  conc::publisher<4, 8> tight{1};
+  const std::array<std::byte, 4> body{};
+  const dfr::packet_view view{body.data(), body.size()};
+
+  for (std::uint64_t s = 2; s <= 8; ++s) {
+    CHECK(tight.offer(s, 0, false, view));
+  }
+  // Releasing 1 drains as far as the ring allows and then fails.
+  CHECK_FALSE(tight.offer(1, 0, false, view));
+  CHECK(tight.stats().published == 4);
+  CHECK(tight.stats().refused >= 1);
+
+  // Everything after this either fits the window or is refused. Nothing may abort, and nothing may be published
+  // under a sequence it does not have.
+  for (std::uint64_t s = 9; s <= 400; ++s) {
+    (void)tight.offer(s, 0, false, view);
+  }
+  CHECK(tight.stats().published == 4);
+  CHECK(tight.next_sequence() == 5);
+
+  // And what did cross is still in order and correctly numbered.
+  std::array<conc::delivery, 8> out{};
+  REQUIRE(tight.ring().pop_batch(out.data(), out.size()) == 4);
+  for (std::size_t i = 0; i < 4; ++i) {
+    CHECK(out[i].sequence == i + 1);
+  }
+}

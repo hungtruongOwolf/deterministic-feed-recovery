@@ -70,7 +70,9 @@ int main(int argc, char** argv) {
     std::printf("\nA Glimpse snapshot, rebuilt by a client that has only the bytes\n\n");
     std::printf("  %-5s %-16s %-38s %s\n", "type", "frame", "what it carries", "the client's book");
     for (const auto& step : run.steps) {
-      char book[48] = "empty";
+      // 80, not 48: two four-decimal prices, two level counts and the separators can exceed 48, and GCC does the
+      // arithmetic. The second buffer-size warning this project has had from it.
+      char book[80] = "empty";
       if (step.bid_levels > 0 || step.ask_levels > 0) {
         std::snprintf(book, sizeof book, "%lld.%04lld / %lld.%04lld  %u+%u lvl",
                       static_cast<long long>(step.bid / 10'000),
