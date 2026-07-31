@@ -107,16 +107,21 @@ jobs:
           cmake --preset dev
           cmake --build --preset dev -j 4 --target dfr_trace dfr_session
 
+      # The committed module is an artifact, committed on purpose so Pages can deploy without an Emscripten
+      # toolchain. Staleness is checked by *behaviour*, not by bytes: a WebAssembly binary is not
+      # reproducible across emsdk versions or hosts, so a byte diff would fail for reasons nobody caused.
+      # What matters is that the module the page will actually load still agrees with the native build — so
+      # if somebody changes the library and forgets to rebuild, this is the step that says so.
+      - name: The committed module still agrees with native
+        run: ./scripts/check-wasm.sh dev
+
       - name: Build for the browser
         run: ./scripts/build-wasm.sh
 
-      # The committed module is a build artifact and is committed on purpose, so that Pages can deploy
-      # without an Emscripten toolchain. A diff here means somebody changed the library and did not rebuild
-      # it, which would leave the page running yesterday's code while the tests ran today's.
-      - name: The committed module is current
-        run: git diff --exit-code -- viewer/public/wasm/
-
-      - name: Compare the two
+      # And the module built from this commit agrees too, which is the check for the source rather than the
+      # artifact. Both are needed: the first can pass on a stale-but-correct artifact after a purely internal
+      # refactor, and the second cannot tell whether the committed file was rebuilt.
+      - name: The freshly built module agrees with native
         run: ./scripts/check-wasm.sh dev
 
   viewer:

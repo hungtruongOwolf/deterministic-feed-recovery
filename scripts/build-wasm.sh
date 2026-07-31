@@ -25,6 +25,9 @@
 #                        outside a browser cannot be checked against the native build — and that check is
 #                        the only evidence the page runs this library rather than a port of it. A few
 #                        kilobytes of loader is a cheap price for a verifiable artifact.
+# The output is committed so that Pages can deploy without an Emscripten toolchain. It is not
+# byte-reproducible across emsdk versions or hosts, and CI does not pretend otherwise: it checks the
+# committed module's *behaviour* against the native build rather than diffing the binary.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
