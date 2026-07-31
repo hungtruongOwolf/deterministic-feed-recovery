@@ -29,6 +29,10 @@ import { SessionSection } from "./session/SessionSection";
 import { parseBenchmarks, parseHandoff, type Performance as PerfData } from "./model/perf";
 import { Performance } from "./panels/Performance";
 import { Disclosure } from "./ui/Disclosure";
+import { Hero } from "./panels/Hero";
+import { Findings } from "./panels/Findings";
+import { nanos } from "./model/perf";
+import { TEST_COUNT } from "./model/findings";
 import { usePlayback } from "./anim/usePlayback";
 import { Sheet } from "./stage/Sheet";
 import { Stage } from "./stage/Stage";
@@ -250,11 +254,6 @@ export function App() {
           <span className="app__abbr mono">{PROJECT_ABBREVIATION}</span>
         </h1>
         <p className="app__tagline">{PROJECT_TAGLINE}</p>
-        <span className={`app__live ${engine !== undefined ? "is-live" : ""}`}>
-          {engine !== undefined
-            ? "the C++ is compiled to WebAssembly and running in your browser"
-            : "showing recorded runs — WebAssembly did not load"}
-        </span>
       </header>
 
       {error !== undefined && (
@@ -266,11 +265,44 @@ export function App() {
 
       {film !== undefined && view !== undefined && (
         <main className="app__main">
-          {/* ---- 1. the film ------------------------------------------------ */}
+          <Hero
+            tests={TEST_COUNT}
+            allocations={perf?.shipping.allocations_after_init ?? 0}
+            perPacket={
+              perf === undefined
+                ? "—"
+                : nanos(
+                    perf.shipping.measurements.find((m) => m.name.startsWith("ingest a packet"))
+                      ?.best_ns ?? 0,
+                  )
+            }
+            live={engine !== undefined}
+            onWatch={() => {
+              document.getElementById("watch")?.scrollIntoView({ behavior: "smooth" });
+              start();
+            }}
+          />
+
+          {/* ---- 1. the defects --------------------------------------------
+              First, because this is what an engineer came to find out and it was invisible: 113 passages in the
+              commit history describe a defect found, and not one of them appeared on the page outside a fold. */}
           <section className="act-section">
             <h2 className="act-section__title">
               <span className="act-section__number mono">1</span>
-              A feed breaks, and the client repairs it
+              What broke, and what caught it
+            </h2>
+            <p className="act-section__lede">
+              Six real defects from the commit history. Four of them are mine — found, not avoided — because a
+              list of things that went right is a list of things nobody checked.
+            </p>
+            <Findings />
+          </section>
+
+          {/* ---- 2. the film ------------------------------------------------ */}
+          <section className="act-section" id="watch">
+            <h2 className="act-section__title">
+              <span className="act-section__number mono">2</span>
+              Watch a feed break and recover
             </h2>
             <p className="act-section__lede">
               Three acts, played straight through. Each one takes away a defence the last one had, so you watch
@@ -333,11 +365,25 @@ export function App() {
             </Disclosure>
           </section>
 
-          {/* ---- 2. orders ------------------------------------------------- */}
+          {/* ---- 3. cost -------------------------------------------------- */}
+          {perf !== undefined && (
+            <section className="act-section">
+              <h2 className="act-section__title">
+                <span className="act-section__number mono">3</span>
+                What it costs
+              </h2>
+              <p className="act-section__lede">
+                The recovery path only runs when something has already gone wrong, which is exactly the code
+                nobody benchmarks.
+              </p>
+              <Performance perf={perf} />
+            </section>
+          )}
+          {/* ---- 4. orders ------------------------------------------------- */}
           {session !== undefined && (
             <section className="act-section">
               <h2 className="act-section__title">
-                <span className="act-section__number mono">2</span>
+                <span className="act-section__number mono">4</span>
                 The same exchange, taking orders
               </h2>
               <p className="act-section__lede">
@@ -353,20 +399,6 @@ export function App() {
             </section>
           )}
 
-          {/* ---- 3. cost -------------------------------------------------- */}
-          {perf !== undefined && (
-            <section className="act-section">
-              <h2 className="act-section__title">
-                <span className="act-section__number mono">3</span>
-                What it costs
-              </h2>
-              <p className="act-section__lede">
-                The recovery path only runs when something has already gone wrong, which is exactly the code
-                nobody benchmarks.
-              </p>
-              <Performance perf={perf} />
-            </section>
-          )}
         </main>
       )}
     </div>

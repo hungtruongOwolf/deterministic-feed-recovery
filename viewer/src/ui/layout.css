@@ -430,3 +430,51 @@
   border: 1px solid var(--rule); padding: 2px 7px; align-self: center;
 }
 .app__live.is-live { color: var(--healthy); border-color: var(--healthy); }
+
+/* ------------------------------------------------------------------ the hero
+
+   Ten seconds, for the person who has ten seconds. The page used to open with a two-minute film behind a play
+   button, and "685 tests across five sanitiser configurations" appeared on it zero times.                  */
+
+.hero { grid-column: 1 / -1; margin-bottom: 34px; }
+.hero__what { margin: 0 0 18px; font-size: 17px; line-height: 1.55; max-width: 74ch; }
+.hero__evidence { display: flex; gap: 40px; flex-wrap: wrap; margin-bottom: 18px; }
+.fact { display: flex; flex-direction: column; gap: 1px; cursor: help; }
+.fact__value { font-family: var(--serif); font-size: 32px; line-height: 1; color: var(--ink); }
+.fact__label { font-size: 11px; line-height: 1.3; color: var(--ink-soft); max-width: 22ch; }
+.hero__actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.hero__watch {
+  font-size: 14px; padding: 8px 16px;
+  background: var(--ink); color: var(--page); border-color: var(--ink);
+}
+.hero__watch:hover { background: #000; }
+.hero__repo { font-size: 13px; }
+.hero__live { font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.04em; color: var(--ink-faint); }
+.hero__live.is-live { color: var(--healthy); }
+
+/* ------------------------------------------------------------- the findings
+
+   The one panel where prose is the substance rather than an explanation of the page, so the word budget is
+   relaxed here on purpose and capped per card.                                                             */
+
+.findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.finding { border: 1px solid var(--rule); padding: 13px 15px 14px; background: var(--page); }
+.finding__head { margin-bottom: 9px; }
+.finding__kind {
+  font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint);
+  border: 1px solid var(--rule); padding: 1px 5px;
+}
+.finding__title { font-size: 15.5px; line-height: 1.35; margin: 6px 0 0; }
+.finding__body { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 3px 11px; }
+.finding__body dt {
+  font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint);
+  padding-top: 3px; white-space: nowrap;
+}
+.finding__body dd { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--ink-soft); }
+.finding__where { display: inline-block; margin-top: 10px; font-size: 11px; }
+
+@media (max-width: 640px) {
+  .finding__body { grid-template-columns: 1fr; gap: 1px; }
+  .finding__body dt { padding-top: 7px; }
+  .fact__value { font-size: 26px; }
+}

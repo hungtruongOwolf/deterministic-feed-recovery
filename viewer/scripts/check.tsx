@@ -31,6 +31,9 @@ import {
 } from "../src/model/film";
 import { Controls } from "../src/panels/Controls";
 import { Performance } from "../src/panels/Performance";
+import { Hero } from "../src/panels/Hero";
+import { Findings } from "../src/panels/Findings";
+import { FINDINGS, TEST_COUNT } from "../src/model/findings";
 import { assertionCosts, NOISE_FLOOR, parseBenchmarks, parseHandoff } from "../src/model/perf";
 import { BEATS_PER_SECOND } from "../src/anim/usePlayback";
 import { ActStrip } from "../src/panels/ActStrip";
@@ -688,6 +691,64 @@ console.log("\nthe page's weight");
     const longest = paragraphs.reduce((most, p) => Math.max(most, p.split(" ").length), 0);
     check(longest <= 45, `${name}: longest visible paragraph is ${longest} words`);
   }
+}
+
+// ---------------------------------------------------------------------------
+// 11. what a visitor with thirty seconds, and one with five minutes, can see
+// ---------------------------------------------------------------------------
+//
+// Measured before this section existed: 113 passages in the commit history describe a defect found and why it
+// hid, and not one appeared on the page outside a collapsed fold. "685 tests" appeared zero times. That is
+// designing from what is true about the code, arranged tidily, rather than from what somebody arriving wants.
+
+console.log("\nwhat a visitor can see");
+
+{
+  const hero = renderToStaticMarkup(
+    <Hero tests={TEST_COUNT} allocations={0} perPacket="41 ns" live onWatch={() => {}} />,
+  );
+  const strip = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+
+  // Thirty seconds: what it is, that somebody checked it, and where the code is — without pressing anything.
+  check(/broken on purpose/.test(hero), "the first line says what was built");
+  check(new RegExp(`>${TEST_COUNT}<`).test(hero), `the test count (${TEST_COUNT}) is visible without opening anything`);
+  check(/>5</.test(hero) && /sanitiser/.test(hero), "so is how many configurations run them");
+  check(/>0</.test(hero) && /allocations/.test(hero), "and the allocation count");
+  check(/github\.com/.test(hero), "the code is one click away from the first screen");
+  check(/computed in your browser/.test(hero), "and the page says it is running rather than replaying");
+  check(strip(hero).split(" ").filter((w) => /[a-z]{2}/i.test(w)).length <= 90, "the first screen is scannable");
+
+  // Five minutes: the defects, which are the only real evidence of judgement.
+  const findings = renderToStaticMarkup(<Findings />);
+  check(FINDINGS.length >= 5, `${FINDINGS.length} defects on the page, not in a fold`);
+  check(
+    FINDINGS.every((f) => f.hid.length > 80 && f.caught.length > 40 && f.matters.length > 40),
+    "every one says how it hid, what caught it, and what it changed",
+  );
+  check(
+    FINDINGS.every((f) => !/code review|careful|attention/i.test(f.caught)),
+    "none of them credits \"code review\" for catching anything",
+  );
+  check(
+    FINDINGS.some((f) => /12 runs out of 12|12 out of 12/.test(f.caught)),
+    "the ThreadSanitizer counterexample is on the page with its numbers",
+  );
+  check(
+    FINDINGS.filter((f) => /assert|seemed obviously true|I had asserted|my own/i.test(f.hid + f.caught)).length >= 1,
+    "at least one is framed as the author's own mistake",
+  );
+  check((findings.match(/class="finding"/g) ?? []).length === FINDINGS.length, "all of them render");
+  check(
+    FINDINGS.every((f) => f.where.startsWith("https://github.com/")),
+    "each links to the code and the reasoning beside it",
+  );
+
+  // Per-card cap: this prose is the substance, and it still must not be a wall.
+  const longest = FINDINGS.reduce(
+    (most, f) => Math.max(most, `${f.hid} ${f.caught} ${f.matters}`.split(" ").length),
+    0,
+  );
+  check(longest <= 130, `the longest defect card is ${longest} words`);
 }
 
 console.log(failures === 0 ? "\nall drawing checks passed" : `\n${failures} drawing checks failed`);
