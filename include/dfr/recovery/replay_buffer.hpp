@@ -35,6 +35,7 @@
 #include <dfr/core/assert.hpp>
 #include <dfr/core/attributes.hpp>
 #include <dfr/core/error.hpp>
+#include <dfr/core/narrow.hpp>
 #include <dfr/core/packet_view.hpp>
 #include <dfr/core/result.hpp>
 #include <dfr/recovery/gap.hpp>
@@ -131,7 +132,7 @@ class replay_buffer {
       return dropped;
     }
 
-    const std::size_t dropped = static_cast<std::size_t>(sequence - first_sequence_);
+    const std::size_t dropped = narrowed<std::size_t>(sequence - first_sequence_);
     const std::size_t byte_offset = index_[dropped].offset;
     const std::size_t remaining_bytes = used_ - byte_offset;
 
@@ -164,7 +165,7 @@ class replay_buffer {
     if (!buffered().contains(sequence)) {
       return error::invalid_argument;
     }
-    const std::size_t i = static_cast<std::size_t>(sequence - first_sequence_);
+    const std::size_t i = narrowed<std::size_t>(sequence - first_sequence_);
     return packet_view{arena_.data() + index_[i].offset, index_[i].length};
   }
 

@@ -35,6 +35,7 @@
 #define DFR_CORE_RNG_HPP
 
 #include <dfr/core/assert.hpp>
+#include <dfr/core/narrow.hpp>
 #include <dfr/core/attributes.hpp>
 
 #include <dfr/core/detail/wide_multiply.hpp>
@@ -44,33 +45,12 @@
 #include <concepts>
 #include <cstddef>
 #include <cstdint>
-#include <type_traits>
 #include <random>
 #include <span>
 
 namespace dfr::inline v1 {
 
-namespace detail {
 
-// A conversion that is a cast only when the types differ.
-//
-// `static_cast<std::size_t>` on a `std::uint64_t` is a no-op on LP64, where the
-// two are the same type, and necessary on a 32-bit target where they are not.
-// GCC's -Wuseless-cast — which this project enables deliberately — is right on
-// the first platform and wrong on the second, so the choice is made at compile
-// time instead of being argued about.
-template <typename To, typename From>
-[[nodiscard]] constexpr To narrowed(From value) noexcept {
-  if constexpr (std::is_same_v<To, From>) {
-    return value;
-  } else {
-    return static_cast<To>(value);
-  }
-}
-
-}  // namespace detail
-
-using detail::narrowed;
 
 // ---------------------------------------------------------------------------
 // prng
