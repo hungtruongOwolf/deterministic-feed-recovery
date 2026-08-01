@@ -14,6 +14,7 @@
 #include <dfr/chaos/target.hpp>
 
 #include "wire/support/raw_iextp.hpp"
+#include "wire/support/raw_moldudp64.hpp"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -28,6 +29,12 @@ namespace chaos = dfr::chaos;
 
 using iex_injector = chaos::injector<chaos::iextp_target>;
 
+// The other half of the one-injector-drives-both-protocols claim in target.hpp's own header comment. Coverage
+// measurement found that this alias was never instantiated at runtime anywhere in the suite: `moldudp64_target`
+// was only ever named inside a compile-time `STATIC_REQUIRE(fault_target<moldudp64_target>)`, which checks that
+// the four functions exist with the right signatures and proves nothing about what they write.
+using moldudp64_injector = chaos::injector<chaos::moldudp64_target>;
+
 // One emitted packet, copied so it survives the injector's scratch buffer. The
 // copy is the test proving it understood the lifetime contract.
 struct captured {
@@ -37,7 +44,9 @@ struct captured {
   bool is_duplicate{false};
 };
 
-inline std::vector<captured> collect(iex_injector& into,
+// Generic over the target, so the same collection logic drives both protocols' injectors.
+template <typename Injector>
+inline std::vector<captured> collect(Injector& into,
                              const std::vector<std::string>& stream) {
   std::vector<captured> out;
   const auto emit = [&](const chaos::emission& e) {
@@ -109,6 +118,23 @@ inline std::vector<std::string> iextp_stream_of_two_blocks(std::size_t count) {
 
     sequence += 2;
     offset += static_cast<std::int64_t>(4 + first.size() + second.size());
+  }
+  return out;
+}
+
+// A stream of well-formed MoldUDP64 datagrams, one message per packet, mirroring iextp_stream above.
+inline std::vector<std::string> moldudp64_stream(std::size_t count) {
+  std::vector<std::string> out;
+  out.reserve(count);
+  std::uint64_t sequence = 1;
+
+  for (std::size_t i = 0; i < count; ++i) {
+    dfr_test::mold::raw_packet packet;
+    const std::string payload = "p" + std::to_string(i);
+    packet.session("SESS01").sequence(sequence).count(1).block(payload);
+    const auto view = packet.view();
+    out.emplace_back(reinterpret_cast<const char*>(view.data()), view.size());
+    sequence += 1;
   }
   return out;
 }

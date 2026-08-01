@@ -36,6 +36,11 @@ option(DFR_RECORD_CHOICES   "Compile in the per-draw RNG choice trace"   ON)
 set(DFR_SANITIZER "none" CACHE STRING "Sanitizer: none, address, thread, undefined, address+undefined")
 set_property(CACHE DFR_SANITIZER PROPERTY STRINGS none address thread undefined address+undefined)
 
+# "723 tests" says how many, never which lines. Off by default because instrumentation changes the binary a
+# sanitizer build already changes enough; see scripts/coverage.sh for why this exists and what it is not a
+# substitute for.
+option(DFR_COVERAGE "Instrument for source-based coverage (Clang: -fprofile-instr-generate)" OFF)
+
 if(NOT DFR_ASSERTIONS MATCHES "^(off|fast|paranoid)$")
   message(FATAL_ERROR "DFR_ASSERTIONS must be off, fast or paranoid (got '${DFR_ASSERTIONS}')")
 endif()
@@ -114,6 +119,21 @@ if(NOT DFR_SANITIZER STREQUAL "none")
     target_link_options(dfr_dev_flags INTERFACE -fsanitize=${_dfr_san})
   else()
     message(WARNING "DFR_SANITIZER is ignored for ${CMAKE_CXX_COMPILER_ID}")
+  endif()
+endif()
+
+if(DFR_COVERAGE)
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Source-based coverage: each test binary writes its own .profraw at exit, merged and read by
+    # scripts/coverage.sh. Chosen over gcov because it reports per-region rather than per-line, which is
+    # the difference between "this branch of the ternary never ran" and "this line ran".
+    target_compile_options(dfr_dev_flags INTERFACE -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(dfr_dev_flags INTERFACE -fprofile-instr-generate)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    target_compile_options(dfr_dev_flags INTERFACE --coverage)
+    target_link_options(dfr_dev_flags INTERFACE --coverage)
+  else()
+    message(WARNING "DFR_COVERAGE is ignored for ${CMAKE_CXX_COMPILER_ID}")
   endif()
 endif()
 

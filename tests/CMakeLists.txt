@@ -58,6 +58,7 @@ dfr_add_test_suite(dfr_chaos_tests SOURCES
   chaos/schedule_generate_test.cpp
   chaos/injector_test.cpp
   chaos/injector_damage_test.cpp
+  chaos/moldudp64_target_test.cpp
   chaos/oracle_test.cpp
 )
 
@@ -104,6 +105,7 @@ dfr_add_test_suite(dfr_venue_tests SOURCES
   venue/snapshot_facility_test.cpp
   venue/order_entry_test.cpp
   venue/order_replace_test.cpp
+  venue/order_session_state_test.cpp
   venue/order_session_phase_test.cpp
   venue/order_session_flow_test.cpp
 )

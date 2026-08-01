@@ -62,6 +62,16 @@
         "DFR_ASSERTIONS": "paranoid",
         "DFR_SANITIZER": "thread"
       }
+    },
+    {
+      "name": "coverage",
+      "displayName": "Coverage: source-based, for finding what 723 tests do not reach",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DFR_ASSERTIONS": "paranoid",
+        "DFR_COVERAGE": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -84,6 +94,10 @@
     {
       "name": "tsan",
       "configurePreset": "tsan"
+    },
+    {
+      "name": "coverage",
+      "configurePreset": "coverage"
     }
   ],
   "testPresets": [
@@ -122,6 +136,11 @@
       "name": "tsan",
       "inherits": "base",
       "configurePreset": "tsan"
+    },
+    {
+      "name": "coverage",
+      "inherits": "base",
+      "configurePreset": "coverage"
     }
   ]
 }

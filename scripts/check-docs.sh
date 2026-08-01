@@ -22,8 +22,16 @@ if [[ -z "${count}" ]]; then
 fi
 
 # Every test count written down anywhere has to be the real one.
-stale="$(grep -rnoE '\b[0-9]{3}\b tests' "${here}/README.md" "${here}/docs" "${here}/viewer/README.md" 2>/dev/null \
-  | grep -v "${count} tests" || true)"
+#
+# Except a quoted "N tests passed": that phrasing only ever appears inside a first-person account of a past
+# incident ("I had read '723 tests passed' and pushed"), where the old number is the point of the sentence and
+# rewriting it to the current count would falsify the history it is telling. Distinguished from a live claim by
+# the quote marks around the number, which no current-count sentence in this repository uses. Matched on the
+# full line (not just the number) since the quote marks sit outside the number itself.
+stale="$(grep -rnE '\b[0-9]{3}\b tests' "${here}/README.md" "${here}/docs" "${here}/viewer/README.md" 2>/dev/null \
+  | grep -v "${count} tests" \
+  | grep -vE '"[0-9]{3} tests passed"' \
+  | grep -oE '^[^:]+:[0-9]+:.*\b[0-9]{3}\b tests' || true)"
 if [[ -n "${stale}" ]]; then
   say "✗" "a stale test count is written down:"
   printf '      %s\n' "${stale}"
