@@ -35,22 +35,32 @@ Its mutations are deliberately crude: bit flips, byte overwrites, truncations, g
 field might be. A decoder's hostile input is almost never structurally novel. It is a valid packet with a wrong
 length, which is what these produce directly instead of waiting to stumble on.
 
-## The corpus is real packets
+## The corpus is real packets, or real encoder output where no real packets exist
 
-`scripts/fuzz-corpus.sh <capture.pcap>` extracts it from an IEX HIST file, at three layers, because a fuzzer
-starting from a whole file exercises the pcap reader and never reaches a message decoder, and one starting from a
-single message never exercises framing:
+`scripts/fuzz-corpus.sh <capture.pcap>` extracts the market-data corpus from an IEX HIST file, at three layers,
+because a fuzzer starting from a whole file exercises the pcap reader and never reaches a message decoder, and
+one starting from a single message never exercises framing:
 
 - file prefixes, so the pcap reader meets a truncated header and a truncated record;
 - IEX-TP datagrams, for the framing and chain layer;
 - individual DEEP messages, for the message decoders.
 
-285 files, 1.1 MB, committed. Every mutation therefore starts from a packet that **actually parses**, which is
-where the interesting failures are: not random noise that every decoder rejects at the first byte.
+OUCH and SoupBinTCP have no capture to extract from: it is a private client-exchange order-entry session, not
+multicast market data, and no free public capture of one exists. `tools/corpus_gen` covers them instead, by
+driving several real `venue::order_session` flows (a correct login, a rejected one, enter/replace/modify/cancel,
+an execution, an idle session that only heartbeats and closes) and writing every raw byte that crosses the wire
+in either direction. The alternative, hand-writing OUCH and SoupBinTCP bytes in Python the way `extract-corpus.py`
+walks pcap bytes, would be a second, independent implementation of the wire layout with no guarantee it agrees
+with the real encoders, exactly the risk this project avoids everywhere else a second implementation would
+raise the same question. `scripts/fuzz-corpus.sh` runs both extractors; `tools/corpus_gen` needs no capture
+argument, since it needs nothing but the library itself.
 
-Two of the corpora are deliberately the wrong protocol: the OUCH and SoupBinTCP targets are seeded with DEEP
-messages, because well-formed bytes from *another* protocol are exactly the shape of input a dispatcher hands
-the wrong decoder when a type byte is hostile.
+Two of the corpora are deliberately the wrong protocol on top of that: the OUCH and SoupBinTCP targets are also
+seeded with DEEP messages, because well-formed bytes from *another* protocol are exactly the shape of input a
+dispatcher hands the wrong decoder when a type byte is hostile.
+
+331 files, 1.3 MB, committed. Every mutation therefore starts from a packet that **actually parses**, which is
+where the interesting failures are: not random noise that every decoder rejects at the first byte.
 
 ## The three checks
 

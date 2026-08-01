@@ -34,3 +34,11 @@ add_executable(dfr_glimpse glimpse.cpp)
 target_link_libraries(dfr_glimpse PRIVATE dfr::dfr dfr_dev_flags)
 target_include_directories(dfr_glimpse PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 set_target_properties(dfr_glimpse PROPERTIES OUTPUT_NAME glimpse)
+
+# Drives several real order-entry sessions and writes every raw byte crossing the wire as fuzz seed
+# material. OUCH and SoupBinTCP have no free public capture the way IEX-TP and DEEP do (this is a private
+# client-exchange session, not multicast market data), so the corpus comes from the library's own encoders
+# instead of a hand-written approximation of the wire layout.
+add_executable(dfr_corpus_gen corpus_gen.cpp)
+target_link_libraries(dfr_corpus_gen PRIVATE dfr::dfr dfr_dev_flags)
+set_target_properties(dfr_corpus_gen PROPERTIES OUTPUT_NAME corpus_gen)
