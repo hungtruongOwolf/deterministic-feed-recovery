@@ -110,7 +110,7 @@ TEST_CASE("applying a gap-filling feed in arrival order gives the wrong book") {
   // Everything else about the two runs is identical. Same messages, same count, same trades.
   const auto ordered = replay_recovered(feed, /*seed=*/1, /*faults=*/8);
   const auto naive =
-      replay_recovered(feed, /*seed=*/1, /*faults=*/8, /*glimpse=*/false, /*arrival_order=*/true);
+      replay_recovered(feed, /*seed=*/1, /*faults=*/8, /*glimpse=*/false, /*apply_in_arrival_order=*/true);
 
   CHECK(naive.delivered == ordered.delivered);
   CHECK(naive.trades == ordered.trades);

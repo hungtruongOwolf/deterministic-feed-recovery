@@ -140,6 +140,10 @@ class prng {
 
     if (low < bound) {
       const std::uint64_t threshold = (std::uint64_t{0} - bound) % bound;
+      // NOLINTNEXTLINE(bugprone-infinite-loop): threshold is fixed for the whole loop, but low is not: it is
+      // recomputed from a fresh draw every iteration, which is the actual controlling variable, and clang-tidy's
+      // dataflow does not follow it through wide_multiply. Bounded in expectation, not absolutely, per the
+      // comment above this function.
       while (low < threshold) {
         value = next();
         const auto product = detail::wide_multiply(value, bound);

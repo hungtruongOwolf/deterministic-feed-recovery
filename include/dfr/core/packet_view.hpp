@@ -252,6 +252,11 @@ class DFR_VIEW packet_view {
   [[nodiscard]] DFR_FLATTEN_INLINE T read_at(size_type offset) const noexcept {
     DFR_ASSERT(contains(offset, sizeof(T)),
                "read_at past the end of the view; slice with subview() first");
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init): deliberately uninitialized: memcpy overwrites
+    // every byte on the next line, always, with no branch in between. Zero-initializing first would be a
+    // write this function exists to avoid paying for, and clang-tidy cannot see the memcpy that follows makes
+    // it redundant. T is also not guaranteed default-constructible for every wire type this is instantiated
+    // with, so `T value{};` would risk a hard compile error for a struct that has no reason to support one.
     T value;
     std::memcpy(&value, data_ + offset, sizeof(T));
     return value;

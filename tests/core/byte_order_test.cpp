@@ -74,14 +74,14 @@ TEST_CASE("only the non-native path swaps", "[core][byte_order]") {
   // are still parsed and their static_asserts still evaluated, so a
   // STATIC_REQUIRE here would fail on every platform. The values are still
   // computed at compile time: only the assertion is deferred.
-  constexpr std::uint32_t host = 0x1234'5678;
-  constexpr std::uint32_t swapped = 0x7856'3412;
+  constexpr std::uint32_t kHost = 0x1234'5678;
+  constexpr std::uint32_t kSwapped = 0x7856'3412;
 
   if constexpr (dfr::kNativeIsLittleEndian) {
-    CHECK(dfr::from_little_endian(host) == host);
-    CHECK(dfr::from_big_endian(host) == swapped);
+    CHECK(dfr::from_little_endian(kHost) == kHost);
+    CHECK(dfr::from_big_endian(kHost) == kSwapped);
   } else {
-    CHECK(dfr::from_big_endian(host) == host);
-    CHECK(dfr::from_little_endian(host) == swapped);
+    CHECK(dfr::from_big_endian(kHost) == kHost);
+    CHECK(dfr::from_little_endian(kHost) == kSwapped);
   }
 }

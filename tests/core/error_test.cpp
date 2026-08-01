@@ -25,6 +25,10 @@ std::vector<dfr::error> all_errors() {
 // are implemented as `>=` and `<=` against the first and last enumerator of a
 // block, which is fast but silently wrong if anyone reorders the enum. Spelling
 // the sets out here is what turns a reorder into a test failure.
+//
+// NOLINTBEGIN(cert-err58-cpp): the only way constructing a set of three enumerators from a literal list
+// throws is std::bad_alloc, and a test binary terminating on that is no worse an outcome than the OOM it is
+// reporting. A function-local Meyer's singleton would dodge the warning without buying any real safety.
 const std::set<dfr::error> kFramingErrors{
     dfr::error::truncated_header,        dfr::error::truncated_block,
     dfr::error::block_count_overstated,  dfr::error::block_overruns_datagram,
@@ -46,6 +50,7 @@ const std::set<dfr::error> kFatalErrors{
     dfr::error::lines_diverged,
     dfr::error::end_of_session,
 };
+// NOLINTEND(cert-err58-cpp)
 
 }  // namespace
 
@@ -154,6 +159,9 @@ TEST_CASE("describe() returns a NUL-terminated literal", "[core][error]") {
   for (const dfr::error err : all_errors()) {
     const std::string_view text = dfr::describe(err);
     REQUIRE(text.data() != nullptr);
+    // NOLINTNEXTLINE(readability-simplify-subscript-expr): text[text.size()] is exactly the out-of-view read
+    // this test exists to pin: string_view::operator[] contractually forbids index == size(), so using it here
+    // would trade a deliberate one-past-the-end read of the underlying literal for undefined behaviour.
     CHECK(text.data()[text.size()] == '\0');
   }
 }

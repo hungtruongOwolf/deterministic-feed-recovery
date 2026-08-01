@@ -45,8 +45,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 // Sized by the caller from the snapshot's expected latency times the feed's message
 // rate, with headroom. The defaults are deliberately modest: an object this size is a
@@ -105,7 +104,7 @@ class replay_buffer {
       return error::recovery_buffer_overflow;
     }
 
-    if (message.size() > 0) {
+    if (!message.empty()) {
       std::memcpy(arena_.data() + used_, message.data(), message.size());
     }
     index_[count_] = span{.offset = used_, .length = message.size()};
@@ -188,7 +187,5 @@ class replay_buffer {
   std::uint64_t first_sequence_{0};
 };
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_REPLAY_BUFFER_HPP

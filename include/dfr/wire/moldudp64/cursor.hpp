@@ -16,8 +16,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::moldudp64 {
+namespace dfr::inline v1::wire::moldudp64 {
 
 // One message, with the sequence number it occupies.
 struct message {
@@ -171,11 +170,14 @@ class message_cursor {
 
   header header_;
   packet_view payload_;
-  std::uint64_t next_sequence_;
-  std::uint16_t remaining_;
+  // In-class defaults, so the defaulted constructor above actually delivers what its own comment promises.
+  // Found by clang-tidy, and worth stating precisely: without these, the sibling constructor's initializer
+  // list masked it everywhere the class is normally built, and only a default-constructed cursor (the one
+  // path with no initializer list at all) would ever read the indeterminate value. `wire::iextp::cursor`
+  // already carries the same two fields with `{0}`; this one had drifted from that pattern.
+  std::uint64_t next_sequence_{0};
+  std::uint16_t remaining_{0};
 };
 
-}  // namespace wire::moldudp64
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::moldudp64
 #endif  // DFR_WIRE_MOLDUDP64_CURSOR_HPP

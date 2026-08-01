@@ -33,8 +33,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::ouch {
+namespace dfr::inline v1::wire::ouch {
 
 struct system_event {
   std::uint64_t timestamp_ns{0};
@@ -212,7 +211,7 @@ namespace detail {
 [[nodiscard]] constexpr result<cancel_notice> decode_cancel_notice(
     packet_view message) noexcept {
   const bool pending =
-      message.size() > 0 &&
+      !message.empty() &&
       message.u8_at(0) == static_cast<std::uint8_t>(outbound_type::cancel_pending);
   if (const auto err = detail::check(
           message, cancel_notice_at::kSize,
@@ -268,7 +267,5 @@ namespace detail {
   return out;
 }
 
-}  // namespace wire::ouch
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::ouch
 #endif  // DFR_WIRE_OUCH_OUTBOUND_EVENTS_HPP

@@ -26,8 +26,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::ouch {
+namespace dfr::inline v1::wire::ouch {
 
 // Ten-thousandths of a dollar per unit, so the scale is 10^4 and a whole dollar is 10,000.
 inline constexpr std::uint32_t kPriceScale = 10'000;
@@ -39,7 +38,7 @@ inline constexpr std::uint32_t kMaxLimitRaw = 1'999'999'900;
 inline constexpr std::uint32_t kMarketThresholdRaw = 2'000'000'000;
 
 // $214,748.3647: what the specification names as *the* market price, and what we write.
-inline constexpr std::uint32_t kMarketRaw = 0x7FFF'FFFFu;
+inline constexpr std::uint32_t kMarketRaw = 0x7FFF'FFFFU;
 
 class price {
  public:
@@ -107,14 +106,12 @@ class price {
   std::uint32_t raw_{0};
 };
 
-static_assert(kMaxLimitRaw == 0x7735'939Cu,
+static_assert(kMaxLimitRaw == 0x7735'939CU,
               "the specification states the maximum limit price as 7735939C hex");
 static_assert(price::market().is_market());
 static_assert(price::from_raw(kMarketThresholdRaw).is_market(),
               "$200,000.00 is market, and comparing against the sentinel alone would miss it");
 static_assert(!price::from_raw(kMaxLimitRaw).is_market());
 
-}  // namespace wire::ouch
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::ouch
 #endif  // DFR_WIRE_OUCH_PRICE_HPP

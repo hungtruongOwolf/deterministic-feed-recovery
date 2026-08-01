@@ -53,6 +53,8 @@ std::vector<std::string> replayed(const small_buffer& buffer) {
 TEST_CASE("a fresh buffer holds nothing", "[recovery][replay_buffer]") {
   const small_buffer buffer;
   CHECK(buffer.empty());
+  // NOLINTNEXTLINE(readability-container-size-empty): see schedule_test.cpp's version of this comment: a
+  // hand-rolled container's size() and empty() are worth pinning as agreeing, not folded into one check.
   CHECK(buffer.size() == 0);
   CHECK(buffer.bytes_used() == 0);
   CHECK(buffer.buffered().empty());

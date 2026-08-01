@@ -14,15 +14,12 @@
 #include <vector>
 
 namespace chaos = dfr::chaos;
-namespace iex = dfr::wire::iextp;
 namespace rec = dfr::recovery;
 namespace ven = dfr::venue;
 
 using dfr_test::venue_rig::at_us;
-using dfr_test::venue_rig::kSession;
 using dfr_test::venue_rig::offer;
 using dfr_test::venue_rig::publish;
-using dfr_test::venue_rig::published;
 using dfr_test::venue_rig::rig_client;
 using dfr_test::venue_rig::rig_client_options;
 using dfr_test::venue_rig::rig_ledger;

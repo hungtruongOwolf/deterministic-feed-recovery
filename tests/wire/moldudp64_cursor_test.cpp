@@ -11,9 +11,23 @@
 #include <vector>
 
 namespace mold = dfr::wire::moldudp64;
-using dfr_test::mold::as_text;
 using dfr_test::mold::raw_packet;
-using dfr_test::mold::three_messages;
+
+// ---------------------------------------------------------------------------
+// The default-constructed cursor
+// ---------------------------------------------------------------------------
+
+TEST_CASE("a default-constructed cursor is already exhausted",
+          "[wire][moldudp64][regression]") {
+  // Found by clang-tidy (cppcoreguidelines-pro-type-member-init), not by reading: the defaulted constructor's
+  // own comment promises "done() is true, remaining() is zero", and next_sequence_/remaining_ had no in-class
+  // initializer, so a default-constructed cursor read indeterminate values for both. wire::iextp::cursor
+  // carries the same two fields with `{0}` already; this one had drifted from that pattern, silently, since
+  // nothing ever default-constructed one outside of result<message_cursor>'s error path.
+  mold::message_cursor c;
+  CHECK(c.done());
+  CHECK(c.remaining() == 0);
+}
 
 // ---------------------------------------------------------------------------
 // The helix defect, on the real protocol

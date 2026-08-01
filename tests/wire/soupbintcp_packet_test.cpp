@@ -18,7 +18,7 @@ TEST_CASE("a heartbeat is a length of one and no payload",
   soup::packet packet;
   REQUIRE(soup::decode(stream.view()).get(packet) == dfr::error::ok);
   CHECK(packet.type == soup::packet_type::server_heartbeat);
-  CHECK(packet.payload.size() == 0);
+  CHECK(packet.payload.empty());
   CHECK(packet.frame_size == 3);  // two length bytes plus the type
   CHECK_FALSE(packet.advances_sequence());
 }

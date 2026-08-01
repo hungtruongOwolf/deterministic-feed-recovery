@@ -197,17 +197,17 @@ TEST_CASE("draws() can exceed the number of calls", "[core][rng]") {
 }
 
 TEST_CASE("the generator is usable at compile time", "[core][rng]") {
-  constexpr std::uint64_t first = [] {
+  constexpr std::uint64_t kFirst = [] {
     dfr::prng rng{42};
     return rng.next();
   }();
-  STATIC_REQUIRE(first == 0xD0764D4F4476689FULL);
+  STATIC_REQUIRE(kFirst == 0xD0764D4F4476689FULL);
 
-  constexpr std::uint64_t bounded = [] {
+  constexpr std::uint64_t kBounded = [] {
     dfr::prng rng{42};
     return rng.below(100);
   }();
-  STATIC_REQUIRE(bounded < 100);
+  STATIC_REQUIRE(kBounded < 100);
 }
 
 TEST_CASE("the state is small enough to checkpoint freely", "[core][rng]") {

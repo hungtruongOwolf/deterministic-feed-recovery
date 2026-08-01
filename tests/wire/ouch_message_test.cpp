@@ -12,6 +12,9 @@ namespace ouch = dfr::wire::ouch;
 
 namespace {
 
+// Shared scratch space for out()/written() below, mutable by construction: every test refills it before use.
+// Single-threaded, like the rest of this test binary, so a plain global is honest here.
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
 std::array<std::byte, 128> buffer{};
 
 dfr::mutable_packet_view out() {

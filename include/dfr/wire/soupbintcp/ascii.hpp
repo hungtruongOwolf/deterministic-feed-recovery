@@ -32,8 +32,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::soupbintcp {
+namespace dfr::inline v1::wire::soupbintcp {
 
 inline constexpr std::uint8_t kPad = ' ';
 
@@ -114,7 +113,7 @@ inline constexpr std::uint8_t kPad = ' ';
 // Writes a number right-justified and pads the left with spaces.
 [[nodiscard]] constexpr result<void> put_number_right_justified(
     mutable_packet_view field, std::uint64_t value) noexcept {
-  if (field.size() == 0) DFR_UNLIKELY {
+  if (field.empty()) DFR_UNLIKELY {
     return error::invalid_argument;
   }
   std::size_t at = field.size();
@@ -136,7 +135,5 @@ inline constexpr std::uint8_t kPad = ' ';
   return ok();
 }
 
-}  // namespace wire::soupbintcp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::soupbintcp
 #endif  // DFR_WIRE_SOUPBINTCP_ASCII_HPP

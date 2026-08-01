@@ -101,9 +101,9 @@ TEST_CASE("a Sequenced Data Packet arriving from a client ends the session") {
   // Only a server may send this. It decodes perfectly and means nothing, which is exactly why a session
   // that shrugged at it would look healthy while being wired backwards.
   stream.put([](dfr::mutable_packet_view view) {
-    static constexpr std::byte payload[1]{std::byte{0}};
+    static constexpr std::byte kPayload[1]{std::byte{0}};
     return soup::encode_packet(view, soup::packet_type::sequenced_data,
-                               dfr::packet_view{payload, 1});
+                               dfr::packet_view{kPayload, 1});
   });
   std::size_t taken = 0;
   REQUIRE(host.offer(stream.view(), at_ms(1), out).get(taken) == dfr::error::ok);

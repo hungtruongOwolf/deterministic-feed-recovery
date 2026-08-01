@@ -36,6 +36,10 @@ class scoped_throwing_handler {
 
   scoped_throwing_handler(const scoped_throwing_handler&) = delete;
   scoped_throwing_handler& operator=(const scoped_throwing_handler&) = delete;
+  // Moving would leave two guards racing to restore the same previous handler on destruction; deleted for the
+  // same reason copying is, not left implicitly deleted by omission.
+  scoped_throwing_handler(scoped_throwing_handler&&) = delete;
+  scoped_throwing_handler& operator=(scoped_throwing_handler&&) = delete;
 
  private:
   dfr::detail::assert_handler_fn previous_;
@@ -183,8 +187,7 @@ TEST_CASE("assertion levels are ordered and consistent", "[core][assert]") {
 
   // Paranoid implies fast. A level that enabled the expensive checks but not
   // the cheap ones would be incoherent.
-  STATIC_REQUIRE(!(dfr::kParanoidAssertionsEnabled &&
-                   !dfr::kAssertionsEnabled));
+  STATIC_REQUIRE(!dfr::kParanoidAssertionsEnabled || dfr::kAssertionsEnabled);
 }
 
 TEST_CASE("DFR_ASSERT_PARANOID fires only at the paranoid level",
@@ -229,6 +232,8 @@ TEST_CASE("a disabled assertion does not evaluate its condition",
 }
 
 TEST_CASE("DFR_MAYBE never evaluates its condition", "[core][assert]") {
+  // NOLINTNEXTLINE(misc-const-correctness): must stay non-const to bind to note_evaluation's bool&, even
+  // though DFR_MAYBE's sizeof(...) context means that call is never actually made.
   bool evaluated = false;
 
   // DFR_MAYBE documents that either outcome is permitted here. It must be free
@@ -240,7 +245,7 @@ TEST_CASE("DFR_MAYBE never evaluates its condition", "[core][assert]") {
 
 TEST_CASE("the invariant guard checks on entry and on exit",
           "[core][assert]") {
-  counted_invariants subject;
+  const counted_invariants subject;
 
   {
     DFR_INVARIANT_GUARD(subject);
@@ -262,8 +267,8 @@ TEST_CASE("two invariant guards can share a scope", "[core][assert]") {
   // The guard variable is named from __LINE__, so two guards on *different*
   // lines must not collide. This is the bug the two-level macro indirection
   // exists to prevent.
-  counted_invariants first;
-  counted_invariants second;
+  const counted_invariants first;
+  const counted_invariants second;
 
   {
     DFR_INVARIANT_GUARD(first);

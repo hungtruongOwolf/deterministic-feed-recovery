@@ -25,6 +25,8 @@ TEST_CASE("a default view is empty and null", "[core][packet_view]") {
   const dfr::packet_view v;
 
   CHECK(v.empty());
+  // NOLINTNEXTLINE(readability-container-size-empty): see tests/chaos/schedule_test.cpp's version of this
+  // comment: size() and empty() are pinned as separately agreeing, not folded into one check.
   CHECK(v.size() == 0);
   CHECK(v.data() == nullptr);
   // A zero-length view must accept a zero-length query rather than rejecting
@@ -55,15 +57,15 @@ TEST_CASE("a view constructs from every byte spelling", "[core][packet_view]") {
 TEST_CASE("contains() cannot be defeated by integer overflow",
           "[core][packet_view]") {
   const dfr::packet_view v = ramp();
-  constexpr std::size_t max = std::numeric_limits<std::size_t>::max();
+  constexpr std::size_t kMax = std::numeric_limits<std::size_t>::max();
 
   // The naive check `offset + length <= size()` wraps for these and returns
   // true, which is exactly how a bounds check gets bypassed by a hostile
   // length field. The implementation avoids the addition entirely.
-  CHECK_FALSE(v.contains(max, 10));
-  CHECK_FALSE(v.contains(10, max));
-  CHECK_FALSE(v.contains(max, max));
-  CHECK_FALSE(v.contains(max / 2, max / 2));
+  CHECK_FALSE(v.contains(kMax, 10));
+  CHECK_FALSE(v.contains(10, kMax));
+  CHECK_FALSE(v.contains(kMax, kMax));
+  CHECK_FALSE(v.contains(kMax / 2, kMax / 2));
 
   // And it still accepts the exact-fit and empty-at-the-end cases.
   CHECK(v.contains(0, 16));
@@ -201,6 +203,8 @@ TEST_CASE("views compare by content, not by address",
               dfr::packet_view{a.data(), 3});
 
   // Two empty views are equal regardless of where they point.
+  // NOLINTNEXTLINE(readability-container-size-empty): this pins operator== itself, not emptiness; rewriting
+  // it as .empty() would stop testing that two independently-constructed empty views compare equal.
   CHECK(dfr::packet_view{} == dfr::packet_view{a.data(), 0});
 }
 
@@ -209,14 +213,14 @@ TEST_CASE("the accessors are usable at compile time",
   // constexpr matters beyond elegance: it lets a wire-format test build its
   // expected values with the same code the decoder uses, without a runtime
   // fixture.
-  static constexpr std::array<std::byte, 4> bytes{
+  static constexpr std::array<std::byte, 4> kBytes{
       std::byte{0xDE}, std::byte{0xAD}, std::byte{0xBE}, std::byte{0xEF}};
-  static constexpr dfr::packet_view v{bytes.data(), bytes.size()};
+  static constexpr dfr::packet_view kView{kBytes.data(), kBytes.size()};
 
-  STATIC_REQUIRE(v.size() == 4);
-  STATIC_REQUIRE(v.contains(0, 4));
-  STATIC_REQUIRE(v.be32_at(0) == 0xDEAD'BEEF);
-  STATIC_REQUIRE(v.le16_at(0) == 0xADDE);
+  STATIC_REQUIRE(kView.size() == 4);
+  STATIC_REQUIRE(kView.contains(0, 4));
+  STATIC_REQUIRE(kView.be32_at(0) == 0xDEAD'BEEF);
+  STATIC_REQUIRE(kView.le16_at(0) == 0xADDE);
 }
 
 

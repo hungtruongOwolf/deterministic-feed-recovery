@@ -36,7 +36,7 @@ deep::price_level_update update(bool buy, deep::price level, std::uint32_t size)
 }  // namespace
 
 TEST_CASE("an empty book quotes nothing rather than zero") {
-  test_book b;
+  const test_book b;
   CHECK(b.bids().empty());
   CHECK(b.asks().empty());
   CHECK(b.bids().best().size == 0);

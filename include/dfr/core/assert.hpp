@@ -116,6 +116,8 @@ using assert_handler_fn = void (*)(const assert_context&);
 // forbids. The rule: it may be written only during process start-up, before
 // any simulation runs. It is never written from a simulation, so it cannot
 // affect a seeded replay.
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables): the paragraph above is the rationale
+// this check asks for: mutable, deliberately, and confined to process start-up.
 inline assert_handler_fn g_assert_handler = &default_assert_handler;
 
 // Out of line and cold: the caller keeps a minimal prologue and the hot path

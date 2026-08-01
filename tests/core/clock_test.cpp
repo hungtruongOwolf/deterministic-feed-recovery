@@ -31,12 +31,16 @@ class timeout_watcher {
 // Negative fixtures for the concept. At namespace scope because a local class
 // may not have static data members, which is_steady is.
 struct not_a_clock {
-  int now() const { return 0; }
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static): deliberately shaped like real_clock::now()
+  // above, which is a genuine instance method for the same reason documented there.
+  [[nodiscard]] int now() const { return 0; }
 };
 
 struct no_now {
   using duration = dfr::duration;
   using time_point = std::chrono::time_point<no_now, duration>;
+  // NOLINTNEXTLINE(readability-identifier-naming): the Clock named requirement's own spelling; see
+  // dfr::manual_clock::is_steady in clock.hpp.
   static constexpr bool is_steady = true;
 };
 
@@ -207,7 +211,7 @@ TEST_CASE("never() does not expire", "[core][clock]") {
 }
 
 TEST_CASE("deadlines from one clock are ordered", "[core][clock]") {
-  dfr::manual_clock clock;
+  const dfr::manual_clock clock;
   const auto sooner = dfr::deadline<dfr::manual_clock>::after(clock, 10ns);
   const auto later = dfr::deadline<dfr::manual_clock>::after(clock, 20ns);
 
@@ -244,12 +248,12 @@ TEST_CASE("a component written against the concept works on both clocks",
 TEST_CASE("the manual clock is usable at compile time", "[core][clock]") {
   // A constexpr clock means a decoder's timing logic can be exercised in a
   // static_assert, with no fixture at all.
-  constexpr auto advanced = [] {
+  constexpr auto kAdvanced = [] {
     dfr::manual_clock clock;
     clock.advance(7ns);
     clock.advance_to(dfr::manual_clock::time_point{42ns});
     return clock.now().time_since_epoch();
   }();
 
-  STATIC_REQUIRE(advanced == dfr::duration{42});
+  STATIC_REQUIRE(kAdvanced == dfr::duration{42});
 }

@@ -45,8 +45,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::deep {
+namespace dfr::inline v1::wire::deep {
 
 // The eleven types observed across a whole trading day's capture, with the counts that were seen. The counts
 // are here as provenance rather than as anything the code uses: they say which paths real data exercises, and
@@ -106,14 +105,14 @@ enum class message_type : std::uint8_t {
 [[nodiscard]] constexpr std::size_t expected_size(message_type value) noexcept {
   switch (value) {
     case message_type::system_event:        return 10;
-    case message_type::operational_halt:    return 18;
+    case message_type::operational_halt:
     case message_type::security_event:      return 18;
     case message_type::short_sale_test:     return 19;
     case message_type::trading_status:      return 22;
-    case message_type::price_level_buy:     return 30;
+    case message_type::price_level_buy:
     case message_type::price_level_sell:    return 30;
     case message_type::security_directory:  return 31;
-    case message_type::trade_report:        return 38;
+    case message_type::trade_report:
     case message_type::trade_break:         return 38;
     case message_type::auction_information: return 80;
   }
@@ -157,7 +156,5 @@ inline constexpr std::size_t kDetailOffset = 18;
 // so an unsigned read would turn an absence into an enormous number.
 inline constexpr std::int64_t kPriceScale = 10'000;
 
-}  // namespace wire::deep
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::deep
 #endif  // DFR_WIRE_DEEP_CONSTANTS_HPP

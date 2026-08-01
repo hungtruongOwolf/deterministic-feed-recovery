@@ -36,9 +36,9 @@ TEST_CASE("market orders live at the top of the price field",
   // An implementation comparing only against 0x7FFFFFFF would send a $250,000 limit order and have it
   // executed at any price. That is a money bug hiding inside an equality test.
   CHECK(ouch::price::market().is_market());
-  CHECK(ouch::price::from_raw(0x7FFF'FFFFu).is_market());
+  CHECK(ouch::price::from_raw(0x7FFF'FFFFU).is_market());
   CHECK(ouch::price::from_raw(ouch::kMarketThresholdRaw).is_market());  // $200,000.00
-  CHECK(ouch::price::from_raw(2'500'000'000u).is_market());             // $250,000.00
+  CHECK(ouch::price::from_raw(2'500'000'000U).is_market());             // $250,000.00
   CHECK(ouch::price::from_raw(UINT32_MAX).is_market());
 
   // And the highest value that is still a limit is not.
@@ -50,8 +50,8 @@ TEST_CASE("the specification's own hex value pins the limit maximum",
           "[wire][ouch]") {
   // §1.2 states it as 7735939C hex, so the decimal and the hex are checked against each other rather
   // than one being trusted.
-  STATIC_REQUIRE(ouch::kMaxLimitRaw == 0x7735'939Cu);
-  CHECK(ouch::kMaxLimitRaw == 1'999'999'900u);
+  STATIC_REQUIRE(ouch::kMaxLimitRaw == 0x7735'939CU);
+  CHECK(ouch::kMaxLimitRaw == 1'999'999'900U);
 }
 
 TEST_CASE("a price above the limit maximum cannot be built by accident",

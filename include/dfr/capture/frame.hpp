@@ -10,13 +10,17 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace capture {
+namespace dfr::inline v1::capture {
 
 // A link type, as capture files spell it. Only the one we need is named;
 // anything else is reported rather than guessed at.
 //
 // The numbers are libpcap's LINKTYPE_* values, which pcapng reuses.
+//
+// NOLINTNEXTLINE(performance-enum-size): only one value is named today, but the underlying type matches
+// capture::file_info::link (pcap.hpp), the uint16_t wire field this is compared against. Shrinking it to fit
+// the current enumerator set would need a cast at every comparison and would break the moment a second link
+// type not in the first 256 is added.
 enum class link_type : std::uint16_t {
   ethernet = 1,
 };
@@ -49,7 +53,5 @@ struct frame {
   [[nodiscard]] friend bool operator==(const frame&, const frame&) = default;
 };
 
-}  // namespace capture
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::capture
 #endif  // DFR_CAPTURE_FRAME_HPP

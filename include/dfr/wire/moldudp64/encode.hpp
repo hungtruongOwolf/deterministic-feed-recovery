@@ -18,8 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::moldudp64 {
+namespace dfr::inline v1::wire::moldudp64 {
 
 // ---------------------------------------------------------------------------
 // Encoding
@@ -125,7 +124,11 @@ class packet_builder {
 
   mutable_packet_view buffer_;
   session_id session_;
-  std::uint64_t first_sequence_;
+  // The same defect as message_cursor's, in the encoder rather than the decoder: finish() reads first_sequence_
+  // into a local `header` unconditionally, before encode_header() gets a chance to refuse an empty buffer, so a
+  // default-constructed builder read an indeterminate value even though the capacity_exceeded it went on to
+  // return was correct. count_ already had `{0}`; this field had not.
+  std::uint64_t first_sequence_{0};
   std::size_t used_{kHeaderSize};
   std::uint16_t count_{0};
 };
@@ -179,7 +182,5 @@ class packet_builder {
                               .message_count = clamp_request_count(count)});
 }
 
-}  // namespace wire::moldudp64
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::moldudp64
 #endif  // DFR_WIRE_MOLDUDP64_ENCODE_HPP

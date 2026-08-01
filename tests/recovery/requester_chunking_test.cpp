@@ -257,7 +257,7 @@ TEST_CASE("a hole too wide to describe in chunks is reported",
   // recovering, it is rebuilding, and it should be told so rather than quietly asking
   // for a prefix and forgetting the rest.
   test_requester requester{readable_policy()};
-  const auto refused = requester.on_gap(range(0, 60'000 * 20), at_ms(0));
+  const auto refused = requester.on_gap(range(0, 60'000ULL * 20), at_ms(0));
   CHECK_FALSE(refused.has_value());
   CHECK(refused.error_code() == dfr::error::capacity_exceeded);
 }

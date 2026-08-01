@@ -11,8 +11,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace detail {
+namespace dfr::inline v1::detail {
 
 // The full 128-bit product of two 64-bit values.
 struct wide_product {
@@ -61,8 +60,5 @@ struct wide_product {
 #endif
 }
 
-}  // namespace detail
-
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::detail
 #endif  // DFR_CORE_DETAIL_WIDE_MULTIPLY_HPP

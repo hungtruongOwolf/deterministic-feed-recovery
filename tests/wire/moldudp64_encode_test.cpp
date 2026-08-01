@@ -12,11 +12,21 @@
 
 namespace mold = dfr::wire::moldudp64;
 using dfr_test::mold::as_text;
-using dfr_test::mold::raw_packet;
-using dfr_test::mold::three_messages;
+
 // ---------------------------------------------------------------------------
 // Encoding
 // ---------------------------------------------------------------------------
+
+TEST_CASE("a default-constructed builder refuses to finish, over an empty buffer",
+          "[wire][moldudp64][regression]") {
+  // Found alongside message_cursor's version of the same defect (cppcoreguidelines-pro-type-member-init):
+  // finish() reads first_sequence_ into a local `header` unconditionally, before encode_header() gets a
+  // chance to refuse the empty buffer a default-constructed builder holds, so the read was of an
+  // indeterminate value even though the capacity_exceeded this asserts was already the right answer. The
+  // fix removes the indeterminate read; this pins the contract the comment above the constructor claims.
+  mold::packet_builder builder;
+  CHECK_FALSE(builder.finish().has_value());
+}
 
 TEST_CASE("a header round-trips through encode and decode",
           "[wire][moldudp64]") {
@@ -101,7 +111,7 @@ TEST_CASE("the builder writes the count on finish", "[wire][moldudp64]") {
 
 TEST_CASE("the builder refuses a message it cannot fit",
           "[wire][moldudp64]") {
-  mold::session_id session;
+  const mold::session_id session;
   std::array<std::uint8_t, mold::kHeaderSize + 4> buffer{};
   mold::packet_builder builder{
       *mold::packet_builder::into(
@@ -122,7 +132,7 @@ TEST_CASE("the builder refuses a message it cannot fit",
 
 TEST_CASE("a heartbeat and an end-of-session encode to header-only packets",
           "[wire][moldudp64]") {
-  mold::session_id session;
+  const mold::session_id session;
   std::array<std::uint8_t, mold::kHeaderSize> buffer{};
   const dfr::mutable_packet_view out{buffer.data(), buffer.size()};
 
@@ -179,7 +189,7 @@ TEST_CASE("a request encodes as a header with the wanted range",
 }
 
 TEST_CASE("a request is clamped when encoded", "[wire][moldudp64]") {
-  mold::session_id session;
+  const mold::session_id session;
   std::array<std::uint8_t, mold::kHeaderSize> buffer{};
   REQUIRE(mold::encode_request(
               dfr::mutable_packet_view{buffer.data(), buffer.size()}, session, 1,
@@ -195,7 +205,7 @@ TEST_CASE("a request is clamped when encoded", "[wire][moldudp64]") {
 TEST_CASE("a zero-count request is rejected", "[wire][moldudp64]") {
   // Asking for nothing is always a caller bug rather than a protocol state, and
   // on the wire it would be indistinguishable from a heartbeat.
-  mold::session_id session;
+  const mold::session_id session;
   std::array<std::uint8_t, mold::kHeaderSize> buffer{};
   const auto outcome = mold::encode_request(
       dfr::mutable_packet_view{buffer.data(), buffer.size()}, session, 1, 0);
@@ -211,19 +221,19 @@ TEST_CASE("a zero-count request is rejected", "[wire][moldudp64]") {
 TEST_CASE("a header decodes at compile time", "[wire][moldudp64]") {
   // Which means a wire-format expectation can be pinned in a static_assert,
   // with no fixture and no runtime at all.
-  static constexpr std::array<std::byte, mold::kHeaderSize> bytes{
+  static constexpr std::array<std::byte, mold::kHeaderSize> kBytes{
       std::byte{'S'},  std::byte{' '},  std::byte{' '},  std::byte{' '},
       std::byte{' '},  std::byte{' '},  std::byte{' '},  std::byte{' '},
       std::byte{' '},  std::byte{' '},  std::byte{0x00}, std::byte{0x00},
       std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
       std::byte{0x00}, std::byte{0x64}, std::byte{0x00}, std::byte{0x03}};
 
-  static constexpr dfr::packet_view packet{bytes.data(), bytes.size()};
-  constexpr auto decoded = mold::decode_header(packet);
+  static constexpr dfr::packet_view kPacket{kBytes.data(), kBytes.size()};
+  constexpr auto kDecoded = mold::decode_header(kPacket);
 
-  STATIC_REQUIRE(decoded.has_value());
-  STATIC_REQUIRE(decoded.value_unsafe().sequence == 100);
-  STATIC_REQUIRE(decoded.value_unsafe().message_count == 3);
-  STATIC_REQUIRE(decoded.value_unsafe().next_sequence() == 103);
-  STATIC_REQUIRE(decoded.value_unsafe().kind() == mold::packet_kind::data);
+  STATIC_REQUIRE(kDecoded.has_value());
+  STATIC_REQUIRE(kDecoded.value_unsafe().sequence == 100);
+  STATIC_REQUIRE(kDecoded.value_unsafe().message_count == 3);
+  STATIC_REQUIRE(kDecoded.value_unsafe().next_sequence() == 103);
+  STATIC_REQUIRE(kDecoded.value_unsafe().kind() == mold::packet_kind::data);
 }

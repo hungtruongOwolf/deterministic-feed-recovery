@@ -122,6 +122,11 @@ rec::client_options client_options() {
 //
 // Defined at file scope because a replacement operator new must be; the counter is only read after the
 // measured section, and this program is single-threaded, so a plain integer is honest here.
+//
+// NOLINTBEGIN(cppcoreguidelines-no-malloc,readability-named-parameter): malloc/free are what these operators
+// exist to call: they are the memory source a container or smart pointer would otherwise use, so "use a
+// container instead" has no referent here. The unnamed std::size_t in the sized-delete overloads matches the
+// unsized overloads' behaviour and is never read, same as the standard library's own default definitions.
 void* operator new(std::size_t size) {
   if (dfr_bench::g_counting) {
     ++dfr_bench::g_allocations;
@@ -138,7 +143,10 @@ void operator delete(void* memory, std::size_t) noexcept { std::free(memory); }
 void* operator new[](std::size_t size) { return operator new(size); }
 void operator delete[](void* memory) noexcept { std::free(memory); }
 void operator delete[](void* memory, std::size_t) noexcept { std::free(memory); }
+// NOLINTEND(cppcoreguidelines-no-malloc,readability-named-parameter)
 
+// NOLINTNEXTLINE(bugprone-exception-escape): main() is exactly where an uncaught exception belongs: a
+// benchmark that hit std::bad_alloc should crash loudly with the standard terminate message, not swallow it.
 int main(int argc, char** argv) {
   const char* json_path = nullptr;
   std::size_t samples = 200;
@@ -328,8 +336,7 @@ int main(int argc, char** argv) {
     bench_client client{client_options()};
     clock_type clock;
     std::uint64_t delivered = 0;
-    for (std::size_t i = 0; i < stream.packets.size(); ++i) {
-      const auto& bytes = stream.packets[i];
+    for (const auto& bytes : stream.packets) {
       iex::header decoded{};
       if (iex::decode_header(dfr::packet_view{bytes.data(), bytes.size()}).get(decoded) !=
           dfr::error::ok) {

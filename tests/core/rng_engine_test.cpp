@@ -119,7 +119,7 @@ TEST_CASE("the multiply matches externally computed products",
   struct sample {
     std::uint64_t a, b, high, low;
   };
-  constexpr std::array<sample, 4> samples = {{
+  constexpr std::array<sample, 4> kSamples = {{
       {0xFFFF'FFFF'FFFF'FFFFULL, 0xFFFF'FFFF'FFFF'FFFFULL,
        0xFFFF'FFFF'FFFF'FFFEULL, 0x0000'0000'0000'0001ULL},
       {0x0123'4567'89AB'CDEFULL, 0xFEDC'BA98'7654'3210ULL,
@@ -128,7 +128,7 @@ TEST_CASE("the multiply matches externally computed products",
       {0x8000'0000'0000'0000ULL, 2ULL, 1ULL, 0ULL},
   }};
 
-  for (const auto& s : samples) {
+  for (const auto& s : kSamples) {
     CHECK(dfr::detail::wide_multiply(s.a, s.b) ==
           dfr::detail::wide_product{s.high, s.low});
     CHECK(dfr::detail::wide_multiply_portable(s.a, s.b) ==
@@ -142,7 +142,7 @@ TEST_CASE("the multiply matches externally computed products",
 
 TEST_CASE("below() stays inside its bound", "[core][rng]") {
   dfr::prng rng{7};
-  for (std::uint64_t bound : {2ULL, 3ULL, 7ULL, 1000ULL, (1ULL << 40)}) {
+  for (const std::uint64_t bound : {2ULL, 3ULL, 7ULL, 1000ULL, (1ULL << 40)}) {
     for (int i = 0; i < 500; ++i) {
       CHECK(rng.below(bound) < bound);
     }

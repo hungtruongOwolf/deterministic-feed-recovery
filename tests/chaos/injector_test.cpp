@@ -59,6 +59,7 @@ TEST_CASE("a drop removes exactly its burst", "[chaos][injector]") {
 
   // Packets 5, 6 and 7 are gone and nothing else moved.
   std::vector<std::uint64_t> indices;
+  indices.reserve(got.size());
   for (const auto& e : got) {
     indices.push_back(e.source_index);
   }
@@ -97,6 +98,7 @@ TEST_CASE("a delay moves a packet later without losing it",
   CHECK(injector.stats().delayed == 1);
 
   std::vector<std::uint64_t> indices;
+  indices.reserve(got.size());
   for (const auto& e : got) {
     indices.push_back(e.source_index);
   }

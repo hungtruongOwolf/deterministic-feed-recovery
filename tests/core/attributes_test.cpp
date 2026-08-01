@@ -13,7 +13,7 @@ namespace {
 // sharing. A test cannot detect false sharing, but it can pin the property the
 // constant is chosen for: that two members padded by it land on distinct lines
 // under the platform's real line size.
-struct PaddedPair {
+struct padded_pair {
   alignas(dfr::kCacheLineSize) std::atomic<std::uint64_t> first{0};
   alignas(dfr::kCacheLineSize) std::atomic<std::uint64_t> second{0};
 };
@@ -38,7 +38,7 @@ TEST_CASE("cache line size is a usable power of two", "[core][attributes]") {
 }
 
 TEST_CASE("cache-line padding separates two atomics", "[core][attributes]") {
-  PaddedPair pair;
+  padded_pair pair;
 
   const auto first = reinterpret_cast<std::uintptr_t>(&pair.first);
   const auto second = reinterpret_cast<std::uintptr_t>(&pair.second);

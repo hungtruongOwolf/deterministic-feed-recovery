@@ -15,7 +15,6 @@
 namespace iex = dfr::wire::iextp;
 using dfr_test::iex::as_text;
 using dfr_test::iex::prototype;
-using dfr_test::iex::raw_packet;
 
 // ---------------------------------------------------------------------------
 // Encoding
@@ -160,7 +159,7 @@ TEST_CASE("the builder refuses a payload it cannot describe",
 }
 
 TEST_CASE("a header decodes at compile time", "[wire][iextp]") {
-  static constexpr std::array<std::byte, iex::kHeaderSize> bytes{
+  static constexpr std::array<std::byte, iex::kHeaderSize> kBytes{
       std::byte{0x01}, std::byte{0x00},                    // version, reserved
       std::byte{0x04}, std::byte{0x80},                    // protocol LE
       std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
@@ -174,13 +173,13 @@ TEST_CASE("a header decodes at compile time", "[wire][iextp]") {
       std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
       std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}};
 
-  static constexpr dfr::packet_view packet{bytes.data(), bytes.size()};
-  constexpr auto decoded = iex::decode_header(packet);
+  static constexpr dfr::packet_view kPacket{kBytes.data(), kBytes.size()};
+  constexpr auto kDecoded = iex::decode_header(kPacket);
 
-  STATIC_REQUIRE(decoded.has_value());
-  STATIC_REQUIRE(decoded.value_unsafe().protocol == 0x8004);
-  STATIC_REQUIRE(decoded.value_unsafe().channel == 1);
-  STATIC_REQUIRE(decoded.value_unsafe().session == 2);
-  STATIC_REQUIRE(decoded.value_unsafe().first_sequence == 42);
-  STATIC_REQUIRE(decoded.value_unsafe().kind() == iex::packet_kind::heartbeat);
+  STATIC_REQUIRE(kDecoded.has_value());
+  STATIC_REQUIRE(kDecoded.value_unsafe().protocol == 0x8004);
+  STATIC_REQUIRE(kDecoded.value_unsafe().channel == 1);
+  STATIC_REQUIRE(kDecoded.value_unsafe().session == 2);
+  STATIC_REQUIRE(kDecoded.value_unsafe().first_sequence == 42);
+  STATIC_REQUIRE(kDecoded.value_unsafe().kind() == iex::packet_kind::heartbeat);
 }

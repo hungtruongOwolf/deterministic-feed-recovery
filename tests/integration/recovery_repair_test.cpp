@@ -13,7 +13,6 @@
 #include <cstdint>
 
 namespace chaos = dfr::chaos;
-namespace rec = dfr::recovery;
 
 using dfr_test::integration::at_us;
 using dfr_test::integration::clean_stream;
@@ -25,7 +24,6 @@ using dfr_test::integration::offer_if_intact;
 using dfr_test::integration::oracle_client;
 using dfr_test::integration::oracle_options;
 using dfr_test::integration::run;
-using dfr_test::integration::serve_retransmit;
 
 // ---------------------------------------------------------------------------
 // Repair: the loop closes

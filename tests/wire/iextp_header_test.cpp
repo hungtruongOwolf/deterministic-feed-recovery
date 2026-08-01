@@ -13,8 +13,6 @@
 #include <vector>
 
 namespace iex = dfr::wire::iextp;
-using dfr_test::iex::as_text;
-using dfr_test::iex::prototype;
 using dfr_test::iex::raw_packet;
 
 // ---------------------------------------------------------------------------
