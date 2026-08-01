@@ -94,6 +94,8 @@ was right. **While a hole is open the client keeps delivering later messages**: 
 a gap turns one loss into an outage, so a repair arrives *after* higher sequence numbers. An aggregated book is
 last-write-wins, so applying the older update second leaves the wrong size at that price, permanently.
 
+<img src="docs/assets/diagrams/recovery-sequence.svg" alt="A sequence diagram: sequence 1-3 arrive and are delivered; sequence 4 is dropped by dfr::chaos; sequence 5 arrives, gap_tracker notices 4 is missing, and 5 is delivered anyway rather than stalling; the requester asks the venue's retransmit_facility for sequence 4 and receives it; the arbiter applies it between 3 and 5, in sequence order, not appended after 5 in arrival order.">
+
 So a correct consumer of a gap-filling feed must apply in **sequence order, not arrival order**. The client makes
 that possible by numbering everything it hands over, and nothing warns you. `book_oracle_test.cpp` keeps a test
 showing the naive version producing a wrong book, because a hazard nobody demonstrates is a hazard everybody
@@ -149,6 +151,19 @@ fact and nothing else, argued in [docs/DESIGN.md §7b](docs/DESIGN.md):
 - **`replay_buffer`** stands by for the path where retransmission itself fails: a snapshot rebuild,
   framed as its own numbered stream so a wrong service is caught before any state is trusted.
 
+### Three defences, escalating
+
+<img src="docs/assets/diagrams/defense-layers.svg" alt="Three escalating defences: redundant A/B lines merged by the arbiter, costing bandwidth but no time; a retransmission request to the venue's retransmit_facility, costing a round trip and expiring; and a full snapshot rebuild from the venue's snapshot_facility, costing seconds and leaving the client unable to trust its own book while it runs. Each is reached only when the layer above could not help.">
+
+`requester` and `replay_buffer` are not two independent features; they are two rungs of one ladder, each
+reached only because the one above it could not help. Two redundant lines cost bandwidth continuously and no
+time at all when they work. A retransmission request costs a round trip and has a deadline: the retention
+window past which the venue no longer has the message, so re-asking forever is not an option. A snapshot
+rebuild costs seconds and is the most expensive rung precisely because it is unconditional: it does not care
+what the client already had, which is what makes it correct when everything above it has failed. The last
+row is where `unfillable_messages` earns its place in the trace format: a book that cannot be completed says
+so, rather than looking finished and being permanently wrong.
+
 The blue edges are the only two ways `dfr::recovery` ever talks back to `dfr::venue`: a retransmit
 request that the venue may refuse, and a Glimpse snapshot session that starts, streams price levels,
 and ends. Nothing else about the venue is visible to the client, which is what makes the venue a
@@ -158,6 +173,16 @@ credible stand-in for a real exchange rather than a stub built to be easy to sat
 decision, and is the only component the viewer reads from. The viewer contains no domain logic (see
 [Viewer](#viewer) below) specifically so that this recording stays the single source of truth for
 what a run did.
+
+### Six protocols, three transports
+
+<img src="docs/assets/diagrams/protocol-stack.svg" alt="Message layers DEEP, an untyped payload, OUCH and Glimpse each ride on one of three transports: IEX-TP and MoldUDP64, both UDP multicast, and SoupBinTCP, a TCP session. The same fault injector template attacks both datagram transports, since moldudp64_target and iextp_target are its only two specializations.">
+
+`dfr::wire` decodes each message layer independently of the transport underneath it: `deep/` never calls
+into `iextp/`, it only receives the bytes IEX-TP already validated as a message body. That separation is
+what lets `chaos::injector<Target>` be a template with exactly two specializations, `moldudp64_target` and
+`iextp_target`, rather than one fault-injection implementation per message type: a fault op like *drop* or
+*corrupt* is written once against the transport shape and applies to every message layer riding on it.
 
 ### The one thread boundary
 
@@ -537,8 +562,9 @@ test fails 12 times out of 12. Two architectures, two classes of defect, and dro
 - `traces/`: recorded runs, committed as fixtures. `scripts/regenerate-traces.sh` then
   `git diff traces/` is a behavioural regression report.
 - `captures/README.md`: provenance of the real IEX HIST capture `tools/verify` runs against in CI.
-- `docs/assets/diagrams/*.d2`: source for the two diagrams above, in [D2](https://d2lang.com).
-  `scripts/regenerate-diagrams.sh` renders them; `git diff docs/assets/diagrams/` is the review.
+- `docs/assets/diagrams/*.py`: source for the five diagrams above, plain Python over a small
+  hand-rolled SVG helper (`_diagram.py`), not a diagramming tool. `scripts/regenerate-diagrams.sh`
+  runs them; `git diff docs/assets/diagrams/` is the review.
 
 ## Licence
 

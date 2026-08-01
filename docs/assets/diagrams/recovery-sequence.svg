@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1360 960" width="1360" height="960">
+  <defs>
+<marker id="arrow-6d675c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6d675c"/></marker>
+<marker id="arrow-3c6b4a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3c6b4a"/></marker>
+<marker id="arrow-2b59d1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2b59d1"/></marker>
+<marker id="arrow-a8452c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#a8452c"/></marker>
+<marker id="arrow-1b1a17" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1b1a17"/></marker>
+  </defs>
+  <rect x="0" y="0" width="1360" height="960" fill="#f1ece1"/>
+<text x="40.0" y="34.0" text-anchor="start" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="17" font-weight="600" fill="#1b1a17">One gap, start to finish</text>
+<text x="40.0" y="56.0" text-anchor="start" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#6d675c" font-style="italic">sequence 4 is lost; the client keeps delivering what arrives while it asks for the gap back,</text>
+<text x="40.0" y="72.0" text-anchor="start" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#6d675c" font-style="italic">and applies the repair in sequence order, not in the order it arrived.</text>
+<path d="M 140.0 160.0 L 140.0 860.0" fill="none" stroke="#cfc7b5" stroke-width="1.2" stroke-dasharray="2,4" marker-end="url(#arrow-cfc7b5)"/>
+<rect x="10.0" y="110.0" width="260.0" height="33.0" rx="3" fill="#f1ece1" stroke="#6d675c" stroke-width="1.4"/>
+<text x="140.0" y="131.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="13.5" font-weight="600" fill="#1b1a17">dfr::venue</text>
+<path d="M 420.0 160.0 L 420.0 860.0" fill="none" stroke="#cfc7b5" stroke-width="1.2" stroke-dasharray="2,4" marker-end="url(#arrow-cfc7b5)"/>
+<rect x="290.0" y="110.0" width="260.0" height="50.0" rx="3" fill="#f1ece1" stroke="#6d675c" stroke-width="1.4"/>
+<text x="420.0" y="131.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="13.5" font-weight="600" fill="#1b1a17">the wire</text>
+<text x="420.0" y="148.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">(damaged)</text>
+<path d="M 700.0 160.0 L 700.0 860.0" fill="none" stroke="#cfc7b5" stroke-width="1.2" stroke-dasharray="2,4" marker-end="url(#arrow-cfc7b5)"/>
+<rect x="570.0" y="110.0" width="260.0" height="50.0" rx="3" fill="#f1ece1" stroke="#6d675c" stroke-width="1.4"/>
+<text x="700.0" y="131.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="13.5" font-weight="600" fill="#1b1a17">dfr::recovery::client</text>
+<text x="700.0" y="148.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">(gap_tracker + requester + arbiter)</text>
+<path d="M 1080.0 160.0 L 1080.0 860.0" fill="none" stroke="#cfc7b5" stroke-width="1.2" stroke-dasharray="2,4" marker-end="url(#arrow-cfc7b5)"/>
+<rect x="950.0" y="110.0" width="260.0" height="50.0" rx="3" fill="#f1ece1" stroke="#6d675c" stroke-width="1.4"/>
+<text x="1080.0" y="131.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="13.5" font-weight="600" fill="#1b1a17">dfr::book</text>
+<text x="1080.0" y="148.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">(downstream)</text>
+<path d="M 140.0 190.0 L 420.0 190.0" fill="none" stroke="#6d675c" stroke-width="1.6" marker-end="url(#arrow-6d675c)"/>
+<text x="280.0" y="182.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#6d675c" font-style="italic">sequence 1, 2, 3</text>
+<path d="M 420.0 210.0 L 700.0 210.0" fill="none" stroke="#6d675c" stroke-width="1.6" marker-end="url(#arrow-6d675c)"/>
+<text x="560.0" y="202.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#6d675c" font-style="italic">1, 2, 3 arrive</text>
+<text x="420.0" y="265.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#a8452c">sequence 4</text>
+<text x="420.0" y="281.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11" font-weight="400" fill="#a8452c" font-style="italic">dropped by dfr::chaos</text>
+<path d="M 140.0 320.0 L 420.0 320.0" fill="none" stroke="#6d675c" stroke-width="1.6" marker-end="url(#arrow-6d675c)"/>
+<text x="280.0" y="312.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#6d675c" font-style="italic">sequence 5</text>
+<path d="M 420.0 340.0 L 700.0 340.0" fill="none" stroke="#6d675c" stroke-width="1.6" marker-end="url(#arrow-6d675c)"/>
+<text x="560.0" y="332.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#6d675c" font-style="italic">5 arrives: gap_tracker sees 4 missing</text>
+<path d="M 700.0 385.0 L 1080.0 385.0" fill="none" stroke="#3c6b4a" stroke-width="1.6" marker-end="url(#arrow-3c6b4a)"/>
+<text x="890.0" y="377.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#3c6b4a" font-style="italic">1, 2, 3 delivered</text>
+<path d="M 700.0 405.0 L 1080.0 405.0" fill="none" stroke="#3c6b4a" stroke-width="1.6" marker-end="url(#arrow-3c6b4a)"/>
+<text x="890.0" y="419.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#3c6b4a" font-style="italic">5 delivered too: stalling on a hole turns one loss into an outage</text>
+<path d="M 700.0 460.0 L 140.0 460.0" fill="none" stroke="#2b59d1" stroke-width="1.6" marker-end="url(#arrow-2b59d1)"/>
+<text x="420.0" y="452.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#2b59d1" font-style="italic">requester: retransmit sequence 4</text>
+<path d="M 140.0 505.0 L 700.0 505.0" fill="none" stroke="#2b59d1" stroke-width="1.6" marker-end="url(#arrow-2b59d1)"/>
+<text x="420.0" y="497.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#2b59d1" font-style="italic">retransmit_facility: here is 4</text>
+<text x="700.0" y="550.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1b1a17">arbiter reorders: 4 is applied between 3 and 5,</text>
+<text x="700.0" y="566.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12" font-weight="600" fill="#1b1a17">not appended after 5</text>
+<path d="M 700.0 600.0 L 1080.0 600.0" fill="none" stroke="#3c6b4a" stroke-width="1.6" marker-end="url(#arrow-3c6b4a)"/>
+<text x="890.0" y="592.0" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="11.5" font-weight="400" fill="#3c6b4a" font-style="italic">4 delivered, in sequence order</text>
+<rect x="40.0" y="800.0" width="1280.0" height="67.0" rx="3" fill="#f1ece1" stroke="#cfc7b5" stroke-width="1.4"/>
+<text x="680.0" y="821.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#6d675c">Delivering 4 after 5 in arrival order, instead of between 3 and 5 in sequence order, is the exact</text>
+<text x="680.0" y="838.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#6d675c">defect book_oracle_test.cpp exists to catch: an aggregated book is last-write-wins, so the wrong order</text>
+<text x="680.0" y="855.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#6d675c">leaves the wrong size at that price, permanently.</text>
+</svg>

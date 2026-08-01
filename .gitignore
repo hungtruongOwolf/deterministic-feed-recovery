@@ -20,3 +20,7 @@ data/
 # CMake's own documentation says it should not be committed.
 CMakeUserPresets.json
 .claude/
+
+# The diagram scripts under docs/assets/diagrams/ are plain Python, run directly rather than packaged;
+# this is the interpreter's own cache, not an artifact anyone should read or diff.
+__pycache__/
