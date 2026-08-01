@@ -46,7 +46,7 @@ export const FINDINGS: readonly Finding[] = [
   },
   {
     title: "The flaky abort was in the test harness, and one run was never enough",
-    hid: "A threaded test aborted intermittently with SIGABRT, no failing expression, and a Catch2 assertion about its own output redirect. It pointed at the lock-free code, where nothing was wrong. I had read "720 tests passed" and pushed.",
+    hid: "A threaded test aborted intermittently with SIGABRT, no failing expression, and a Catch2 assertion about its own output redirect. It pointed at the lock-free code, where nothing was wrong. I had read '720 tests passed' and pushed.",
     caught:
       "Running it in a loop rather than once: it reproduced on the second run, so it had never been platform-specific. A REQUIRE on the consumer thread was racing the main thread, and Catch2's result capture is single-threaded.",
     matters:
