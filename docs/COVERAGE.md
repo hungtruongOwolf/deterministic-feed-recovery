@@ -1,6 +1,6 @@
 # Coverage
 
-"734 tests pass" is a count, and a count says nothing about which line, which branch, which function no test
+"736 tests pass" is a count, and a count says nothing about which line, which branch, which function no test
 has ever reached. The first time this project measured that directly, it found two real gaps: a fault-injection
 target reachable only from a compile-time concept check, and an enum-to-string pair with no test at all while
 every sibling of the same shape had one. Neither would have surfaced from reading the code, because in both
