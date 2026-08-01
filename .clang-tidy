@@ -23,7 +23,15 @@ Checks: >
   -misc-include-cleaner,
   -modernize-use-trailing-return-type,
   -readability-magic-numbers,
-  -readability-identifier-length
+  -readability-identifier-length,
+  -readability-simplify-boolean-expr,
+  -readability-function-cognitive-complexity,
+  -readability-redundant-member-init,
+  -cert-err33-c,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-owning-memory,
+  -clang-analyzer-optin.core.EnumCastOutOfRange
 
 # Rationale for the exclusions:
 #
@@ -72,6 +80,20 @@ Checks: >
 #     reference here is `auto&&` for cheap pass-by-reference to a caller's
 #     lambda, not a forward-to-exactly-once constructor argument.
 #
+#   readability-simplify-boolean-expr
+#     Every instance in this codebase traces to one of two macros in
+#     assert.hpp, not to the condition a caller wrote. DFR_ASSERT expands the
+#     given condition as `if (!(cond))`, so a condition written with `||` for
+#     readability (`data != nullptr || size == 0`, read as a plain-English
+#     "either this or that holds") reads to the checker as a negated
+#     conjunction worth DeMorgan-simplifying, at the call site rather than in
+#     assert.hpp where the negation actually lives. DFR_MAYBE(cond) expands to
+#     `(cond) ? true : false` on purpose (see the comment above its
+#     definition): a static_cast<bool> triggers -Wuseless-cast on a condition
+#     that is already bool, which this project builds with. Neither can be
+#     rewritten at the call site without either fighting the macro or
+#     reintroducing the warning the macro exists to avoid.
+#
 #   misc-include-cleaner
 #     Wants every name's own header included directly, which fights the
 #     project's own convention on purpose: "every wire protocol gets an
@@ -81,6 +103,70 @@ Checks: >
 #     re-including each leaf themselves. Enabling this check would mean
 #     fighting the umbrella-header convention header by header rather than
 #     enforcing it, which is backwards.
+#
+#   readability-function-cognitive-complexity
+#     Fires exclusively on TEST_CASE bodies (bench/recovery_bench.cpp's main
+#     is the one non-test exception, and that one is a benchmark driver, not
+#     library logic). A property test that sweeps several seeds and asserts a
+#     handful of facts about each is long and branchy by nature; that is
+#     table-driven test structure, not the kind of tangled control flow this
+#     check exists to catch in production code. Zero instances are in
+#     include/dfr.
+#
+#   readability-redundant-member-init
+#     Every instance is a class-typed member given an explicit `{}` even
+#     though its own default constructor would do the same thing unasked.
+#     That redundancy is deliberate: this project has twice found a real bug
+#     (wire/moldudp64/cursor.hpp's message_cursor, wire/moldudp64/encode.hpp's
+#     packet_builder, both this same review pass) from a struct where *some*
+#     members had an in-class initializer and one scalar did not, and the
+#     defaulted constructor silently left it indeterminate. Bracing every
+#     member the same way, whether or not the type technically needs it,
+#     removes the "is this one a scalar or a class?" judgment call that
+#     produced both bugs. All 63 instances are in include/dfr.
+#
+#   cert-err33-c
+#     Flags every std::fprintf/std::fflush/std::atoi whose return value is
+#     ignored, which in this codebase means diagnostic output on a path
+#     already headed for std::abort() or std::exit(), or a CLI tool's stderr
+#     message before it returns an error code. There is no recovery action to
+#     take if a message written on the way out fails to write. Pairs with
+#     cppcoreguidelines-pro-type-vararg above, which is the same call sites
+#     for the complementary reason.
+#
+#   cppcoreguidelines-pro-bounds-array-to-pointer-decay
+#     Every instance is a fixed-size wire buffer or test fixture (a raw
+#     `std::byte[N]`) decaying to a pointer at the exact point it is paired
+#     with an explicit length and handed to packet_view, which is the
+#     bounds-checked flyweight cppcoreguidelines-pro-type-reinterpret-cast and
+#     cppcoreguidelines-pro-bounds-pointer-arithmetic are already excluded for
+#     above. The decay is the mechanism that design uses at its edges, not an
+#     escape from it. Zero instances are in include/dfr.
+#
+#   cppcoreguidelines-macro-usage
+#     All 22 instances are assert.hpp's own assertion machinery
+#     (DFR_ASSERT and its DFR_DETAIL_* helpers, and the DFR_ASSERTION_LEVEL_*
+#     constants that select between them at compile time). A constexpr
+#     function cannot vanish at the `off` assertion level the way a macro
+#     does, and cannot capture #cond as a string for the failure message.
+#     Same file cppcoreguidelines-avoid-do-while is already excluded for.
+#
+#   cppcoreguidelines-owning-memory
+#     All 19 instances are bench/ and tools/ programs calling std::malloc,
+#     std::fopen or std::exit directly: a custom global operator new counting
+#     allocations (which cannot be implemented in terms of a container without
+#     circularity), and short-lived CLI/benchmark processes where an owning
+#     gsl::owner<> would need a GSL dependency this project does not take, for
+#     a resource the OS reclaims at process exit regardless. Zero instances
+#     are in include/dfr.
+#
+#   clang-analyzer-optin.core.EnumCastOutOfRange
+#     Both instances are inside build/dev/_deps/catch2-src, vendored code
+#     fetched by CMake rather than anything in this repository. HeaderFilterRegex
+#     does not suppress it because the analyzer attributes the diagnostic
+#     differently from an ordinary clang-tidy check; excluding the check
+#     itself is the only way to stop reporting a defect in a dependency this
+#     project cannot fix.
 
 WarningsAsErrors: ''
 HeaderFilterRegex: 'include/dfr/.*'
