@@ -4,8 +4,8 @@
 // thing docs/STYLE.md calls a defect in the library and, until this split, did not check for itself in the
 // viewer. Each concern now has its own file under scripts/checks/; this is the part they all needed.
 //
-// `report` is a mutable object rather than an exported `let`, so every module sees the same counter without
-// depending on how a bundler happens to implement live bindings across ES modules.
+// `check`/`report` live in ../reporter.ts and are re-exported here rather than duplicated, since
+// scripts/unit.ts needs the same reporter and has no reason to pull in React to get it.
 
 import { readdirSync, readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -16,16 +16,7 @@ import { Sheet } from "../../src/stage/Sheet";
 import { Stage } from "../../src/stage/Stage";
 import { type Box } from "../../src/stage/layout";
 
-export const report = { failures: 0 };
-
-export function check(ok: boolean, what: string): void {
-  if (!ok) {
-    console.error("  ✗ " + what);
-    report.failures += 1;
-  } else {
-    console.log("  ✓ " + what);
-  }
-}
+export { check, report } from "../reporter";
 
 export const overlaps = (a: Box, b: Box): boolean =>
   !(a.y + a.h <= b.y || b.y + b.h <= a.y || a.x + a.w <= b.x || b.x + b.w <= a.x);

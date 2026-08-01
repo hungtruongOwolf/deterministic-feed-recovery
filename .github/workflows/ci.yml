@@ -294,3 +294,9 @@ jobs:
       # rather than a field name. Nothing without eyes can tell whether it looks good; this tells whether it
       # works.
       - run: npm run check
+
+      # The drawing check above calls plainly()/verdictAt()/lineTallies() with whatever the three committed
+      # traces happen to contain, which is not the same as calling them with the edge cases their own logic
+      # branches on. This calls them directly, with hand-built fixtures for an unsettled run, a failed client,
+      # a tie between two measurements: the cases a committed trace might never happen to produce.
+      - run: npm run unit
