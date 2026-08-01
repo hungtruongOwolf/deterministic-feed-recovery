@@ -124,9 +124,11 @@ ctest --test-dir build/dev
 cmake -S . -B build/fuzz -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build/fuzz -j8
 ./build/fuzz/fuzz/fuzz_client --seed 1 --rounds 200000 fuzz/corpus/client/*
 
-# Against a real capture, if you have an IEX HIST pcap:
-./build/dev/tools/inspect  <capture.pcap>
-./build/dev/tools/verify   <capture.pcap> --seed 4711 --faults 40
+# Against a real capture. captures/ has one committed, a free IEX HIST sample, so this needs nothing
+# downloaded and is what CI itself runs on every push.
+gunzip -c captures/20170826-iex-deep.pcap.gz > /tmp/deep.pcap
+./build/dev/tools/inspect  /tmp/deep.pcap
+./build/dev/tools/verify   /tmp/deep.pcap --seed 4711 --faults 40
 ```
 
 Or [run it in the browser](https://hungtruongowolf.github.io/deterministic-feed-recovery/), the page
@@ -355,7 +357,8 @@ behavioural regression report.
 Real wire-format captures, free and without registration:
 
 - **IEX HIST** (`iextrading.com/api/1.0/hist`): pcap with 802.1Q VLAN + IPv4 multicast +
-  IEX-TP. Primary corpus.
+  IEX-TP. Primary corpus. One day (2017-08-26, DEEP 1.0) is committed at `captures/`, gzipped, so
+  `tools/verify` runs on a real feed in CI rather than only by hand.
 - **`Open-Markets-Initiative/omi-data-pcaps`**: genuine NASDAQ MoldUDP64 multicast pcap.
 - **B3 `MBO_EQT_Incremental_FeedA/FeedB`**: the only free A/B redundant capture pair found.
 
@@ -443,6 +446,7 @@ test fails 12 times out of 12. Two architectures, two classes of defect, and dro
 - `viewer/README.md`: the one rule the viewer follows, and why it has no domain logic.
 - `traces/`: recorded runs, committed as fixtures. `scripts/regenerate-traces.sh` then
   `git diff traces/` is a behavioural regression report.
+- `captures/README.md`: provenance of the real IEX HIST capture `tools/verify` runs against in CI.
 
 ## Licence
 

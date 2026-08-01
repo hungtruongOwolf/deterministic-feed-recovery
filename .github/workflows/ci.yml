@@ -111,6 +111,28 @@ jobs:
           ./scripts/regenerate-traces.sh dev
           git diff --exit-code -- traces/ viewer/public/traces/
 
+  # tests/integration/recovery_oracle_test.cpp checks the same two properties (detection is exact, repair is
+  # complete) over synthetic packets, fast and self-contained, which is the right thing for every other commit
+  # to run. This is the harder question: does it hold over a real feed's actual message-size distribution, its
+  # heartbeats, its quiet periods and its bursts. Until now that question was answered locally and never
+  # checked again. captures/README.md has the provenance of the capture this runs against.
+  verify:
+    name: the pipeline holds on a real feed
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure and build
+        run: |
+          cmake --preset dev
+          cmake --build --preset dev -j 4 --target dfr_verify
+      - name: Verify against the committed capture
+        run: |
+          gunzip -c captures/20170826-iex-deep.pcap.gz > /tmp/deep.pcap
+          ./build/dev/tools/verify /tmp/deep.pcap --seed 4711 --faults 40
+
   # The benchmarks have to keep compiling and the two hard claims have to keep holding. The *figures* are not
   # asserted(they move with the machine and a CI runner is a different machine) but "zero allocations after
   # start-up" and "the ring refuses rather than overwriting" are properties, not measurements, and a runner can
@@ -211,7 +233,17 @@ jobs:
           cmake -S . -B build/fuzz -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DDFR_ASSERTIONS=paranoid -DDFR_WARNINGS_AS_ERRORS=ON
           cmake --build build/fuzz -j 4 --target dfr_fuzz_iextp dfr_fuzz_moldudp64 \
-            dfr_fuzz_soupbintcp dfr_fuzz_ouch dfr_fuzz_deep dfr_fuzz_capture dfr_fuzz_client
+            dfr_fuzz_soupbintcp dfr_fuzz_ouch dfr_fuzz_deep dfr_fuzz_capture dfr_fuzz_client \
+            dfr_corpus_gen
+
+      # The OUCH/SoupBinTCP corpus is a deterministic function of tools/corpus_gen, the same way a trace is a
+      # deterministic function of its seed. So a non-empty diff here is corpus_gen producing different bytes
+      # than what is committed, and it is worth failing on rather than the corpus quietly drifting from the
+      # tool that is supposed to be its source.
+      - name: The generated corpus matches what is committed
+        run: |
+          ./build/fuzz/tools/corpus_gen fuzz/corpus
+          git diff --exit-code -- fuzz/corpus/ouch fuzz/corpus/soupbintcp
 
       # Where libFuzzer is available the targets take its flags, so the invocation is libFuzzer's own.
       - name: Fuzz each target

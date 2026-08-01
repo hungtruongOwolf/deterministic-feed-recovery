@@ -11,6 +11,11 @@ data/
 *.pcapng
 *.zst
 
+# The one exception: captures/ holds exactly one committed capture, gzipped to 709 KB, so tools/verify has a
+# real feed to run against in CI. See captures/README.md for what it is and why this one is small enough to
+# commit when the blanket rule above exists because most are not.
+!captures/*.pcap.gz
+
 # CMake user-local presets. This is where machine-specific workarounds belong;
 # CMake's own documentation says it should not be committed.
 CMakeUserPresets.json
