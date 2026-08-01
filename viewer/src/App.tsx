@@ -8,33 +8,21 @@
 // It reads trace files and draws them. No server, no live connection, and no domain logic: every number on
 // screen is a field a trace already carries. See viewer/README.md for why that rule is not tidiness.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { parseTrace, TraceFormatError, type Trace } from "./model/trace";
+import { useCallback, useMemo, useState } from "react";
 import { PROJECT_ABBREVIATION, PROJECT_NAME, PROJECT_TAGLINE } from "./model/brand";
 import {
-  ACTS,
   actAt,
-  buildFilm,
   DEFAULT_SETTINGS,
   verdictOf,
   dwellFor,
   INTERLUDE_BEATS,
-  type Film,
   type Settings,
 } from "./model/film";
-import { fastest, ratePerSecond, type LiveRun } from "./model/here";
-import {
-  loadEngine,
-  type Engine,
-  type SessionParameters,
-  type SnapshotParameters,
-} from "./wasm/engine";
+import { ratePerSecond } from "./model/here";
+import { type SessionParameters, type SnapshotParameters } from "./wasm/engine";
 import { Controls } from "./panels/Controls";
-import { parseSession, type SessionTrace } from "./model/session";
-import { parseSnapshot, type SnapshotTrace } from "./model/snapshot";
 import { SnapshotSection } from "./snapshot/SnapshotSection";
 import { SessionSection } from "./session/SessionSection";
-import { parseBenchmarks, parseHandoff, type Performance as PerfData } from "./model/perf";
 import { Performance } from "./panels/Performance";
 import { Disclosure } from "./ui/Disclosure";
 import { Hero } from "./panels/Hero";
@@ -56,15 +44,14 @@ import { EventRail } from "./panels/EventRail";
 import { Summary } from "./panels/Summary";
 import { Ledger } from "./panels/Ledger";
 import { LineHealth } from "./panels/LineHealth";
+import { useEngineTraces } from "./hooks/useEngineTraces";
+import { useOrderSession } from "./hooks/useOrderSession";
+import { useGlimpseSnapshot } from "./hooks/useGlimpseSnapshot";
+import { usePerformanceData } from "./hooks/usePerformanceData";
+import { useTransportShortcuts } from "./hooks/useTransportShortcuts";
 
 export function App() {
-  const [film, setFilm] = useState<Film | undefined>();
-  const [session, setSession] = useState<SessionTrace | undefined>();
-  const [snapshot, setSnapshot] = useState<SnapshotTrace | undefined>();
-  const [engine, setEngine] = useState<Engine | undefined>();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
-  const [busy, setBusy] = useState(false);
-  const [perf, setPerf] = useState<PerfData | undefined>();
   const [sessionSettings, setSessionSettings] = useState<SessionParameters>({
     orders: 3,
     fill: 40,
@@ -75,200 +62,23 @@ export function App() {
     levels: 5,
     resumeFrom: 4096,
   });
-  const [error, setError] = useState<string | undefined>();
   const [started, setStarted] = useState(false);
-  // The one measurement on the page the reader causes. See model/here.ts for what it is and is not.
-  const [live, setLive] = useState<LiveRun | undefined>(undefined);
+
+  // Whenever settings change, the film regenerates and the prologue should show again rather than staying
+  // dismissed on the previous run.
+  const { engine, film, error, busy, live } = useEngineTraces(settings, () => setStarted(false));
 
   // Pacing belongs to the story, not to the clock: quiet stretches go past, notable moments are held.
   const dwell = useCallback((at: number) => (film === undefined ? 1 : dwellFor(film, at)), [film]);
   const playback = usePlayback(film?.moments.length ?? 0, dwell);
+  useTransportShortcuts(playback);
 
-  // The library itself, compiled to WebAssembly. Loaded once, and the page falls back to the committed
-  // traces if it cannot be: a reader on a browser without WebAssembly should see the argument, not an
-  // error, and the controls say plainly that they are inert rather than pretending to work.
-  useEffect(() => {
-    let cancelled = false;
-    loadEngine()
-      .then((loaded) => {
-        if (!cancelled) {
-          setEngine(loaded);
-        }
-      })
-      .catch(() => {
-        if (cancelled) {
-          return;
-        }
-        // Fall back to what is committed, which is the same three runs at the default settings.
-        Promise.all(
-          ACTS.map(async (act) => {
-            const response = await fetch(`traces/${act.file}`);
-            if (!response.ok) {
-              throw new Error(`traces/${act.file}: ${response.status}`);
-            }
-            return parseTrace(await response.text());
-          }),
-        )
-          .then((traces: readonly Trace[]) => {
-            if (!cancelled) {
-              setFilm(buildFilm(traces));
-              setError(undefined);
-            }
-          })
-          .catch((cause: unknown) => {
-            if (!cancelled) {
-              setError(cause instanceof TraceFormatError ? cause.message : String(cause));
-            }
-          });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Every act re-run whenever the settings change. Synchronous on purpose: a run of three hundred messages
-  // is a few milliseconds, and a worker would add a message protocol to save nothing anybody can perceive.
-  useEffect(() => {
-    if (engine === undefined) {
-      return;
-    }
-    setBusy(true);
-    try {
-      // Timed around the calls themselves, not around React's work: what is being measured is the library, and
-      // including a render would report the page's speed under the library's name.
-      const startedAt = globalThis.performance.now();
-      const traces = ACTS.map((act) =>
-        parseTrace(
-          engine.runTrace({
-            seed: settings.seed,
-            messages: settings.messages,
-            faults: settings.faults,
-            lines: act.lines,
-            glimpse: act.glimpse,
-            staleness: act.staleness,
-          }),
-        ),
-      );
-      const elapsedMs = globalThis.performance.now() - startedAt;
-      setLive((previous) =>
-        fastest(previous, { elapsedMs, messages: settings.messages * ACTS.length, runs: 1 }),
-      );
-      setFilm(buildFilm(traces));
-      setError(undefined);
-      setStarted(false);
-    } catch (cause) {
-      setError(cause instanceof TraceFormatError ? cause.message : String(cause));
-    } finally {
-      setBusy(false);
-    }
-  }, [engine, settings]);
-
-  // The order-entry session, fetched separately and drawn below. Its absence must not stop the film: two
-  // halves of one page, and one failing to load is a reason to show the other rather than neither.
-  useEffect(() => {
-    let cancelled = false;
-    if (engine !== undefined) {
-      try {
-        setSession(parseSession(engine.runSession(sessionSettings)));
-      } catch {
-        setSession(undefined);
-      }
-      return;
-    }
-    fetch("traces/order-session.jsonl")
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
-      .then((text) => {
-        if (!cancelled) {
-          setSession(parseSession(text));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setSession(undefined);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [engine, sessionSettings]);
-
-  // The snapshot, same arrangement: computed when the library is here, fetched when it is not.
-  useEffect(() => {
-    let cancelled = false;
-    if (engine !== undefined) {
-      try {
-        setSnapshot(parseSnapshot(engine.runSnapshot(snapshotSettings)));
-      } catch {
-        setSnapshot(undefined);
-      }
-      return;
-    }
-    fetch("traces/glimpse-snapshot.jsonl")
-      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
-      .then((text) => {
-        if (!cancelled) {
-          setSnapshot(parseSnapshot(text));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setSnapshot(undefined);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [engine, snapshotSettings]);
-
-  // The benchmark figures. Fetched rather than computed, and the panel says why: WebAssembly cannot time a
-  // two-nanosecond operation, so these are native measurements read from a committed file.
-  useEffect(() => {
-    let cancelled = false;
-    const load = async (name: string) => {
-      const response = await fetch(`bench/${name}`);
-      if (!response.ok) {
-        throw new Error(`bench/${name}: ${response.status}`);
-      }
-      return response.text();
-    };
-    Promise.all([load("results.json"), load("results-paranoid.json"), load("handoff.json")])
-      .then(([shipping, paranoid, handoff]) => {
-        if (!cancelled) {
-          setPerf({
-            shipping: parseBenchmarks(shipping, "the shipping benchmarks"),
-            paranoid: parseBenchmarks(paranoid, "the paranoid benchmarks"),
-            handoff: parseHandoff(handoff, "the hand-off benchmarks"),
-          });
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setPerf(undefined);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Space to play, arrows to step: the shortcuts anybody tries on something that moves.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement) {
-        return;
-      }
-      if (e.code === "Space") {
-        e.preventDefault();
-        playback.toggle();
-      } else if (e.code === "ArrowRight") {
-        playback.step(1);
-      } else if (e.code === "ArrowLeft") {
-        playback.step(-1);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [playback]);
+  // The order-entry session and the snapshot rebuild, fetched separately and drawn below. Either's absence
+  // must not stop the film: three parts of one page, and one failing to load is a reason to show the others
+  // rather than neither.
+  const session = useOrderSession(engine, sessionSettings);
+  const snapshot = useGlimpseSnapshot(engine, snapshotSettings);
+  const perf = usePerformanceData();
 
   const start = useCallback(() => {
     setStarted(true);
