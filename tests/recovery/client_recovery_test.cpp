@@ -253,6 +253,42 @@ TEST_CASE("a failed client refuses further packets",
   CHECK(refused.error_code() == dfr::error::snapshot_behind_buffer);
 }
 
+TEST_CASE("a snapshot cancels the retransmit requests it supersedes",
+          "[recovery][client]") {
+  // Found by the stateful fuzzer under libFuzzer, after two hundred thousand rounds of the portable driver had
+  // not reached it.
+  //
+  // on_snapshot() tells the gap tracker to abandon the holes below the snapshot point, and the tracker does not
+  // speak to the requester. A hole that opens *while* the client is recovering adds a requester entry that the
+  // snapshot then supersedes, and nothing removed it, so once the replay finished poll() went back to asking the
+  // venue for messages the snapshot had already delivered.
+  //
+  // Not memory corruption, and not harmless either: a retransmit facility's retention window is the scarce
+  // resource in a real recovery, and this spends it on ranges nobody needs while the requests that matter queue
+  // behind them.
+  auto client = abandoned_client();
+  REQUIRE(client.state() == rec::client_state::recovering);
+
+  // Packets keep arriving during recovery, and they can be gapped too. This opens 16..19 and buffers the rest.
+  const auto held = offer(client, kLineA, range(20, 26), at_ms(80));
+  hand_over(client, held.accepted);
+  REQUIRE(client.retransmission().messages_outstanding() > 0);
+
+  rec::snapshot_plan plan;
+  REQUIRE(client.on_snapshot(kSession, 20).get(plan) == dfr::error::ok);
+  REQUIRE(plan.verdict == rec::snapshot_verdict::usable);
+  REQUIRE(client.finish_replay().has_value());
+
+  // Everything below the resume point came from the snapshot, so nothing below it may be asked for again.
+  CHECK(client.retransmission().messages_outstanding() == 0);
+  for (int tick = 0; tick < 8; ++tick) {
+    const auto decision = client.poll(at_ms(200 + tick * 50));
+    if (decision.what == rec::client_action::send_retransmit_request) {
+      CHECK(decision.range.first >= plan.resume_from);
+    }
+  }
+}
+
 TEST_CASE("a replay buffer that fills fails the client",
           "[recovery][client]") {
   // The recovery attempt cannot produce a correct book, and there is no way to paper over

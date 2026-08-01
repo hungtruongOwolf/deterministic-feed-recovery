@@ -108,6 +108,20 @@ properties that must hold after every single call, and `fuzz/program.hpp` carrie
 thin because a richer one would be a second protocol implementation and its bugs would be reported as the
 library's.
 
+### The second find, and why it needed a real coverage-guided fuzzer
+
+**A snapshot did not cancel the retransmit requests it superseded.** `on_snapshot()` tells the gap tracker to
+abandon the holes below the snapshot point, and the tracker does not speak to the requester. A hole that opens
+*while* the client is recovering leaves a requester entry behind, so once the replay finished `poll()` went back
+to asking the venue for messages the snapshot had already delivered. Not memory corruption; a retransmit
+facility's retention window is the scarce resource in a real recovery, and this spends it on ranges nobody needs
+while the requests that matter queue behind them.
+
+The portable driver ran two hundred thousand rounds from seed 1 without reaching it. libFuzzer, on the same
+target and the same corpus, found it in under a minute, because it keeps the inputs that reach new code and the
+portable driver does not. Both drivers matter and they are not equivalent: one runs anywhere and reproduces from
+two numbers, the other actually searches.
+
 ### What it found, and what it found first
 
 It found a real defect, in seven bytes: **a session change reported the previous session's holes as repaired.**
@@ -128,6 +142,7 @@ picture of what writing a fuzzer is like:
 | the watermark going backwards across a session change | the oracle |
 | `buffer_message` called outside the `recovering` state | the program, violating a documented precondition |
 | a session change reporting stale holes as repaired | **the library** |
+| a snapshot leaving superseded retransmit requests behind | **the library** |
 
 Two of those came from the library's own naming. `delivered_through()` returned the sequence *after* the last one
 delivered and was documented as "the highest sequence handed downstream", one less than what it returns. Writing

@@ -8,7 +8,7 @@ function of its seed, so a failure is a number somebody else can type in and see
 [![ci](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml)
 [![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
-![tests](https://img.shields.io/badge/tests-721%20across%205%20configurations-brightgreen.svg)
+![tests](https://img.shields.io/badge/tests-722%20across%205%20configurations-brightgreen.svg)
 
 **[Watch a run →](https://hungtruongowolf.github.io/deterministic-feed-recovery/)**
 
@@ -30,7 +30,7 @@ All nine namespaces are implemented and tested.
 | `dfr::book` | an aggregated order book, and the oracle that turns on it | done |
 | `dfr::wire::glimpse` | the snapshot protocol as bytes, served over SoupBinTCP | done |
 
-**721 tests pass under five configurations**: assertions at paranoid, fast and off, and
+**722 tests pass under five configurations**: assertions at paranoid, fast and off, and
 AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer: all with warnings as errors, on **three
 compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both synthetic streams and real captures.
 
@@ -108,7 +108,7 @@ cmake -S . -B build/dev && cmake --build build/dev -j8
 # The last three lines are the point: the client counted the sequence itself.
 ./build/dev/tools/session
 
-# All 721 tests, assertions at paranoid.
+# All 722 tests, assertions at paranoid.
 ctest --test-dir build/dev
 
 # A run recorded as JSONL. The same seed gives byte-identical output; a different seed does not.
@@ -390,7 +390,7 @@ Other presets: `release` (optimised, assertions still on at the fast level),
 ```
 
 **A concurrency test that has passed once has told you almost nothing.** The threaded book test aborted
-intermittently; I read "721 tests passed", pushed, and CI failed. Looked for on purpose it reproduced on the second
+intermittently; I read "722 tests passed", pushed, and CI failed. Looked for on purpose it reproduced on the second
 run, so it had never been platform-specific, and the defect was in the *harness*, a Catch2 `REQUIRE` on the
 consumer thread racing the main thread's result capture. With it planted back, the test fails 4 times in 200 runs;
 the first repetition count I tried, 40, reported success. 400 runs catch it 99.97% of the time and cost six seconds,

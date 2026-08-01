@@ -46,11 +46,11 @@ export const FINDINGS: readonly Finding[] = [
   },
   {
     title: "A session change reported the old session's holes as repaired",
-    hid: "A feed restart resets the arbiter, the buffer and the watermark, but the gap tracker clears its holes a few lines later. In between, the new session's arrived range was intersected with the old session's gaps, whose numbers mean something else now.",
+    hid: "A feed restart resets the arbiter, the buffer and the watermark, but the gap tracker clears its holes a few lines later. In between, the new session's range was intersected with the old session's gaps, which number something else.",
     caught:
-      "A stateful fuzzer, in a seven-byte program. It drives the client with sequences of legal calls rather than malformed bytes, because a state machine's defects are orderings, not packets.",
+      "A stateful fuzzer, in a seven-byte program: it drives the client with sequences of legal calls, because a state machine's defects are orderings rather than packets. It found a second one too, where a snapshot left behind the requests it superseded.",
     matters:
-      "A caller that delivers the repaired ranges and then the accepted range hands the overlap downstream twice, and a duplicate in an aggregated book leaves the wrong size at that price permanently. A paranoid assertion caught it, and those are off in release, so it was silent where it would have shipped.",
+      "A caller that delivers the repaired ranges and then the accepted range hands the overlap downstream twice, and a duplicate in an aggregated book leaves the wrong size at that price permanently. The paranoid assertion that caught it is off in release, so it was silent where it would ship.",
     kind: "the fuzzer's find",
     where: `${REPO}/docs/FUZZING.md`,
   },
@@ -151,7 +151,7 @@ export const FINDINGS: readonly Finding[] = [
  * static page: hardcoding it means it silently becomes a lie the next time a suite is added, and the viewer
  * cannot run ctest. The script fails the build if it drifts, so the page and the build agree or neither ships.
  */
-export const TEST_COUNT = 721;
+export const TEST_COUNT = 722;
 
 /** What a visitor with thirty seconds should be able to read without scrolling or pressing anything. */
 export interface Evidence {

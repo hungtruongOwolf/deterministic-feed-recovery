@@ -321,6 +321,9 @@ class client {
     }
 
     (void)tracker_.snapshot_at(kChannel, session, snapshot_next_sequence);
+    // And the requester, which the tracker does not speak to. Without this, poll() keeps asking the venue for
+    // messages the snapshot already delivered, spending a retention window nobody gets back. docs/FUZZING.md.
+    (void)requester_.on_filled(sequence_range{.first = 0, .end = plan.resume_from});
     // The arbiter's position has to be re-established, or the replayed messages and
     // everything after them would look new a second time. resume_from, not the snapshot's
     // sequence: once the caller has replayed the buffer, everything below resume_from has
