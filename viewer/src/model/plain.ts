@@ -35,7 +35,7 @@ export function plainly(trace: Trace, event: TraceEvent | undefined): PlainOutco
   const summary = trace.summary;
   const settled =
     event !== undefined &&
-    (event.delivered_through >= sent || event.state === "failed");
+    (event.delivered_before >= sent || event.state === "failed");
 
   const missing = summary.messages_missing + summary.unfillable_messages;
   const recovered = missing - summary.unfillable_messages;

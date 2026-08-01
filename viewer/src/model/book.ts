@@ -38,7 +38,7 @@ export function verdictAt(trace: Trace, event: TraceEvent | undefined): BookVerd
   // *fails*, so delivery stalls short and the page called a finished run "still playing". A client that has failed
   // is not going to deliver anything else, and that is exactly the act whose book is worth a verdict.
   const finished =
-    event.delivered_through >= trace.header.messages || event.state === "failed";
+    event.delivered_before >= trace.header.messages || event.state === "failed";
   const matches =
     event.best_bid === trace.summary.reference_bid &&
     event.best_ask === trace.summary.reference_ask &&

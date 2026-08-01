@@ -342,6 +342,23 @@ steady-state cycle. That turns a claim into a test.
 
 ## 7b. Composition decisions in `dfr::recovery`
 
+### The arbiter's position and the tracker's expectation are kept in step, explicitly
+
+They must agree, and they do not always move together. A heartbeat carries no messages, so the arbiter's
+watermark cannot advance on it while the tracker's expectation does, and on IEX two thirds of packets are
+heartbeats. Once the two disagree a hole can sit *above* the watermark, and the retransmit that fills it counts
+as both newly arrived and newly repaired. That is one message delivered twice, which corrupts an aggregated book
+exactly as thoroughly as losing one.
+
+With the two in step the disjointness is a theorem rather than a coincidence: every hole is below the tracker's
+expectation, `accepted` starts at the watermark, and the watermark equals the expectation. A paranoid assertion
+in `on_packet` states it, so a future change that breaks the invariant fails loudly rather than double-delivering.
+
+That assertion earned its place: the stateful fuzzer tripped it on a seven-byte program, because a session change
+was reporting the *previous* session's holes as repaired. The fix and the reasoning are in `client.hpp` and in a
+regression test of the same name. Note what it means that a paranoid assertion caught it: paranoid assertions are
+off in `release`, so the same defect was silent in the configuration a user would ship.
+
 Three choices that only make sense once the components are wired together, recorded here
 rather than in `client.hpp` so that file stays about the state machine.
 
@@ -360,7 +377,7 @@ messages, which is why handing them over is a separate call the caller makes
 layer is deliberately not a dependency of recovery.
 
 **Two positions, kept in step explicitly.** The arbiter's watermark means "the highest
-sequence the merged stream has reached"; the client's `delivered_through()` means "the
+sequence the merged stream has reached"; the client's `delivered_before()` means "the
 highest sequence handed downstream". They are equal while live and diverge while recovering,
 because messages held for replay have been seen and not delivered. Separately, a heartbeat
 advances the *tracker's* expectation while delivering nothing, so it cannot advance the

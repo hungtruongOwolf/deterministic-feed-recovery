@@ -185,7 +185,7 @@ struct event {
 
   // ---- the resulting state, so a viewer needs no domain logic -------------
   std::uint8_t client_state{0};
-  std::uint64_t delivered_through{0};
+  std::uint64_t delivered_before{0};
   std::uint64_t messages_missing{0};
   std::uint64_t outstanding_ranges{0};
 

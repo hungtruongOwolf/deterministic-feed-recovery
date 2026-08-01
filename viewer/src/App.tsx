@@ -293,7 +293,7 @@ export function App() {
       .map((m) => m.beat);
     const messages = film.moments
       .slice(act.from, act.to)
-      .reduce((most, m) => Math.max(most, m.beat.event.delivered_through, m.beat.event.end), 1);
+      .reduce((most, m) => Math.max(most, m.beat.event.delivered_before, m.beat.event.end), 1);
     return { at, moment, act, trail, messages };
   }, [film, playback.position]);
 

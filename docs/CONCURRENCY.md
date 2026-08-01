@@ -103,7 +103,7 @@ CI with a `SIGABRT`, no failing expression, and a Catch2 internal assertion:
 Assertion `!m_redirectActive && "redirect is already active"' failed.
 ```
 
-I had read "720 tests passed" locally and pushed. Looked for on purpose afterwards, it reproduced on the **second
+I had read "721 tests passed" locally and pushed. Looked for on purpose afterwards, it reproduced on the **second
 run** on the same machine. So it had never been platform-specific; "the suite passed" had meant "the suite passed
 once", which for a test whose subject is an interleaving is close to no information at all.
 

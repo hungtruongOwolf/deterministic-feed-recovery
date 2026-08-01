@@ -48,10 +48,10 @@ class client {
 
   [[nodiscard]] constexpr client_state state() const noexcept { return state_; }
 
-  // The highest sequence actually handed downstream: deliberately not the arbiter's
+  // The sequence after the last one actually handed downstream, exclusive: deliberately not the arbiter's
   // watermark, which means "seen on the merged stream". See docs/DESIGN.md §7b.
-  [[nodiscard]] constexpr std::uint64_t delivered_through() const noexcept {
-    return delivered_through_;
+  [[nodiscard]] constexpr std::uint64_t delivered_before() const noexcept {
+    return delivered_before_;
   }
   [[nodiscard]] constexpr const arbiter<Clock>& arbitration() const noexcept
       DFR_LIFETIME_BOUND {
@@ -108,7 +108,8 @@ class client {
     // and the holes being chased. Handled before arbitration rather than after, because
     // the watermark from the old session would classify the new session's first packets
     // as duplicates and the client would sit silent forever.
-    if (started_ && session != session_) DFR_UNLIKELY {
+    const bool session_changed = started_ && session != session_;
+    if (session_changed) DFR_UNLIKELY {
       restart_for_new_session(session);
     }
 
@@ -132,7 +133,13 @@ class client {
     // late: lands below the merged watermark and looks like a duplicate while being
     // exactly what recovery was waiting for. The holes are the only thing that can tell
     // them apart, so they are consulted here, before observe() closes them.
-    last_recovered_ = tracker_.outstanding(kChannel).intersect(arrived);
+    // Never across a session change: the tracker clears its holes further down, inside observe(), so this line
+    // would otherwise intersect the new session's arrived range with the old session's gaps and report the
+    // overlap as repaired *and* as accepted. Found by the stateful fuzzer, in seven bytes, and silent in
+    // `release` where the assertion below is off. See the regression test of the same name in client_test.cpp.
+    last_recovered_ = session_changed
+                          ? gap_set{}
+                          : tracker_.outstanding(kChannel).intersect(arrived);
     report.recovered = last_recovered_.total_missing();
 
     // A heartbeat carries no messages, so there is nothing to deliver and nothing to
@@ -162,19 +169,9 @@ class client {
     }
     report.outcome = seen.outcome;
 
-    // Keep the arbiter's position in step with the tracker's expectation, explicitly.
-    //
-    // They must agree, and they do not always move together: a heartbeat carries no
-    // messages, so the arbiter's watermark cannot advance on it, while the tracker's
-    // expectation does, and on IEX two thirds of packets are heartbeats. Once the two
-    // disagree, a hole can sit *above* the watermark, and the retransmit that fills it then
-    // counts as both new and repaired. That is one message delivered twice, which corrupts a
-    // book exactly as thoroughly as losing one.
-    //
-    // With the two in step the disjointness is a theorem rather than a coincidence: every
-    // hole is below the tracker's expectation, `accepted` starts at the watermark, and the
-    // watermark equals the expectation. The paranoid assertion below states it so that a
-    // future change which breaks the invariant fails loudly rather than double-delivering.
+    // Keep the arbiter's position in step with the tracker's expectation, explicitly. They do not always move
+    // together, and once they disagree a retransmit counts as both new and repaired: one message delivered
+    // twice. Argued in docs/DESIGN.md §7b, which this file's header already points at for exactly this.
     arbiter_.adopt(tracker_.expected_sequence(kChannel));
     DFR_ASSERT_PARANOID(
         merged.deliver.empty() || last_recovered_.empty() ||
@@ -198,8 +195,8 @@ class client {
       state_ = client_state::live;
     }
     report.held_for_replay = state_ == client_state::recovering;
-    if (!report.held_for_replay && merged.deliver.end > delivered_through_) {
-      delivered_through_ = merged.deliver.end;
+    if (!report.held_for_replay && merged.deliver.end > delivered_before_) {
+      delivered_before_ = merged.deliver.end;
     }
     return report;
   }
@@ -295,7 +292,7 @@ class client {
 
     const snapshot_plan plan = plan_snapshot(snapshot_next_sequence,
                                              buffer_.buffered(),
-                                             delivered_through());
+                                             delivered_before());
     switch (plan.verdict) {
       case snapshot_verdict::stale:
         // Keep going on live data; the snapshot simply arrived too late to be worth
@@ -330,7 +327,7 @@ class client {
     // been delivered.
     arbiter_.reset_stream();
     arbiter_.adopt(plan.resume_from);
-    delivered_through_ = plan.resume_from;
+    delivered_before_ = plan.resume_from;
 
     session_ = session;
     started_ = true;
@@ -373,7 +370,7 @@ class client {
     pending_snapshot_range_ = sequence_range{};
     snapshot_reason_ = error::ok;
     session_ = session;
-    delivered_through_ = 0;
+    delivered_before_ = 0;
     state_ = client_state::synchronising;
   }
 
@@ -387,7 +384,7 @@ class client {
   error failure_{error::ok};
   error snapshot_reason_{error::ok};
   gap_set last_recovered_{};
-  std::uint64_t delivered_through_{0};
+  std::uint64_t delivered_before_{0};
   sequence_range pending_snapshot_range_{};
   std::uint32_t session_{0};
   bool started_{false};

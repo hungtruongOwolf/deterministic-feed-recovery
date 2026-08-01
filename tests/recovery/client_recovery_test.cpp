@@ -134,7 +134,7 @@ TEST_CASE("finishing the replay puts the client back live",
   REQUIRE(client.finish_replay().has_value());
   CHECK(client.state() == rec::client_state::live);
   CHECK(client.held().buffered().empty());
-  CHECK(client.delivered_through() == 24);
+  CHECK(client.delivered_before() == 24);
   CHECK(client.total_missing() == 0);  // the abandoned hole is gone for good
 }
 
@@ -165,7 +165,7 @@ TEST_CASE("a snapshot covering the whole buffer needs no replay",
   REQUIRE(client.on_snapshot(kSession, 100).get(plan) == dfr::error::ok);
   CHECK(plan.replay.empty());
   CHECK(client.state() == rec::client_state::live);  // straight back, no replay step
-  CHECK(client.delivered_through() == 100);
+  CHECK(client.delivered_before() == 100);
 }
 
 TEST_CASE("offering a packet while replaying is refused",

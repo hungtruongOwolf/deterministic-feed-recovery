@@ -22,7 +22,7 @@ export function ActCard({ beat }: Props) {
       </div>
       <p className="act__body">{beat.caption}</p>
       <div className="act__figures mono">
-        <span>delivered through {event.delivered_through}</span>
+        <span>delivered through {event.delivered_before}</span>
         <span>missing {event.missing}</span>
         <span>holes {event.holes}</span>
       </div>

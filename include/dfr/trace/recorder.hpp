@@ -100,7 +100,7 @@ struct context {
   std::uint64_t packet_index{0};
   std::int64_t time_ns{0};
   std::uint8_t client_state{0};
-  std::uint64_t delivered_through{0};
+  std::uint64_t delivered_before{0};
   std::uint64_t messages_missing{0};
   std::uint64_t outstanding_ranges{0};
 
@@ -136,7 +136,7 @@ struct context {
                  .time_ns = time_ns,
                  .kind = kind,
                  .client_state = client_state,
-                 .delivered_through = delivered_through,
+                 .delivered_before = delivered_before,
                  .messages_missing = messages_missing,
                  .outstanding_ranges = outstanding_ranges,
                  .gaps = gaps,

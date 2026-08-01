@@ -5,7 +5,7 @@
 // also makes the difference between "not yet" and "never" visible, which is the distinction the whole
 // project turns on: an empty cell ahead of the frontier is ordinary, an empty cell behind it is a hole.
 //
-// Every cell's state is read from the event: filled below `delivered_through` unless it falls inside one of
+// Every cell's state is read from the event: filled below `delivered_before` unless it falls inside one of
 // the `gaps` the trace carries. Nothing is accumulated here.
 
 import type { TraceEvent } from "../model/trace";
@@ -18,7 +18,7 @@ interface Props {
 
 export function BookGrid({ event, messages }: Props) {
   const grid = gridFor(messages);
-  const delivered = event?.delivered_through ?? 0;
+  const delivered = event?.delivered_before ?? 0;
   const gaps = event?.gaps ?? [];
   const undrawn = Math.max(0, (event?.holes ?? 0) - gaps.length);
 

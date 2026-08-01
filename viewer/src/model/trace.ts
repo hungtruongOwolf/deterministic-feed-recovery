@@ -27,7 +27,7 @@ export interface TraceEvent {
   readonly reason: string;
   /** The client state *after* this event. Read, never inferred. */
   readonly state: string;
-  readonly delivered_through: number;
+  readonly delivered_before: number;
   readonly missing: number;
   readonly holes: number;
   /**
@@ -182,7 +182,7 @@ export function parseTrace(text: string): Trace {
   if (summary === undefined) {
     throw new TraceFormatError("no summary: the trace was truncated");
   }
-  if (!header.schema.startsWith("dfr-trace/")) {
+  if (header.schema !== "dfr-trace/2") {
     throw new TraceFormatError(`unsupported schema "${header.schema}"`);
   }
   return { header, events, summary, lastIndex };

@@ -167,7 +167,7 @@ console.log("geometry");
 
 function frame(trace: ReturnType<typeof parseTrace>, at: number, progress: number): string {
   const story = buildStory(trace);
-  const messages = story.reduce((m, b) => Math.max(m, b.event.delivered_through, b.event.end), 1);
+  const messages = story.reduce((m, b) => Math.max(m, b.event.delivered_before, b.event.end), 1);
   return renderToStaticMarkup(
     <Sheet title="T" subtitle="S" figures={[{ label: "L", value: "1" }]}>
       <Stage trace={trace} beat={story[at]} progress={progress} trail={[]} messages={messages} />

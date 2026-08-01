@@ -34,7 +34,7 @@ class traced_pipeline {
         .packet_index = index_,
         .time_ns = now_us_ * 1'000,
         .client_state = static_cast<std::uint8_t>(client_.state()),
-        .delivered_through = client_.delivered_through(),
+        .delivered_before = client_.delivered_before(),
         .messages_missing = client_.total_missing(),
         .outstanding_ranges = holes.size()};
     where.observe_gaps(holes.ranges());

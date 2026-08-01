@@ -8,7 +8,7 @@ function of its seed, so a failure is a number somebody else can type in and see
 [![ci](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml)
 [![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
-![tests](https://img.shields.io/badge/tests-720%20across%205%20configurations-brightgreen.svg)
+![tests](https://img.shields.io/badge/tests-721%20across%205%20configurations-brightgreen.svg)
 
 **[Watch a run →](https://hungtruongowolf.github.io/deterministic-feed-recovery/)**
 
@@ -30,7 +30,7 @@ All nine namespaces are implemented and tested.
 | `dfr::book` | an aggregated order book, and the oracle that turns on it | done |
 | `dfr::wire::glimpse` | the snapshot protocol as bytes, served over SoupBinTCP | done |
 
-**720 tests pass under five configurations**: assertions at paranoid, fast and off, and
+**721 tests pass under five configurations**: assertions at paranoid, fast and off, and
 AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer: all with warnings as errors, on **three
 compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both synthetic streams and real captures.
 
@@ -108,7 +108,7 @@ cmake -S . -B build/dev && cmake --build build/dev -j8
 # The last three lines are the point: the client counted the sequence itself.
 ./build/dev/tools/session
 
-# All 720 tests, assertions at paranoid.
+# All 721 tests, assertions at paranoid.
 ctest --test-dir build/dev
 
 # A run recorded as JSONL. The same seed gives byte-identical output; a different seed does not.
@@ -118,6 +118,11 @@ ctest --test-dir build/dev
 # A snapshot served and rebuilt: the venue's book, and a client that starts from nothing.
 # Both books are printed at every frame: watch the right one converge on the left one.
 ./build/dev/tools/glimpse --levels 5
+
+# The seventh fuzz target reads its input as a program of legal calls, not as a packet.
+# It found a session-change defect in seven bytes; docs/FUZZING.md has the account.
+cmake -S . -B build/fuzz -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build/fuzz -j8
+./build/fuzz/fuzz/fuzz_client --seed 1 --rounds 200000 fuzz/corpus/client/*
 
 # Against a real capture, if you have an IEX HIST pcap:
 ./build/dev/tools/inspect  <capture.pcap>
@@ -319,7 +324,7 @@ somebody who has not read any of this:
    is legible without reading the geometry.
 2. **Starting from nothing**: a snapshot served and rebuilt, the venue's book and the client's side by side.
 3. **The other direction**: an order-entry session, both halves of the wire.
-4. **Where it went wrong while I was building it**: eleven defects, each with how it hid, what caught it, and what
+4. **Where it went wrong while I was building it**: twelve defects, each with how it hid, what caught it, and what
    it changed. For engineers, and placed after the sections that are not.
 5. **What it costs to keep up**: the benchmark tables, led by one figure measured *in your browser* on the run you
    just caused, with the gap to the native numbers stated rather than left to be discovered.
@@ -385,7 +390,7 @@ Other presets: `release` (optimised, assertions still on at the fast level),
 ```
 
 **A concurrency test that has passed once has told you almost nothing.** The threaded book test aborted
-intermittently; I read "720 tests passed", pushed, and CI failed. Looked for on purpose it reproduced on the second
+intermittently; I read "721 tests passed", pushed, and CI failed. Looked for on purpose it reproduced on the second
 run, so it had never been platform-specific, and the defect was in the *harness*, a Catch2 `REQUIRE` on the
 consumer thread racing the main thread's result capture. With it planted back, the test fails 4 times in 200 runs;
 the first repetition count I tried, 40, reported success. 400 runs catch it 99.97% of the time and cost six seconds,

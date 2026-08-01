@@ -21,7 +21,7 @@ trace::context context_at(std::uint64_t index) {
   return trace::context{.packet_index = index,
                         .time_ns = static_cast<std::int64_t>(index) * 1'000,
                         .client_state = 1,
-                        .delivered_through = index * 3,
+                        .delivered_before = index * 3,
                         .messages_missing = 0,
                         .outstanding_ranges = 0};
 }
@@ -72,7 +72,7 @@ TEST_CASE("a context stamps the run state onto every event", "[trace]") {
   CHECK(stamped.time_ns == 7'000);
   CHECK(stamped.kind == trace::event_kind::gap_opened);
   CHECK(stamped.client_state == 1);
-  CHECK(stamped.delivered_through == 21);
+  CHECK(stamped.delivered_before == 21);
 }
 
 // ---------------------------------------------------------------------------

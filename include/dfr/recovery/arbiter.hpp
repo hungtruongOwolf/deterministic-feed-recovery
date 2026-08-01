@@ -101,18 +101,23 @@ class arbiter {
     }
 
     ++tally.first_copies;
-    if (fresh.end > delivered_through_) {
-      delivered_through_ = fresh.end;
+    if (fresh.end > delivered_before_) {
+      delivered_before_ = fresh.end;
     }
     return arbitration_result{
         .outcome = fresh == arrived ? arbitration::deliver : arbitration::partial,
         .deliver = fresh};
   }
 
-  // The highest sequence handed downstream. Everything below it has crossed the
-  // boundary exactly once.
-  [[nodiscard]] constexpr std::uint64_t delivered_through() const noexcept {
-    return delivered_through_;
+  // The sequence *after* the last one handed downstream. Everything strictly below it has crossed the boundary
+  // exactly once, and nothing at or above it has.
+  //
+  // Exclusive, like every other range in this library, and named for it after the stateful fuzzer caught the
+  // mismatch: this was called delivered_before() and documented as "the highest sequence handed downstream",
+  // which is one less than what it returns. A caller who believed the name would replay the last message of every
+  // delivery or skip the first of the next, and in an aggregated book both are permanent.
+  [[nodiscard]] constexpr std::uint64_t delivered_before() const noexcept {
+    return delivered_before_;
   }
 
   // Forgets the merged stream's position and the digest history, for a session change:
@@ -123,7 +128,7 @@ class arbiter {
   // traffic is a fact about the wiring, not about the session, and zeroing it at every
   // session boundary would erase the evidence exactly when someone is looking for it.
   constexpr void reset_stream() noexcept {
-    delivered_through_ = 0;
+    delivered_before_ = 0;
     digest_next_ = 0;
     digest_count_ = 0;
   }
@@ -135,8 +140,8 @@ class arbiter {
   // synthetic packet would land in a line's statistics and in its liveness, and a snapshot
   // is not evidence that any line is running.
   constexpr void adopt(std::uint64_t sequence) noexcept {
-    if (sequence > delivered_through_) {
-      delivered_through_ = sequence;
+    if (sequence > delivered_before_) {
+      delivered_before_ = sequence;
     }
   }
 
@@ -169,7 +174,7 @@ class arbiter {
       std::size_t line) const noexcept {
     DFR_ASSERT(line < kMaxLines, "line index out of range");
     const std::uint64_t reached = stats_[line].highest_sequence;
-    return reached >= delivered_through_ ? 0 : delivered_through_ - reached;
+    return reached >= delivered_before_ ? 0 : delivered_before_ - reached;
   }
 
   // How many configured lines are still running. The number an operator alarms on:
@@ -205,12 +210,12 @@ class arbiter {
   // above is new, and one that straddles it contributes its tail.
   [[nodiscard]] constexpr sequence_range novel_part(
       sequence_range arrived) const noexcept {
-    if (arrived.end <= delivered_through_) {
+    if (arrived.end <= delivered_before_) {
       return sequence_range{};
     }
-    const std::uint64_t from = arrived.first > delivered_through_
+    const std::uint64_t from = arrived.first > delivered_before_
                                    ? arrived.first
-                                   : delivered_through_;
+                                   : delivered_before_;
     return sequence_range{.first = from, .end = arrived.end};
   }
 
@@ -244,7 +249,7 @@ class arbiter {
   }
 
   arbiter_options options_{};
-  std::uint64_t delivered_through_{0};
+  std::uint64_t delivered_before_{0};
   std::array<line_state, kMaxLines> lines_{};
   std::array<line_stats, kMaxLines> stats_{};
 

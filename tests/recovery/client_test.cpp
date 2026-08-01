@@ -29,7 +29,7 @@ TEST_CASE("a fresh client is synchronising and asks for nothing",
   test_client client{readable_options()};
   CHECK(client.state() == rec::client_state::synchronising);
   CHECK(client.poll(at_ms(0)).what == rec::client_action::idle);
-  CHECK(client.delivered_through() == 0);
+  CHECK(client.delivered_before() == 0);
 }
 
 TEST_CASE("the first packet puts the client live", "[recovery][client]") {
@@ -41,7 +41,7 @@ TEST_CASE("the first packet puts the client live", "[recovery][client]") {
   CHECK(first.outcome == rec::sequencing::established);
   CHECK(first.accepted == range(1'000, 1'005));
   CHECK(first.delivered());
-  CHECK(client.delivered_through() == 1'005);
+  CHECK(client.delivered_before() == 1'005);
   CHECK(client.total_missing() == 0);
 }
 
@@ -96,7 +96,7 @@ TEST_CASE("a redundant pair delivers each message exactly once",
     sequence += 2;
   }
   CHECK(delivered == 80);
-  CHECK(client.delivered_through() == sequence);
+  CHECK(client.delivered_before() == sequence);
   CHECK(client.total_missing() == 0);
 }
 
@@ -149,7 +149,7 @@ TEST_CASE("the slower line arriving first is simply the stream",
 
   CHECK(client.total_missing() == 0);
   CHECK(client.tracking().stats(rec::channel_id::at(0)).gaps_opened == 0);
-  CHECK(client.delivered_through() == 13);
+  CHECK(client.delivered_before() == 13);
 }
 
 TEST_CASE("a gap neither line covers becomes a retransmit request",
@@ -238,7 +238,7 @@ TEST_CASE("a session change re-synchronises rather than reporting a gap",
   CHECK(renumbered.outcome == rec::sequencing::session_reset);
   CHECK(renumbered.accepted == range(1, 5));
   CHECK(client.state() == rec::client_state::live);
-  CHECK(client.delivered_through() == 5);
+  CHECK(client.delivered_before() == 5);
 
   // And the old session's hole is not chased into the new one, where those sequence
   // numbers mean something else entirely.
@@ -297,6 +297,34 @@ TEST_CASE("a retransmit for a heartbeat-announced gap is delivered once",
   CHECK(once == 10);
 }
 
+TEST_CASE("a session change does not report the old session's holes as repaired",
+          "[recovery][client]") {
+  // Found by the stateful fuzzer, in seven bytes, and it was silent in the release build.
+  //
+  // A session change resets the arbiter, the buffer, the requester and the watermark, but the gap tracker clears
+  // its holes later, inside observe(). last_recovered() was computed in between, so the *new* session's arrived
+  // range was intersected with the *old* session's outstanding holes. Those sequence numbers mean something else
+  // now, and a caller doing the documented thing, deliver last_recovered() and then deliver accepted, would hand
+  // the overlap downstream twice.
+  //
+  // A duplicate applied to an aggregated book leaves the wrong size at that price permanently, which is exactly
+  // as damaging as losing the message. The paranoid assertion in on_packet states the disjointness and caught it
+  // here; paranoid assertions are off in `release`, so nothing would have caught it there.
+  test_client client{readable_options()};
+  offer(client, kLineA, range(1, 7), at_ms(0));
+  offer(client, kLineA, range(11, 13), at_ms(1));  // leaves 7..10 missing
+  REQUIRE(client.total_missing() == 4);
+
+  // The feed restarts and renumbers from 1, so its first packet covers sequences that overlap the old holes.
+  const auto after = offer(client, kLineA, range(1, 9), at_ms(2), dfr_test::recovery::kSession + 1);
+
+  CHECK(client.last_recovered().empty());
+  CHECK(after.recovered == 0);
+  CHECK(after.accepted == range(1, 9));
+  // And the holes are gone rather than carried across, because they belonged to a stream that no longer exists.
+  CHECK(client.total_missing() == 0);
+}
+
 TEST_CASE("a heartbeat behind the stream is a duplicate, not a gap",
           "[recovery][client]") {
   // A delayed or duplicated heartbeat carries an old sequence number. It must not rewind
@@ -307,7 +335,7 @@ TEST_CASE("a heartbeat behind the stream is a duplicate, not a gap",
   const auto late = offer(client, kLineA, range(5, 5), at_ms(1));
   CHECK(late.recovered == 0);
   CHECK(client.total_missing() == 0);
-  CHECK(client.delivered_through() == 11);
+  CHECK(client.delivered_before() == 11);
 }
 
 TEST_CASE("every client state and action has a distinct name",

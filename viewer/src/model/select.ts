@@ -37,7 +37,7 @@ export function momentAt(trace: Trace, index: number): Moment {
   }
   return {
     state: event.state,
-    deliveredThrough: event.delivered_through,
+    deliveredThrough: event.delivered_before,
     missing: event.missing,
     holes: event.holes,
   };
@@ -150,7 +150,7 @@ export function snapshotOutcome(trace: Trace): SnapshotOutcome | undefined {
     return {
       rejected: event.event === "snapshot_rejected",
       reason: event.reason,
-      deliveredThrough: event.delivered_through,
+      deliveredThrough: event.delivered_before,
       unfillableFirst: event.first,
       unfillableEnd: event.end,
       at: event.i,

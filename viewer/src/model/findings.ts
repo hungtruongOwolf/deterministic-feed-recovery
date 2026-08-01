@@ -45,6 +45,16 @@ export const FINDINGS: readonly Finding[] = [
     where: `${REPO}/tests/integration/book_oracle_test.cpp`,
   },
   {
+    title: "A session change reported the old session's holes as repaired",
+    hid: "A feed restart resets the arbiter, the buffer and the watermark, but the gap tracker clears its holes a few lines later. In between, the new session's arrived range was intersected with the old session's gaps, whose numbers mean something else now.",
+    caught:
+      "A stateful fuzzer, in a seven-byte program. It drives the client with sequences of legal calls rather than malformed bytes, because a state machine's defects are orderings, not packets.",
+    matters:
+      "A caller that delivers the repaired ranges and then the accepted range hands the overlap downstream twice, and a duplicate in an aggregated book leaves the wrong size at that price permanently. A paranoid assertion caught it, and those are off in release, so it was silent where it would have shipped.",
+    kind: "the fuzzer's find",
+    where: `${REPO}/docs/FUZZING.md`,
+  },
+  {
     title: "The flaky abort was in the test harness, and one run was never enough",
     hid: "A threaded test aborted intermittently with SIGABRT, no failing expression, and a Catch2 assertion about its own output redirect. It pointed at the lock-free code, where nothing was wrong. I had read '720 tests passed' and pushed.",
     caught:
@@ -141,7 +151,7 @@ export const FINDINGS: readonly Finding[] = [
  * static page: hardcoding it means it silently becomes a lie the next time a suite is added, and the viewer
  * cannot run ctest. The script fails the build if it drifts, so the page and the build agree or neither ships.
  */
-export const TEST_COUNT = 720;
+export const TEST_COUNT = 721;
 
 /** What a visitor with thirty seconds should be able to read without scrolling or pressing anything. */
 export interface Evidence {

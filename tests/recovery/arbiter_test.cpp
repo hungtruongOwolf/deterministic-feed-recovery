@@ -43,7 +43,7 @@ rec::arbitration_result offer(test_arbiter& arbiter, std::size_t line,
 
 TEST_CASE("a fresh arbiter has delivered nothing", "[recovery][arbiter]") {
   const test_arbiter arbiter;
-  CHECK(arbiter.delivered_through() == 0);
+  CHECK(arbiter.delivered_before() == 0);
   CHECK(arbiter.stats(kLineA).packets == 0);
 }
 
@@ -58,7 +58,7 @@ TEST_CASE("the first packet on a line is delivered whole",
   CHECK(first.outcome == rec::arbitration::deliver);
   CHECK(first.deliver == range(1'000, 1'005));
   CHECK(first.won());
-  CHECK(arbiter.delivered_through() == 1'005);
+  CHECK(arbiter.delivered_before() == 1'005);
   CHECK(arbiter.stats(kLineA).first_copies == 1);
 }
 
@@ -70,7 +70,7 @@ TEST_CASE("a repeat on the same line is a duplicate", "[recovery][arbiter]") {
   CHECK(again.outcome == rec::arbitration::duplicate);
   CHECK(again.deliver.empty());
   CHECK_FALSE(again.won());
-  CHECK(arbiter.delivered_through() == 20);
+  CHECK(arbiter.delivered_before() == 20);
   CHECK(arbiter.stats(kLineA).duplicates == 1);
 }
 
@@ -133,7 +133,7 @@ TEST_CASE("a healthy pair delivers every message exactly once",
   for (std::size_t i = 1; i < delivered.size(); ++i) {
     CHECK(delivered[i].first == delivered[i - 1].end);  // no gap, no overlap
   }
-  CHECK(arbiter.delivered_through() == sequence);
+  CHECK(arbiter.delivered_before() == sequence);
   CHECK(arbiter.stats(kLineA).first_copies == 50);
   CHECK(arbiter.stats(kLineB).duplicates == 50);
 }
@@ -152,7 +152,7 @@ TEST_CASE("whichever line arrives first wins, packet by packet",
 
   CHECK(arbiter.stats(kLineA).first_copies == 2);
   CHECK(arbiter.stats(kLineB).first_copies == 1);
-  CHECK(arbiter.delivered_through() == 13);
+  CHECK(arbiter.delivered_before() == 13);
 }
 
 TEST_CASE("a gap on one line is covered by the other with nothing lost",
@@ -167,7 +167,7 @@ TEST_CASE("a gap on one line is covered by the other with nothing lost",
 
   CHECK(rescue.outcome == rec::arbitration::deliver);
   CHECK(rescue.deliver == range(5, 9));
-  CHECK(arbiter.delivered_through() == 13);
+  CHECK(arbiter.delivered_before() == 13);
   CHECK(arbiter.stats(kLineB).first_copies == 1);
 }
 
@@ -186,7 +186,7 @@ TEST_CASE("a packet straddling the watermark delivers only its tail",
   const auto straddle = offer(arbiter, kLineB, range(15, 25));
   CHECK(straddle.outcome == rec::arbitration::partial);
   CHECK(straddle.deliver == range(20, 25));
-  CHECK(arbiter.delivered_through() == 25);
+  CHECK(arbiter.delivered_before() == 25);
   CHECK(arbiter.stats(kLineB).first_copies == 1);
 }
 
@@ -198,7 +198,7 @@ TEST_CASE("a packet entirely below the watermark contributes nothing",
   const auto late = offer(arbiter, kLineB, range(12, 18));
   CHECK(late.outcome == rec::arbitration::duplicate);
   CHECK(late.deliver.empty());
-  CHECK(arbiter.delivered_through() == 30);
+  CHECK(arbiter.delivered_before() == 30);
 }
 
 TEST_CASE("the watermark never moves backwards", "[recovery][arbiter]") {
@@ -209,7 +209,7 @@ TEST_CASE("the watermark never moves backwards", "[recovery][arbiter]") {
   offer(arbiter, kLineB, range(10, 20));
   offer(arbiter, kLineB, range(50, 60));
 
-  CHECK(arbiter.delivered_through() == 200);
+  CHECK(arbiter.delivered_before() == 200);
 }
 
 TEST_CASE("a jump forward is delivered rather than held",
@@ -223,7 +223,7 @@ TEST_CASE("a jump forward is delivered rather than held",
   const auto jumped = offer(arbiter, kLineA, range(500, 505));
   CHECK(jumped.outcome == rec::arbitration::deliver);
   CHECK(jumped.deliver == range(500, 505));
-  CHECK(arbiter.delivered_through() == 505);
+  CHECK(arbiter.delivered_before() == 505);
 }
 
 TEST_CASE("every arbitration outcome has a distinct name",

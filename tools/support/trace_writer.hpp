@@ -24,7 +24,7 @@ inline void write_header(std::FILE* out, const run_options& run,
                   const dfr_tools::run_summary& summary,
                   std::size_t published) {
   std::fprintf(out,
-               "{\"kind\":\"run\",\"schema\":\"dfr-trace/1\",\"seed\":%llu,"
+               "{\"kind\":\"run\",\"schema\":\"dfr-trace/2\",\"seed\":%llu,"
                "\"messages\":%zu,\"packets\":%zu,\"session\":%u,\"mode\":\"%s\","
                "\"staleness_messages\":%llu,\"lines\":%zu,\"schedule\":[",
                static_cast<unsigned long long>(run.seed),
@@ -68,7 +68,7 @@ inline void write_event(std::FILE* out, const dfr::trace::event& event) {
                "{\"kind\":\"event\",\"i\":%llu,\"t\":%lld,\"layer\":\"%s\","
                "\"event\":\"%s\",\"line\":%u,\"first\":%llu,\"end\":%llu,\"attempt\":%u,"
                "\"detail\":%llu,\"reason\":\"%s\",\"state\":\"%s\","
-               "\"delivered_through\":%llu,\"missing\":%llu,\"holes\":%llu,"
+               "\"delivered_before\":%llu,\"missing\":%llu,\"holes\":%llu,"
                "\"best_bid\":%lld,\"best_bid_size\":%u,\"best_ask\":%lld,\"best_ask_size\":%u,"
                "\"bid_levels\":%u,\"ask_levels\":%u,\"traded_shares\":%llu,\"gaps\":[",
                static_cast<unsigned long long>(event.packet_index),
@@ -82,7 +82,7 @@ inline void write_event(std::FILE* out, const dfr::trace::event& event) {
                dfr::recovery::name_of(
                    static_cast<dfr::recovery::client_state>(event.client_state))
                    .data(),
-               static_cast<unsigned long long>(event.delivered_through),
+               static_cast<unsigned long long>(event.delivered_before),
                static_cast<unsigned long long>(event.messages_missing),
                static_cast<unsigned long long>(event.outstanding_ranges),
                static_cast<long long>(event.best_bid), event.best_bid_size,

@@ -190,7 +190,7 @@ TEST_CASE("a snapshot from a lagging replica loses the Glimpse race",
   rig_ledger record;
   std::int64_t now = 0;
   drive_to_snapshot(client, record, stream, snapshots, now);
-  const std::uint64_t delivered_before = client.delivered_through();
+  const std::uint64_t delivered_before = client.delivered_before();
 
   publish_unseen(snapshots, stream, 20, 27);
 

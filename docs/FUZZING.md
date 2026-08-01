@@ -88,10 +88,71 @@ all, and it is why "no crashes" was never the claim.
 
 ## What this does not cover
 
-- **The recovery state machine.** These targets fuzz decoders. A fuzzer over `recovery::client` would need to
-  generate coherent sequences of *calls*, not bytes: a different and larger piece of work, and the deterministic
-  simulation tests are what covers it today.
 - **Anything past the decode.** A message that decodes correctly and means something absurd is the unit tests'
   problem, and the book oracle's.
 - **The corpus is one day of one feed.** IEX DEEP on 2017-08-26, a Saturday test session. A weekday file, or
   another venue, would have shapes this corpus does not.
+
+
+## The seventh target reads a program, not a packet
+
+The six decoder targets take bytes off a wire. `recovery::client` is where the hard defects are, and mutating a
+packet cannot reach them: it is a state machine with four states, a retransmit timer, a reorder buffer and a
+snapshot that can arrive at any moment, and its failures are *sequences of legal calls*. No amount of byte
+flipping produces "a session change lands while a hole is open and a snapshot is replaying".
+
+So `fuzz/targets/client.cpp` decodes the input as a program. A byte selects one of twelve operations, a few more
+carry its operands, and the operands are folded into legal ranges rather than rejected, because a fuzzer that
+spends its budget being turned away at the door is exploring the door. `fuzz/client_invariants.hpp` states eight
+properties that must hold after every single call, and `fuzz/program.hpp` carries a deliberately thin venue model,
+thin because a richer one would be a second protocol implementation and its bugs would be reported as the
+library's.
+
+### What it found, and what it found first
+
+It found a real defect, in seven bytes: **a session change reported the previous session's holes as repaired.**
+`restart_for_new_session` resets the arbiter, the buffer, the requester and the watermark, but the gap tracker
+clears its holes later, inside `observe()`. `last_recovered()` was computed in between, so the new session's
+arrived range was intersected with the old session's outstanding gaps. A caller doing the documented thing,
+deliver `last_recovered()` and then deliver `accepted`, hands the overlap downstream twice, and a duplicate
+applied to an aggregated book leaves the wrong size at that price permanently. A paranoid assertion states the
+disjointness and caught it; paranoid assertions are off in `release`, so it was silent where it mattered.
+
+Before that it found four bugs in **my own oracle**, which is worth recording because the ratio is the honest
+picture of what writing a fuzzer is like:
+
+| what broke | whose fault |
+|---|---|
+| a snapshot served at a sequence the venue had not reached | the model |
+| "no hole at or below the watermark", the opposite of the design | the oracle |
+| the watermark going backwards across a session change | the oracle |
+| `buffer_message` called outside the `recovering` state | the program, violating a documented precondition |
+| a session change reporting stale holes as repaired | **the library** |
+
+Two of those came from the library's own naming. `delivered_through()` returned the sequence *after* the last one
+delivered and was documented as "the highest sequence handed downstream", one less than what it returns. Writing
+an oracle against the name produced two wrong invariants before I read the assignment. It is now
+`delivered_before()`, and the trace schema moved to `dfr-trace/2` for the renamed field.
+
+### Coverage had to be measured, not assumed
+
+The first version of this target ran fifty thousand programs and found nothing, including nothing when three
+defects were planted in the library on purpose. Instrumenting it explained why: over 5,000 rounds it opened **4**
+gaps, filled **0**, and never once reached the recovering state. The portable driver grows an input one byte at a
+time and truncates as often as it appends, so starting from an empty corpus the programs stayed four bytes long.
+A decoder does not care, which is why nobody had noticed.
+
+Two changes fixed it: seven hand-written seed programs in `fuzz/corpus/client/`, each exercising a path worth
+reaching (loss and repair, refusal escalating to a snapshot, the Glimpse race, a session change mid-recovery), and
+a mutator that appends a run rather than a byte and can splice a chunk back into itself.
+
+| | before | after |
+|---|---|---|
+| gaps opened | 4 | 19,762 |
+| gaps filled | 0 | 7,212 |
+| programs reaching `recovering` | 0 | 9,923 |
+| retransmit requests issued | 0 | 17,385 |
+| planted defects caught | 0 of 3 | 3 of 3 |
+
+That last row is the only one that matters. "No invariant broken" from a fuzzer that has never caught anything is
+not evidence, and it took planting the bugs to find out which kind I had.
