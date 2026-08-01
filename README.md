@@ -14,27 +14,63 @@ function of its seed, so a failure is a number somebody else can type in and see
 
 <img src="docs/assets/screenshots/hero.png" alt="The viewer's opening screen: a three-step plain-language explanation of what goes wrong on a market-data feed and why, headline figures reading 736 tests, 3 compilers, 0 allocations after start-up and 41.5 ns to take in one packet, and the start of the run visualization.">
 
-## Status
+## Why this problem
 
-All nine namespaces are implemented and tested.
+**Every consumer of a real-time feed is exposed to this, not a niche of them.** UDP multicast trades
+error correction for speed, so "missing or out-of-sequence packets", what the industry calls a
+multicast gap, is a normal operating condition, not a bug in the network. The exposure is not
+specific to any one kind of firm: exchanges, brokers, investment banks and market-data vendors all
+consume feeds built the same way ([Keysight, "Why You Can't Trust Your Market Data Feed"](https://www.keysight.com/blogs/en/tech/nwvs/2020/06/10/why-you-cant-trust-your-market-data-feed-multicast-gaps)).
+A commercial market exists around solving exactly this problem well: Exegy and Vela merged in 2021
+into what they describe as a global leader in low-latency market data, and Pico's Redline feed
+handler exists for the same reason, which is a strange thing for a market to need if getting this
+right were rare or easy.
 
-| | what it is | state |
-|---|---|---|
-| `dfr::core` | `result<T>`, errors, views, injected clocks | done |
-| `dfr::wire` | MoldUDP64, IEX-TP, SoupBinTCP 3.00, OUCH 4.2, DEEP 1.0, Glimpse | done |
-| `dfr::capture` | pcap reading, replayed against real IEX HIST files | done |
-| `dfr::chaos` | seeded, protocol-aware fault injection | done |
-| `dfr::recovery` | arbitration, gap tracking, retransmission, snapshot recovery, one poll-driven client | done |
-| `dfr::venue` | market-data publisher, retransmit and snapshot facilities, OUCH order entry over a SoupBinTCP session | done |
-| `dfr::trace` | recording a run as JSONL, and the viewer that reads it | done |
-| `dfr::concurrent` | a lock-free SPSC ring at the one thread boundary, benchmarked | done |
-| `dfr::wire::deep` | IEX DEEP 1.0 message decoding, every offset verified against a real capture | done |
-| `dfr::book` | an aggregated order book, and the oracle that turns on it | done |
-| `dfr::wire::glimpse` | the snapshot protocol as bytes, served over SoupBinTCP | done |
+**Exchanges treat gap recovery as first-class, not an edge case.** CME's own MDP 3.0 documentation
+tells every client to consume both Incremental Feed A and Incremental Feed B and arbitrate between
+them by sequence number, because UDP itself gives no delivery guarantee: the same A/B arbitration
+`dfr::recovery::arbiter` implements. Nasdaq operates a named product for exactly the
+other half of the problem, the [Retransmission Data Feed Distributor](https://www.nasdaqtrader.com/content/AdministrationSupport/AgreementsData/retransdatafeed.pdf),
+whose entire job is answering "give me the messages between sequence X and Y", the same request
+`dfr::venue::retransmit_facility` answers in this project.
 
-**736 tests pass under five configurations**: assertions at paranoid, fast and off, and
-AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer: all with warnings as errors, on **three
-compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both synthetic streams and real captures.
+**When the recovery path itself fails, the failure is not quiet.** On 2013-08-22, Nasdaq's
+Securities Information Processor, the utility that distributes consolidated quotes, received a
+burst of reconnection traffic from NYSE Arca 26 times normal volume, could not process it, and
+stopped distributing prices for every Nasdaq-listed security and the multiply-listed Tape C stocks:
+three hours eleven minutes of trading halted
+([Wikipedia; Forbes, 2013-08-29](https://en.wikipedia.org/wiki/August_2013_NASDAQ_flash_freeze)).
+On 2014-10-01, a NYSE network hardware failure left quote and trade data frozen at 1:07pm for 27
+minutes before the exchange failed over to a backup site; traders reported the bid/ask spread
+inverting on affected symbols in the meantime ([Reuters](https://www.investing.com/news/technology-news/network-failure-interrupts-quotes,-trade-data-for-nyse-stocks-314874)).
+Neither incident is this project's exact scenario; both are the same failure class, at a scale a
+seeded fault injector cannot reach and a unit test cannot wait for.
+
+**A gap that goes undetected is worse than one that gets noticed.** "The WebSocket connection may
+still look connected" while a symbol has gone stale, and a system that keeps quoting into a market
+that has moved without it is, in a phrase this project's own viewer uses independently, *confidently
+wrong* rather than visibly broken ([Insight Big, "Real-Time Market Data Fails Quietly"](https://www.insightbig.com/post/real-time-market-data-fails-quietly-here-s-how-to-make-it-recoverable)).
+That is the property `dfr::recovery` is built to make impossible: a client either knows it is
+current, or knows exactly what it is missing and for how long, never neither.
+
+Despite that, feed *decoders* are the saturated part of the open-source landscape and the recovery
+path is not. Searched GitHub on 2026-07-29:
+
+| Query | Repos |
+|---|---|
+| `"order book" language:C++ created:>2026-01-01` | 1,071 |
+| …of those, with ≥5 stars | 7 |
+| `"gap fill" multicast market data` | **0** |
+| `glimpse soupbintcp` | **0** |
+| `feed arbitration multicast market data` | 1 (0 stars) |
+
+The recovery path: the code that runs only when something has already gone wrong: has no
+open-source implementation, and no tool exists to test one.
+
+Supporting evidence that this is where the bugs are: Yuan et al., OSDI'14 found that 92% of
+catastrophic system failures came from incorrect handling of errors that were explicitly
+signalled in software, and that 58% could have been caught by simple testing of the
+error-handling code.
 
 ## The invariant that needed a message layer
 
@@ -76,6 +112,75 @@ message types and their exact sizes as observed facts. The layouts were then con
 - a Trade Report at $20.9000(the ask) for 100 shares.
 
 All 48,635 messages in the capture decode, with **zero unknown types and zero length mismatches**.
+
+## Architecture
+
+`dfr` is nine namespaces; three of them are the load-bearing story, built in this order:
+
+1. **`dfr::chaos`**, a seeded, protocol-aware fault injector for MoldUDP64 / IEX-TP multicast
+   streams. Burst loss, reordering, duplication, A/B line divergence, sequence resets,
+   snapshot/incremental races. A deterministic function of `(seed, packet_index)`, so any
+   failure replays exactly.
+2. **`dfr::recovery`**, a client library that survives all of the above: gap detection,
+   retransmission requests, snapshot-based book reconstruction, A/B arbitration, NAK
+   suppression.
+3. **`dfr::venue`**, a mock exchange that speaks the real wire protocols, so `dfr::recovery`
+   can be tested against something that behaves like an exchange rather than a stub. Market data
+   out over IEX-TP, retransmission and snapshots that can refuse, and OUCH 4.2 order entry in.
+
+<img src="docs/assets/diagrams/architecture.svg" alt="Data flow: dfr::venue publishes over IEX-TP/MoldUDP64 and takes OUCH orders; dfr::chaos damages the wire between venue and recovery; dfr::recovery's client composes an arbiter, gap_tracker, requester and replay_buffer, asking the venue's retransmit or snapshot facility back when it notices a hole; the result reaches dfr::book in sequence order while dfr::trace records every decision and fault for the viewer.">
+
+Reading the diagram left to right: `dfr::venue` is the only thing that produces or answers anything.
+`dfr::chaos` sits on the wire and is the only thing allowed to damage what crosses it: a seeded
+`injector<Target>`, so the same seed reproduces the same damage on any machine. Everything downstream
+of the red arrow only ever sees what the fault injector decided to let through.
+
+`dfr::recovery::client` does not do the repair itself; it composes four pieces that each own one
+fact and nothing else, argued in [docs/DESIGN.md §7b](docs/DESIGN.md):
+
+- **`arbiter`** merges the (possibly two, for redundant A/B feeds) sequenced streams into one,
+  and is the only thing that knows a message has already been delivered.
+- **`gap_tracker`** is a fixed-capacity array of `{channel_id, expected_seq}`, not a hash map: the
+  channel count is known at configuration time, so there is nothing here that allocates or hashes
+  a string per packet: the citable reason two existing open-source ITCH libraries were rejected
+  as a starting point (§0 of the design doc).
+- **`requester`** turns a hole into a retransmission request, chunked to MoldUDP64's 60,000-message
+  wire limit, and re-asks on a timeout until the retention window says the venue no longer has it.
+- **`replay_buffer`** stands by for the path where retransmission itself fails: a snapshot rebuild,
+  framed as its own numbered stream so a wrong service is caught before any state is trusted.
+
+The blue edges are the only two ways `dfr::recovery` ever talks back to `dfr::venue`: a retransmit
+request that the venue may refuse, and a Glimpse snapshot session that starts, streams price levels,
+and ends. Nothing else about the venue is visible to the client, which is what makes the venue a
+credible stand-in for a real exchange rather than a stub built to be easy to satisfy.
+
+`dfr::trace` is a spectator, not a participant: it appends one JSON line per fault and per recovery
+decision, and is the only component the viewer reads from. The viewer contains no domain logic (see
+[Viewer](#viewer) below) specifically so that this recording stays the single source of truth for
+what a run did.
+
+### The one thread boundary
+
+<img src="docs/assets/diagrams/concurrency.svg" alt="dfr::recovery::client on one deterministic-core thread calls push(delivery) on a spsc_ring, which refuses rather than overwrites when full; the ring holds fixed-size delivery slots with tail_ (advanced by push) and head_ (advanced by pop) each on their own cache line; another thread calls pop() to hand deliveries to whatever strategy the caller runs. A note references docs/CONCURRENCY.md: ThreadSanitizer alone passed a version with the release/acquire relaxed to weaker orders, which an arm64 property test caught 12 out of 12 runs.">
+
+The recovery core is single-threaded on purpose: determinism means a failing run replays from a
+seed, and a multi-threaded core would make thread interleaving part of the input, with nothing left
+to reproduce. But a feed handler that never leaves its own thread is not a feed handler, so the
+concurrency lives at exactly one seam: a lock-free SPSC ring between the thread that owns protocol
+state and the thread that owns whatever strategy consumes it. `push()` refuses rather than overwrites
+when the consumer falls behind, for the same reason `replay_buffer` and `trace::recorder` make the
+same choice elsewhere: overwriting turns a *known* backlog into a silent hole nobody can account for.
+
+[docs/CONCURRENCY.md](docs/CONCURRENCY.md) has the harder finding: ThreadSanitizer, run on x86-64,
+**passes** a version of the ring with its release/acquire ordering relaxed to something weaker, because
+TSan checks for the presence of a data race, not for whether a given ordering is sufficient. A property
+test built for this project, run on arm64 (a weaker memory model where the same bug actually
+reorders), fails it 12 times out of 12. Neither machine or tool alone would have caught this; both
+were necessary.
+
+"Deterministic" here is a constraint on the implementation, not a claim about its quality: no
+wall clock, no unseeded randomness, no pointer-derived ordering, and a single-threaded core, so
+that a failing run is reproducible from a seed plus a build fingerprint.
 
 ## What it costs
 
@@ -146,133 +251,6 @@ recording.
 Two compilers, two targets, one seed. Six shapes of run: one line, two lines, the glimpse race, two session
 scripts: diffed byte for byte. If they ever differ, something in the library depends on its platform and
 "deterministic" was a word rather than a property, so CI fails on it.
-
-## Architecture
-
-Three components under the namespace `dfr`, built in this order:
-
-1. **`dfr::chaos`**, a seeded, protocol-aware fault injector for MoldUDP64 / IEX-TP multicast
-   streams. Burst loss, reordering, duplication, A/B line divergence, sequence resets,
-   snapshot/incremental races. A deterministic function of `(seed, packet_index)`, so any
-   failure replays exactly.
-2. **`dfr::recovery`**, a client library that survives all of the above: gap detection,
-   retransmission requests, snapshot-based book reconstruction, A/B arbitration, NAK
-   suppression.
-3. **`dfr::venue`**, a mock exchange that speaks the real wire protocols, so `dfr::recovery`
-   can be tested against something that behaves like an exchange rather than a stub. Market data
-   out over IEX-TP, retransmission and snapshots that can refuse, and OUCH 4.2 order entry in.
-
-<img src="docs/assets/diagrams/architecture.svg" alt="Data flow: dfr::venue publishes over IEX-TP/MoldUDP64 and takes OUCH orders; dfr::chaos damages the wire between venue and recovery; dfr::recovery's client composes an arbiter, gap_tracker, requester and replay_buffer, asking the venue's retransmit or snapshot facility back when it notices a hole; the result reaches dfr::book in sequence order while dfr::trace records every decision and fault for the viewer.">
-
-Reading the diagram left to right: `dfr::venue` is the only thing that produces or answers anything.
-`dfr::chaos` sits on the wire and is the only thing allowed to damage what crosses it: a seeded
-`injector<Target>`, so the same seed reproduces the same damage on any machine. Everything downstream
-of the red arrow only ever sees what the fault injector decided to let through.
-
-`dfr::recovery::client` does not do the repair itself; it composes four pieces that each own one
-fact and nothing else, argued in [docs/DESIGN.md §7b](docs/DESIGN.md):
-
-- **`arbiter`** merges the (possibly two, for redundant A/B feeds) sequenced streams into one,
-  and is the only thing that knows a message has already been delivered.
-- **`gap_tracker`** is a fixed-capacity array of `{channel_id, expected_seq}`, not a hash map: the
-  channel count is known at configuration time, so there is nothing here that allocates or hashes
-  a string per packet: the citable reason two existing open-source ITCH libraries were rejected
-  as a starting point (§0 of the design doc).
-- **`requester`** turns a hole into a retransmission request, chunked to MoldUDP64's 60,000-message
-  wire limit, and re-asks on a timeout until the retention window says the venue no longer has it.
-- **`replay_buffer`** stands by for the path where retransmission itself fails: a snapshot rebuild,
-  framed as its own numbered stream so a wrong service is caught before any state is trusted.
-
-The blue edges are the only two ways `dfr::recovery` ever talks back to `dfr::venue`: a retransmit
-request that the venue may refuse, and a Glimpse snapshot session that starts, streams price levels,
-and ends. Nothing else about the venue is visible to the client, which is what makes the venue a
-credible stand-in for a real exchange rather than a stub built to be easy to satisfy.
-
-`dfr::trace` is a spectator, not a participant: it appends one JSON line per fault and per recovery
-decision, and is the only component the viewer reads from. The viewer contains no domain logic (see
-[Viewer](#viewer) below) specifically so that this recording stays the single source of truth for
-what a run did.
-
-### The one thread boundary
-
-<img src="docs/assets/diagrams/concurrency.svg" alt="dfr::recovery::client on one deterministic-core thread calls push(delivery) on a spsc_ring, which refuses rather than overwrites when full; the ring holds fixed-size delivery slots with tail_ (advanced by push) and head_ (advanced by pop) each on their own cache line; another thread calls pop() to hand deliveries to whatever strategy the caller runs. A note references docs/CONCURRENCY.md: ThreadSanitizer alone passed a version with the release/acquire relaxed to weaker orders, which an arm64 property test caught 12 out of 12 runs.">
-
-The recovery core is single-threaded on purpose: determinism means a failing run replays from a
-seed, and a multi-threaded core would make thread interleaving part of the input, with nothing left
-to reproduce. But a feed handler that never leaves its own thread is not a feed handler, so the
-concurrency lives at exactly one seam: a lock-free SPSC ring between the thread that owns protocol
-state and the thread that owns whatever strategy consumes it. `push()` refuses rather than overwrites
-when the consumer falls behind, for the same reason `replay_buffer` and `trace::recorder` make the
-same choice elsewhere: overwriting turns a *known* backlog into a silent hole nobody can account for.
-
-[docs/CONCURRENCY.md](docs/CONCURRENCY.md) has the harder finding: ThreadSanitizer, run on x86-64,
-**passes** a version of the ring with its release/acquire ordering relaxed to something weaker, because
-TSan checks for the presence of a data race, not for whether a given ordering is sufficient. A property
-test built for this project, run on arm64 (a weaker memory model where the same bug actually
-reorders), fails it 12 times out of 12. Neither machine or tool alone would have caught this; both
-were necessary.
-
-"Deterministic" here is a constraint on the implementation, not a claim about its quality: no
-wall clock, no unseeded randomness, no pointer-derived ordering, and a single-threaded core, so
-that a failing run is reproducible from a seed plus a build fingerprint.
-
-## Why this problem
-
-**Every consumer of a real-time feed is exposed to this, not a niche of them.** UDP multicast trades
-error correction for speed, so "missing or out-of-sequence packets", what the industry calls a
-multicast gap, is a normal operating condition, not a bug in the network. The exposure is not
-specific to any one kind of firm: exchanges, brokers, investment banks and market-data vendors all
-consume feeds built the same way ([Keysight, "Why You Can't Trust Your Market Data Feed"](https://www.keysight.com/blogs/en/tech/nwvs/2020/06/10/why-you-cant-trust-your-market-data-feed-multicast-gaps)).
-A commercial market exists around solving exactly this problem well: Exegy and Vela merged in 2021
-into what they describe as a global leader in low-latency market data, and Pico's Redline feed
-handler exists for the same reason, which is a strange thing for a market to need if getting this
-right were rare or easy.
-
-**Exchanges treat gap recovery as first-class, not an edge case.** CME's own MDP 3.0 documentation
-tells every client to consume both Incremental Feed A and Incremental Feed B and arbitrate between
-them by sequence number, because UDP itself gives no delivery guarantee: the same A/B arbitration
-`dfr::recovery::arbiter` implements. Nasdaq operates a named product for exactly the
-other half of the problem, the [Retransmission Data Feed Distributor](https://www.nasdaqtrader.com/content/AdministrationSupport/AgreementsData/retransdatafeed.pdf),
-whose entire job is answering "give me the messages between sequence X and Y", the same request
-`dfr::venue::retransmit_facility` answers in this project.
-
-**When the recovery path itself fails, the failure is not quiet.** On 2013-08-22, Nasdaq's
-Securities Information Processor, the utility that distributes consolidated quotes, received a
-burst of reconnection traffic from NYSE Arca 26 times normal volume, could not process it, and
-stopped distributing prices for every Nasdaq-listed security and the multiply-listed Tape C stocks:
-three hours eleven minutes of trading halted
-([Wikipedia; Forbes, 2013-08-29](https://en.wikipedia.org/wiki/August_2013_NASDAQ_flash_freeze)).
-On 2014-10-01, a NYSE network hardware failure left quote and trade data frozen at 1:07pm for 27
-minutes before the exchange failed over to a backup site; traders reported the bid/ask spread
-inverting on affected symbols in the meantime ([Reuters](https://www.investing.com/news/technology-news/network-failure-interrupts-quotes,-trade-data-for-nyse-stocks-314874)).
-Neither incident is this project's exact scenario; both are the same failure class, at a scale a
-seeded fault injector cannot reach and a unit test cannot wait for.
-
-**A gap that goes undetected is worse than one that gets noticed.** "The WebSocket connection may
-still look connected" while a symbol has gone stale, and a system that keeps quoting into a market
-that has moved without it is, in a phrase this project's own viewer uses independently, *confidently
-wrong* rather than visibly broken ([Insight Big, "Real-Time Market Data Fails Quietly"](https://www.insightbig.com/post/real-time-market-data-fails-quietly-here-s-how-to-make-it-recoverable)).
-That is the property `dfr::recovery` is built to make impossible: a client either knows it is
-current, or knows exactly what it is missing and for how long, never neither.
-
-Despite that, feed *decoders* are the saturated part of the open-source landscape and the recovery
-path is not. Searched GitHub on 2026-07-29:
-
-| Query | Repos |
-|---|---|
-| `"order book" language:C++ created:>2026-01-01` | 1,071 |
-| …of those, with ≥5 stars | 7 |
-| `"gap fill" multicast market data` | **0** |
-| `glimpse soupbintcp` | **0** |
-| `feed arbitration multicast market data` | 1 (0 stars) |
-
-The recovery path: the code that runs only when something has already gone wrong: has no
-open-source implementation, and no tool exists to test one.
-
-Supporting evidence that this is where the bugs are: Yuan et al., OSDI'14 found that 92% of
-catastrophic system failures came from incorrect handling of errors that were explicitly
-signalled in software, and that 58% could have been caught by simple testing of the
-error-handling code.
 
 ## What a 400-seed sweep actually showed
 
@@ -483,6 +461,11 @@ without synthesising the transport first: at which point the test exercises the 
 
 ## Building
 
+**736 tests pass under five configurations**: assertions at paranoid, fast and off, and
+AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer: all with warnings as errors, on **three
+compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both
+synthetic streams and real captures.
+
 ```
 cmake --preset dev       # paranoid assertions, no optimisation
 cmake --build --preset dev
@@ -535,7 +518,6 @@ test fails 12 times out of 12. Two architectures, two classes of defect, and dro
 - `RESEARCH-DOSSIER.md`: how this problem was selected, and what was ruled out.
 - `BUILD-GUIDE.md`: data sources, protocol specs, test targets, determinism hazards,
   learning path.
-- `LUAN-GIAI-TIENG-VIET.md`: the same reasoning chain in Vietnamese.
 - `docs/DESIGN.md`: mechanism choices, each with the real project and file that proves it works,
   plus why the two existing open-source MoldUDP64 libraries do not meet these requirements.
 - `docs/BENCHMARKS.md`: the method, the three measurement bugs found by reading numbers that were too good, and
