@@ -83,9 +83,14 @@ fi
 #
 # A defect is a defect whoever wrote it, and five files had crossed the line: one of them written the same week
 # the rule was quoted at somebody. Enforcing it here means the next one fails a build instead of accumulating.
+#
+# viewer/src and viewer/scripts count too: the rule says "one header, one concept" and never said C++ only. It
+# was scoped to the library for months, which is how a 1,081-line test script and a 494-line App.tsx both got
+# past it while the same script was failing five-line-shorter C++ files.
 oversize="$(find "${here}/include" "${here}/tests" "${here}/tools" "${here}/bench" "${here}/fuzz" \
-  \( -name '*.hpp' -o -name '*.cpp' \) -exec wc -l {} + 2>/dev/null \
-  | awk '$1 > 400 && $2 != "total" { print "      " $1 "  " $2 }' || true)"
+  "${here}/viewer/src" "${here}/viewer/scripts" \
+  \( -name '*.hpp' -o -name '*.cpp' -o -name '*.ts' -o -name '*.tsx' \) -exec wc -l {} + 2>/dev/null \
+  | awk '$2 != "total" && $1 > 400 { $1 = $1; name = $0; sub(/^ *[0-9]+ /, "", name); print "      " $1 "  " name }' || true)"
 if [[ -n "${oversize}" ]]; then
   say "✗" "files over 400 lines, which docs/STYLE.md calls a defect:"
   printf '%s\n' "${oversize}"

@@ -1,14 +1,16 @@
-# Builds and tests the library the same four ways a change is verified locally.
+# Builds and tests the library the same five ways a change is verified locally, under Linux Clang.
 #
 # The matrix is not decoration. Two real defects in this repository were invisible in one configuration
 # and fatal in another: a dangling span into a destroyed temporary that -O0 had not yet reused the stack
 # for, and a test asserting that a disabled assertion does not evaluate its condition, which the
-# assertions-off build reported as an unused declaration. So all four run, and all four are required.
+# assertions-off build reported as an unused declaration. So all five run, and all five are required.
 #
-# Clang only, and that is a stated limit rather than a preference: the local development machine has no
-# real GCC, so a GCC job would be a configuration nobody had verified before committing it. The warning
-# set in CMakeLists.txt already branches on the compiler, so adding GCC is a small change: it just has
-# not been run.
+# What the matrix cannot see is the compiler, which is why the `gcc` job below exists: the local
+# development machine has no real GCC (Apple Clang answers to `g++`), so that job is the only place a
+# second compiler's opinion is ever heard. This comment used to say "Clang only" and call that a stated
+# limit; it stopped being true the day the `gcc` job was added below and nobody came back to fix the
+# sentence at the top of the file, which is the same failure check-docs.sh exists to catch in prose about
+# the library.
 
 name: ci
 
