@@ -16,7 +16,11 @@ Checks: >
   -cppcoreguidelines-pro-bounds-constant-array-index,
   -cppcoreguidelines-pro-type-reinterpret-cast,
   -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-avoid-do-while,
+  -cppcoreguidelines-pro-type-vararg,
+  -cppcoreguidelines-missing-std-forward,
   -misc-non-private-member-variables-in-classes,
+  -misc-include-cleaner,
   -modernize-use-trailing-return-type,
   -readability-magic-numbers,
   -readability-identifier-length
@@ -45,6 +49,38 @@ Checks: >
 #   readability-identifier-length
 #     Rejects `i` and `n`. TIGER_STYLE bans abbreviating *variable names*, not
 #     conventional loop counters.
+#
+#   cppcoreguidelines-avoid-do-while
+#     Fires on `do { ... } while (false)`, the idiom every multi-statement
+#     macro in assert.hpp uses so a caller can write `DFR_ASSERT(x);` with a
+#     trailing semicolon and have it parse as one statement everywhere,
+#     including inside an unbraced `if`. The check cannot tell a macro-safety
+#     wrapper from a real loop; nothing here is a real loop.
+#
+#   cppcoreguidelines-pro-type-vararg
+#     Flags every std::fprintf/std::snprintf. Deliberate throughout: stderr
+#     output on the assertion-failure path is not iostreams because it must
+#     not allocate, and the trace writers use printf-family formatting for the
+#     same reason quill and fmt give as a decompile-once-not-many argument
+#     against <<-chains. The format strings are all compile-time literals.
+#
+#   cppcoreguidelines-missing-std-forward
+#     Fires on every `Emit&&` parameter in chaos/injector.hpp, and forwarding
+#     it would be the bug: the same callback is invoked once per packet
+#     inside the function body, and std::forward on the first call would
+#     legally move a callable out from under the second call. A forwarding
+#     reference here is `auto&&` for cheap pass-by-reference to a caller's
+#     lambda, not a forward-to-exactly-once constructor argument.
+#
+#   misc-include-cleaner
+#     Wants every name's own header included directly, which fights the
+#     project's own convention on purpose: "every wire protocol gets an
+#     umbrella header" (checked by scripts/check-docs.sh) exists so a
+#     consumer writes `#include <dfr/wire/moldudp64.hpp>` once and gets
+#     everything, and internal headers rely on that umbrella rather than
+#     re-including each leaf themselves. Enabling this check would mean
+#     fighting the umbrella-header convention header by header rather than
+#     enforcing it, which is backwards.
 
 WarningsAsErrors: ''
 HeaderFilterRegex: 'include/dfr/.*'
@@ -77,3 +113,7 @@ CheckOptions:
     value: 'DFR_'
   - key: readability-identifier-naming.TemplateParameterCase
     value: CamelCase
+  # LLVMFuzzerTestOneInput is libFuzzer's ABI, not a naming choice this project made; seven fuzz targets
+  # define it identically and none of them may rename it.
+  - key: readability-identifier-naming.FunctionIgnoredRegexp
+    value: 'LLVMFuzzerTestOneInput'
