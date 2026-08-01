@@ -87,6 +87,27 @@ button:hover, select:hover { background: var(--page-sunk); }
 input[type="range"] { width: 100%; accent-color: var(--recovery); }
 input[type="file"] { display: none; }
 
+/* Keyboard focus, the same shape everywhere it can land.
+ *
+ * Measured before writing this: two :focus-visible rules existed in the whole stylesheet, both scoped to one
+ * SVG element each. Every real <button>, <input>, <select> and <a> (the transport, the damage and length
+ * choices, the pattern field, every link to the code) had no visible focus state at all: a reader driving the
+ * page by keyboard could not tell where they were.
+ *
+ * `--recovery` rather than `--ink`: it is already this palette's "something interactive is happening" colour
+ * (the range input's accent-color uses it too), it reads as attention rather than as damage, and it clears
+ * 5.16:1 against the page, well past the 3:1 WCAG non-text minimum a focus indicator needs.
+ *
+ * `:focus-visible`, not `:focus`: a mouse click that already shows what was pressed should not also draw a
+ * ring around it, and `:focus-visible` is what lets the two agree with the browser's own judgement of whether
+ * the visitor is driving by keyboard.
+ */
+button:focus-visible, select:focus-visible, input:focus-visible, a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--recovery);
+  outline-offset: 2px;
+}
+
 .panel { border: 1px solid var(--rule); padding: 13px 15px 15px; background: var(--page); }
 .panel > h2 { margin-bottom: 9px; }
 .panel .why { font-size: 13px; color: var(--ink-soft); margin: 0 0 11px; max-width: 60ch; }
