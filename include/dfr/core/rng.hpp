@@ -41,6 +41,7 @@
 #include <dfr/core/detail/wide_multiply.hpp>
 #include <dfr/core/ratio.hpp>
 
+#include <array>
 #include <bit>
 #include <concepts>
 #include <cstddef>
@@ -65,7 +66,7 @@ class prng {
   // resumed, and so that two runs can be compared at a point rather than only
   // at the end.
   struct state {
-    std::uint64_t s[4]{};
+    std::array<std::uint64_t, 4> s{};
     std::uint64_t draws{0};
 
     [[nodiscard]] friend constexpr bool operator==(const state&,

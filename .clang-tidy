@@ -31,7 +31,9 @@ Checks: >
   -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
   -cppcoreguidelines-macro-usage,
   -cppcoreguidelines-owning-memory,
-  -clang-analyzer-optin.core.EnumCastOutOfRange
+  -clang-analyzer-optin.core.EnumCastOutOfRange,
+  -cppcoreguidelines-avoid-c-arrays,
+  -modernize-avoid-c-arrays
 
 # Rationale for the exclusions:
 #
@@ -167,6 +169,19 @@ Checks: >
 #     differently from an ordinary clang-tidy check; excluding the check
 #     itself is the only way to stop reporting a defect in a dependency this
 #     project cannot fix.
+#
+#   cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays
+#     Every remaining instance, after the ones this pass converted to
+#     std::array directly (data tables and fixed-size wire fixtures, where the
+#     conversion was free), is a local scratch buffer paired with
+#     std::snprintf or std::fread: `char detail[96]; std::snprintf(detail,
+#     sizeof detail, ...);` in tools/session.cpp, tools/glimpse.cpp and
+#     tools/inspect.cpp. sizeof on the array is exactly the bound the call
+#     needs, the buffer never leaves the function, and converting it to
+#     std::array would only add a `.data()` at every call site for a type
+#     that offers no protection C's own sizeof does not already provide here.
+#     Same call sites cppcoreguidelines-pro-type-vararg is already excluded
+#     for, for the complementary reason.
 
 WarningsAsErrors: ''
 HeaderFilterRegex: 'include/dfr/.*'

@@ -29,6 +29,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -283,10 +284,8 @@ TEST_CASE("nothing is reported before the fault was injected",
   // Covers the byte-level faults too, where an exact count is not claimed: a
   // report attributed to a packet ahead of the damage would mean the checker is
   // carrying state it should have resynchronised.
-  const chaos::fault_op byte_faults[] = {chaos::fault_op::flip_bit,
-                                         chaos::fault_op::truncate,
-                                         chaos::fault_op::rewrite_sequence,
-                                         chaos::fault_op::drop};
+  const std::array byte_faults{chaos::fault_op::flip_bit, chaos::fault_op::truncate,
+                               chaos::fault_op::rewrite_sequence, chaos::fault_op::drop};
 
   for (const auto op : byte_faults) {
     const std::uint64_t injected_at = 80;

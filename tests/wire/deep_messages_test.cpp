@@ -142,7 +142,7 @@ TEST_CASE("asking a decoder for the wrong message is refused") {
 }
 
 TEST_CASE("every type the capture contains has a size and a name") {
-  constexpr deep::message_type kAll[]{
+  constexpr std::array kAll{
       deep::message_type::system_event,     deep::message_type::security_directory,
       deep::message_type::trading_status,   deep::message_type::operational_halt,
       deep::message_type::short_sale_test,  deep::message_type::security_event,

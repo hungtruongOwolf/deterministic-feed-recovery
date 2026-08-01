@@ -21,6 +21,7 @@
 #include <dfr/core/narrow.hpp>
 #include <dfr/core/rng.hpp>
 
+#include <array>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -53,8 +54,8 @@ std::vector<std::uint8_t> read_file(const char* path) {
 // A random mutator reaches 0xFFFF in a two-byte field eventually; putting it in the table reaches it on the
 // first pass. These are the numbers that have historically broken framing in this repository: a length of zero,
 // a length one past the buffer, and the unsigned maxima.
-constexpr std::uint64_t kInterestingLengths[]{0, 1, 2, 0x7F, 0x80, 0xFF, 0x100, 0x7FFF,
-                                              0x8000, 0xFFFF, 0xFFFFFFFF};
+constexpr std::array<std::uint64_t, 11> kInterestingLengths{
+    0, 1, 2, 0x7F, 0x80, 0xFF, 0x100, 0x7FFF, 0x8000, 0xFFFF, 0xFFFFFFFF};
 
 void mutate(std::vector<std::uint8_t>& bytes, dfr::prng& rng) {
   if (bytes.empty()) {
@@ -79,7 +80,7 @@ void mutate(std::vector<std::uint8_t>& bytes, dfr::prng& rng) {
     }
     case 3: {  // write an interesting length somewhere a length field might be
       const auto value =
-          kInterestingLengths[rng.next() % (sizeof kInterestingLengths / sizeof(std::uint64_t))];
+          kInterestingLengths[rng.next() % kInterestingLengths.size()];
       const auto at = dfr::narrowed<std::size_t>(rng.next() % bytes.size());
       for (std::size_t i = 0; i < 4 && at + i < bytes.size(); ++i) {
         bytes[at + i] = static_cast<std::uint8_t>((value >> (8 * i)) & 0xFF);

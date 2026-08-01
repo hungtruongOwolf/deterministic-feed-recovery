@@ -17,6 +17,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <array>
 #include <atomic>
 #include <cstdint>
 #include <thread>
@@ -115,9 +116,10 @@ TEST_CASE("a batch drain honours its limit") {
 }
 
 TEST_CASE("a delivery carries everything the far side needs") {
-  const std::byte body[3]{std::byte{'a'}, std::byte{'b'}, std::byte{'c'}};
+  const std::array<std::byte, 3> body{std::byte{'a'}, std::byte{'b'}, std::byte{'c'}};
   conc::delivery record;
-  REQUIRE(conc::delivery::from(4711, 2, /*recovered=*/true, dfr::packet_view{body, 3}, record));
+  REQUIRE(conc::delivery::from(4711, 2, /*recovered=*/true,
+                               dfr::packet_view{body.data(), body.size()}, record));
 
   CHECK(record.sequence == 4711);
   CHECK(record.line == 2);
@@ -146,9 +148,9 @@ TEST_CASE("two threads, and nothing is lost, reordered or repeated") {
   std::thread producer([&] {
     for (std::uint64_t i = 1; i <= kMessages; ++i) {
       conc::delivery record;
-      const std::byte body[8]{};
+      const std::array<std::byte, 8> body{};
       REQUIRE(conc::delivery::from(i, static_cast<std::uint8_t>(i % 2), i % 3 == 0,
-                                   dfr::packet_view{body, 8}, record));
+                                   dfr::packet_view{body.data(), body.size()}, record));
       // Spin rather than drop: this test is about the ring's ordering, and a producer that gave up would make
       // the sequence check vacuous whenever the consumer was slow.
       while (!ring.push(record)) {

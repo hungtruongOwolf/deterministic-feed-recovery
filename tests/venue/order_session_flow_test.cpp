@@ -13,6 +13,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -172,8 +173,9 @@ TEST_CASE("an unreadable order message ends the session rather than being skippe
 
   // A type byte that means nothing. OUCH carries no length inside the packet, so "ignore this one and
   // read the next" would be a guess about where the next one starts.
-  static constexpr std::byte kNonsense[4]{std::byte{'?'}, std::byte{0}, std::byte{0}, std::byte{0}};
-  stream.put_order(dfr::packet_view{kNonsense, 4});
+  static constexpr std::array<std::byte, 4> kNonsense{std::byte{'?'}, std::byte{0}, std::byte{0},
+                                                       std::byte{0}};
+  stream.put_order(dfr::packet_view{kNonsense.data(), kNonsense.size()});
   std::size_t taken = 0;
   REQUIRE(host.offer(stream.view(), at_ms(1), out).get(taken) == dfr::error::ok);
 

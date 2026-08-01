@@ -2,6 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <array>
 #include <cstdint>
 #include <limits>
 
@@ -16,7 +17,7 @@ TEST_CASE("byteswap reverses each width", "[core][byte_order]") {
 TEST_CASE("byteswap is its own inverse", "[core][byte_order]") {
   // Includes the boundary values, because a shift-and-mask implementation that
   // drops the top byte still passes on a value with a zero there.
-  const std::uint64_t values[] = {
+  const std::array<std::uint64_t, 7> values{
       0, 1, 0xFF, 0xFF00, std::numeric_limits<std::uint64_t>::max(),
       0x8000'0000'0000'0000ULL, 0x0123'4567'89AB'CDEFULL};
 
