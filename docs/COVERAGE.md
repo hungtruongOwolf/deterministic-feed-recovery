@@ -1,6 +1,6 @@
 # Coverage
 
-"730 tests pass" is a count, and a count says nothing about which line, which branch, which function no test
+"734 tests pass" is a count, and a count says nothing about which line, which branch, which function no test
 has ever reached. The first time this project measured that directly, it found two real gaps: a fault-injection
 target reachable only from a compile-time concept check, and an enum-to-string pair with no test at all while
 every sibling of the same shape had one. Neither would have surfaced from reading the code, because in both
@@ -34,15 +34,25 @@ run against `chaos::injector<moldudp64_target>`, each verified by decoding the m
 than by counting changed bytes. Confirmed against a planted defect (`current - delta` instead of `current +
 delta` in the sequence add): the test fails on the broken version and passes on the fix.
 
-**`venue::order_session_state`'s two `name_of()` functions had no test.** Every other enum-to-string function in
-this codebase (the arbiter's, the client's, the requester's, the snapshot planner's) has a direct unit test
-asserting the exact string for every value. `name_of(session_phase)` and `name_of(session_ending)` did not; they
-were called only from `tools/session.cpp`. That is also the function that puts these exact strings into the
-trace JSON `tools/support/trace_writer.hpp` writes and the viewer reads, so a swapped case in either switch would
-have shown up as a wrong word on the live page with nothing here to catch it first.
+**`venue::order_session_state`'s two `name_of()` functions, and three of `wire::ouch::enums`'s, had no test.**
+Every other enum-to-string function in this codebase (the arbiter's, the client's, the requester's, the snapshot
+planner's, and OUCH's own `name_of_cancel_reason`/`name_of_reject_reason`/`name_of_broken_reason`) has a direct
+unit test asserting the exact string for every value. `name_of(session_phase)`, `name_of(session_ending)`,
+`name_of(side)`, `name_of(order_state)` and `name_of(event_code)` did not. The first two were called only from
+`tools/session.cpp`; the OUCH three had no caller anywhere, not even a tool. `name_of(session_phase)` and
+`name_of(session_ending)` are also what `tools/support/trace_writer.hpp` puts into the JSON the viewer reads, so
+a swapped case in either switch would have shown up as a wrong word on the live page with nothing here to catch
+it first.
 
-Fixed in `tests/venue/order_session_state_test.cpp`: one assertion per enum value, both enums. Confirmed against
-a planted defect (swapped return string for `established`): fails on the broken version, passes on the fix.
+Fixed in `tests/venue/order_session_state_test.cpp` and `tests/wire/ouch_enums_test.cpp`: one assertion per enum
+value, five enums in total, plus the `side` modify-transition table the same file's `is_permitted_modify_transition`
+governs. Each confirmed against a planted defect (a swapped return string): fails on the broken version, passes
+on the fix.
+
+Found the second group by finishing the sweep the first group started: the coverage report lists every function
+`llvm-cov` never saw execute, sorted by file, and reading that whole list rather than stopping at the first two
+hits is what turned up the OUCH three. The obvious lesson is the one worth stating: a coverage pass that stops
+after finding one or two matches of a pattern has probably not finished finding the pattern.
 
 ## What was not chased, and why
 
@@ -87,7 +97,8 @@ recorded here so the next reading of this report does not repeat the investigati
 | | region | function | line | branch |
 |---|---|---|---|---|
 | before this pass | 78.55% | 93.66% | 82.88% | 79.24% |
-| after | 78.43% | 94.47% | 83.73% | 79.13% |
+| after the first two fixes | 78.43% | 94.47% | 83.73% | 79.13% |
+| after the OUCH fix | 78.34% | 95.14% | 84.10% | 79.17% |
 
 Region and branch coverage barely moved, expected, since the fixes closed two specific, narrow gaps rather
 than chasing every low number, and the file recording the largest untouched gaps (`DFR_UNREACHABLE` branches)

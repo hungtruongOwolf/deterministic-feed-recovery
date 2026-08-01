@@ -139,6 +139,7 @@ dfr_add_test_suite(dfr_soupbintcp_tests SOURCES
 
 dfr_add_test_suite(dfr_ouch_tests SOURCES
   wire/ouch_value_test.cpp
+  wire/ouch_enums_test.cpp
   wire/ouch_message_test.cpp
 )
 
