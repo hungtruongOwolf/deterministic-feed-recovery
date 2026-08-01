@@ -145,8 +145,9 @@ void operator delete[](void* memory) noexcept { std::free(memory); }
 void operator delete[](void* memory, std::size_t) noexcept { std::free(memory); }
 // NOLINTEND(cppcoreguidelines-no-malloc,readability-named-parameter)
 
-// NOLINTNEXTLINE(bugprone-exception-escape): main() is exactly where an uncaught exception belongs: a
-// benchmark that hit std::bad_alloc should crash loudly with the standard terminate message, not swallow it.
+// main() is exactly where an uncaught exception belongs: a benchmark that hit std::bad_alloc should crash
+// loudly with the standard terminate message, not swallow it.
+// NOLINTNEXTLINE(bugprone-exception-escape)
 int main(int argc, char** argv) {
   const char* json_path = nullptr;
   std::size_t samples = 200;

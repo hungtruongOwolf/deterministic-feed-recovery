@@ -25,8 +25,9 @@ struct counted {
   counted(const counted& other) : copies(other.copies + 1), moves(other.moves) {}
   counted(counted&& other) noexcept
       : copies(other.copies), moves(other.moves + 1) {}
-  // NOLINTNEXTLINE(cert-oop54-cpp): a self-assignment guard would suppress the exact event this type exists
-  // to count: it tracks how many times copy-assignment ran, and `x = x` is a real copy-assignment.
+  // A self-assignment guard would suppress the exact event this type exists to count: it tracks how many
+  // times copy-assignment ran, and `x = x` is a real copy-assignment.
+  // NOLINTNEXTLINE(cert-oop54-cpp)
   counted& operator=(const counted& other) {
     copies = other.copies + 1;
     moves = other.moves;

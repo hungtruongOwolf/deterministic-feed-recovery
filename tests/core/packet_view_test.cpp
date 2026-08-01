@@ -25,8 +25,9 @@ TEST_CASE("a default view is empty and null", "[core][packet_view]") {
   const dfr::packet_view v;
 
   CHECK(v.empty());
-  // NOLINTNEXTLINE(readability-container-size-empty): see tests/chaos/schedule_test.cpp's version of this
-  // comment: size() and empty() are pinned as separately agreeing, not folded into one check.
+  // See tests/chaos/schedule_test.cpp's version of this comment: size() and empty() are pinned as separately
+  // agreeing, not folded into one check.
+  // NOLINTNEXTLINE(readability-container-size-empty)
   CHECK(v.size() == 0);
   CHECK(v.data() == nullptr);
   // A zero-length view must accept a zero-length query rather than rejecting
@@ -203,8 +204,9 @@ TEST_CASE("views compare by content, not by address",
               dfr::packet_view{a.data(), 3});
 
   // Two empty views are equal regardless of where they point.
-  // NOLINTNEXTLINE(readability-container-size-empty): this pins operator== itself, not emptiness; rewriting
-  // it as .empty() would stop testing that two independently-constructed empty views compare equal.
+  // This pins operator== itself, not emptiness; rewriting it as .empty() would stop testing that two
+  // independently-constructed empty views compare equal.
+  // NOLINTNEXTLINE(readability-container-size-empty)
   CHECK(dfr::packet_view{} == dfr::packet_view{a.data(), 0});
 }
 

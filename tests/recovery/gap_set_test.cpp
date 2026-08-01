@@ -40,8 +40,9 @@ void must_open(rec::gap_set& set, rec::sequence_range hole) {
 TEST_CASE("a fresh set is missing nothing", "[recovery][gap_set]") {
   const rec::gap_set set;
   CHECK(set.empty());
-  // NOLINTNEXTLINE(readability-container-size-empty): see schedule_test.cpp's version of this comment: a
-  // hand-rolled container's size() and empty() are worth pinning as agreeing, not folded into one check.
+  // See schedule_test.cpp's version of this comment: a hand-rolled container's size() and empty() are worth
+  // pinning as agreeing, not folded into one check.
+  // NOLINTNEXTLINE(readability-container-size-empty)
   CHECK(set.size() == 0);
   CHECK(set.total_missing() == 0);
 }

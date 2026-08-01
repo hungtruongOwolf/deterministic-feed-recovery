@@ -232,8 +232,9 @@ TEST_CASE("a disabled assertion does not evaluate its condition",
 }
 
 TEST_CASE("DFR_MAYBE never evaluates its condition", "[core][assert]") {
-  // NOLINTNEXTLINE(misc-const-correctness): must stay non-const to bind to note_evaluation's bool&, even
-  // though DFR_MAYBE's sizeof(...) context means that call is never actually made.
+  // Must stay non-const to bind to note_evaluation's bool&, even though DFR_MAYBE's sizeof(...) context means
+  // that call is never actually made.
+  // NOLINTNEXTLINE(misc-const-correctness)
   bool evaluated = false;
 
   // DFR_MAYBE documents that either outcome is permitted here. It must be free

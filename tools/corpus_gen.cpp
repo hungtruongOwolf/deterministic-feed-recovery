@@ -105,8 +105,12 @@ class corpus_writer {
 struct wire_session {
   session_type host;
   clock_type clock;
+  // References, not pointers: this tool constructs one wire_session per script and never reseats or
+  // reassigns it, so there is nothing for the implicitly-deleted copy/move assignment this costs to give up.
+  // NOLINTBEGIN(cppcoreguidelines-avoid-const-or-ref-data-members)
   corpus_writer& soup_out;
   corpus_writer& ouch_out;
+  // NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
 
   wire_session(venue::order_session_options options, corpus_writer& s, corpus_writer& o)
       : host(options, venue::order_entry_options{}), soup_out(s), ouch_out(o) {}
@@ -143,7 +147,7 @@ struct wire_session {
 }  // namespace
 
 int main(int argc, char** argv) {
-  fs::path root = argc > 1 ? argv[1] : "fuzz/corpus";
+  const fs::path root = argc > 1 ? argv[1] : "fuzz/corpus";
   corpus_writer soup_out(root / "soupbintcp");
   corpus_writer ouch_out(root / "ouch");
 

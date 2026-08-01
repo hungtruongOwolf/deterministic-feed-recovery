@@ -115,12 +115,13 @@ int main(int argc, char** argv) {
     } else if (arg == "--no-cancel") {
       opts.cancel = false;
     } else if (arg == "--orders" && i + 1 < argc) {
-      // NOLINTNEXTLINE(cert-err34-c): garbage input becomes 0, which the range check just below rejects; this
-      // is a demo CLI, not a parser worth a strtol error-handling path for.
+      // Garbage input becomes 0, which the range check just below rejects; this is a demo CLI, not a parser
+      // worth a strtol error-handling path for.
+      // NOLINTNEXTLINE(cert-err34-c)
       opts.orders = std::atoi(argv[++i]);
     } else if (arg == "--fill" && i + 1 < argc) {
-      // NOLINTNEXTLINE(cert-err34-c): same as --orders above: garbage becomes 0, and 0 already means "no
-      // fill" a few lines down.
+      // Same as --orders above: garbage becomes 0, and 0 already means "no fill" a few lines down.
+      // NOLINTNEXTLINE(cert-err34-c)
       opts.fill = std::atoi(argv[++i]);
     } else if (arg == "--trace" && i + 1 < argc) {
       opts.trace_path = argv[++i];
@@ -228,8 +229,9 @@ int main(int argc, char** argv) {
         host.offer(dfr::packet_view{bytes.data(), bytes.size()}, clock.now(), emit).get(taken);
     if (err != dfr::error::ok) {
       std::fprintf(stderr, "session: %s\n", dfr::to_string(err).data());
-      // NOLINTNEXTLINE(concurrency-mt-unsafe): this tool is single-threaded; there is no second thread for
-      // exit()'s atexit-handler race to race against.
+      // This tool is single-threaded; there is no second thread for exit()'s atexit-handler race to race
+      // against.
+      // NOLINTNEXTLINE(concurrency-mt-unsafe)
       std::exit(1);
     }
   };

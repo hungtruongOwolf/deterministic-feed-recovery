@@ -31,16 +31,17 @@ class timeout_watcher {
 // Negative fixtures for the concept. At namespace scope because a local class
 // may not have static data members, which is_steady is.
 struct not_a_clock {
-  // NOLINTNEXTLINE(readability-convert-member-functions-to-static): deliberately shaped like real_clock::now()
-  // above, which is a genuine instance method for the same reason documented there.
+  // Deliberately shaped like real_clock::now() above, which is a genuine instance method for the same reason
+  // documented there.
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
   [[nodiscard]] int now() const { return 0; }
 };
 
 struct no_now {
   using duration = dfr::duration;
   using time_point = std::chrono::time_point<no_now, duration>;
-  // NOLINTNEXTLINE(readability-identifier-naming): the Clock named requirement's own spelling; see
-  // dfr::manual_clock::is_steady in clock.hpp.
+  // The Clock named requirement's own spelling; see dfr::manual_clock::is_steady in clock.hpp.
+  // NOLINTNEXTLINE(readability-identifier-naming)
   static constexpr bool is_steady = true;
 };
 

@@ -82,8 +82,9 @@ TEST_CASE("a context stamps the run state onto every event", "[trace]") {
 TEST_CASE("a fresh recorder holds nothing", "[trace]") {
   const small_recorder recorder;
   CHECK(recorder.empty());
-  // NOLINTNEXTLINE(readability-container-size-empty): see schedule_test.cpp's version of this comment: a
-  // hand-rolled container's size() and empty() are worth pinning as agreeing, not folded into one check.
+  // See schedule_test.cpp's version of this comment: a hand-rolled container's size() and empty() are worth
+  // pinning as agreeing, not folded into one check.
+  // NOLINTNEXTLINE(readability-container-size-empty)
   CHECK(recorder.size() == 0);
   CHECK(recorder.dropped() == 0);
   CHECK_FALSE(recorder.full());

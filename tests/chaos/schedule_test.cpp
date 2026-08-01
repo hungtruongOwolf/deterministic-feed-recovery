@@ -137,9 +137,10 @@ TEST_CASE("adding a no-op fault is a programmer error", "[chaos][schedule]") {
 TEST_CASE("an empty schedule affects nothing", "[chaos][schedule]") {
   const chaos::schedule s;
   CHECK(s.empty());
-  // NOLINTNEXTLINE(readability-container-size-empty): a fact about size() in its own right, not a roundabout
-  // emptiness check: this is a hand-rolled container, and the two accessors agreeing is exactly the kind of
-  // thing this project has found genuinely diverging before (see moldudp64's cursor and builder).
+  // A fact about size() in its own right, not a roundabout emptiness check: this is a hand-rolled container,
+  // and the two accessors agreeing is exactly the kind of thing this project has found genuinely diverging
+  // before (see moldudp64's cursor and builder).
+  // NOLINTNEXTLINE(readability-container-size-empty)
   CHECK(s.size() == 0);
   CHECK(s.at_packet(0) == nullptr);
   CHECK(s.last_affected_packet() == 0);

@@ -81,8 +81,9 @@ class manual_clock {
   using period = duration::period;
   using time_point = std::chrono::time_point<manual_clock, duration>;
 
-  // NOLINTNEXTLINE(readability-identifier-naming): is_steady is the Clock named requirement's own spelling
-  // (std::chrono::is_clock_v looks for exactly this member name); it cannot take the project's 'k' prefix.
+  // is_steady is the Clock named requirement's own spelling (std::chrono::is_clock_v looks for exactly this
+  // member name); it cannot take the project's 'k' prefix.
+  // NOLINTNEXTLINE(readability-identifier-naming)
   static constexpr bool is_steady = true;
 
   constexpr manual_clock() noexcept = default;
@@ -150,10 +151,10 @@ class real_clock {
   // NOLINTNEXTLINE(readability-identifier-naming): see manual_clock::is_steady above; same constraint.
   static constexpr bool is_steady = true;
 
-  // NOLINTNEXTLINE(readability-convert-member-functions-to-static): this implementation happens not to touch
-  // `this`, but the Clock concept's other member, manual_clock::now(), genuinely does. Making this one static
-  // would make the two clocks that satisfy the same concept look like different kinds of thing for a reason
-  // that has nothing to do with the concept.
+  // This implementation happens not to touch `this`, but the Clock concept's other member,
+  // manual_clock::now(), genuinely does. Making this one static would make the two clocks that satisfy the
+  // same concept look like different kinds of thing for a reason that has nothing to do with the concept.
+  // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
   [[nodiscard]] time_point now() const noexcept {
     const auto since_epoch = std::chrono::steady_clock::now().time_since_epoch();
     return time_point{std::chrono::duration_cast<duration>(since_epoch)};

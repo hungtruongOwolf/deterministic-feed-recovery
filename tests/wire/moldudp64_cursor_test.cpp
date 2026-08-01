@@ -24,7 +24,7 @@ TEST_CASE("a default-constructed cursor is already exhausted",
   // initializer, so a default-constructed cursor read indeterminate values for both. wire::iextp::cursor
   // carries the same two fields with `{0}` already; this one had drifted from that pattern, silently, since
   // nothing ever default-constructed one outside of result<message_cursor>'s error path.
-  mold::message_cursor c;
+  const mold::message_cursor c;
   CHECK(c.done());
   CHECK(c.remaining() == 0);
 }

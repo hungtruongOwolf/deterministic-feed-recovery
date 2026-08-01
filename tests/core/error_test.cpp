@@ -159,9 +159,10 @@ TEST_CASE("describe() returns a NUL-terminated literal", "[core][error]") {
   for (const dfr::error err : all_errors()) {
     const std::string_view text = dfr::describe(err);
     REQUIRE(text.data() != nullptr);
-    // NOLINTNEXTLINE(readability-simplify-subscript-expr): text[text.size()] is exactly the out-of-view read
-    // this test exists to pin: string_view::operator[] contractually forbids index == size(), so using it here
-    // would trade a deliberate one-past-the-end read of the underlying literal for undefined behaviour.
+    // text[text.size()] is exactly the out-of-view read this test exists to pin: string_view::operator[]
+    // contractually forbids index == size(), so using it here would trade a deliberate one-past-the-end read
+    // of the underlying literal for undefined behaviour.
+    // NOLINTNEXTLINE(readability-simplify-subscript-expr)
     CHECK(text.data()[text.size()] == '\0');
   }
 }
