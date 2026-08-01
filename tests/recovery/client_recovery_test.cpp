@@ -253,6 +253,31 @@ TEST_CASE("a failed client refuses further packets",
   CHECK(refused.error_code() == dfr::error::snapshot_behind_buffer);
 }
 
+TEST_CASE("a snapshot from a new session is not judged against the old one's numbers",
+          "[recovery][client]") {
+  // The third defect the stateful fuzzer found, and the same shape as the first two: a component was told about
+  // a session change and another one was not.
+  //
+  // on_snapshot() planned against `delivered_before()`, which belongs to the session the client is still on. A
+  // snapshot for a *new* session renumbers from that session's beginning, so its sequence is small, and it was
+  // compared against a large watermark from a stream that no longer exists, judged stale, and discarded. The
+  // client would refuse the one thing that could recover it, and keep refusing.
+  auto client = abandoned_client();
+  REQUIRE(client.state() == rec::client_state::recovering);
+  REQUIRE(client.delivered_before() == 16);
+
+  // The feed restarts. The snapshot for the new session is at sequence 6, far below the old watermark.
+  rec::snapshot_plan plan;
+  REQUIRE(client.on_snapshot(kSession + 1, 6).get(plan) == dfr::error::ok);
+
+  CHECK(plan.verdict == rec::snapshot_verdict::usable);
+  CHECK(plan.resume_from == 6);
+  CHECK(client.delivered_before() == 6);
+  // And nothing from the old session survives to be asked for.
+  CHECK(client.total_missing() == 0);
+  CHECK(client.retransmission().messages_outstanding() == 0);
+}
+
 TEST_CASE("a snapshot cancels the retransmit requests it supersedes",
           "[recovery][client]") {
   // Found by the stateful fuzzer under libFuzzer, after two hundred thousand rounds of the portable driver had

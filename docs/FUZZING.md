@@ -122,6 +122,19 @@ target and the same corpus, found it in under a minute, because it keeps the inp
 portable driver does not. Both drivers matter and they are not equivalent: one runs anywhere and reproduces from
 two numbers, the other actually searches.
 
+### The third find
+
+**A snapshot from a new session was judged against the old session's numbers.** `on_snapshot()` planned against
+`delivered_before()`, which belongs to the session the client is still on. A new session renumbers from its own
+beginning, so its snapshot sequence is small; measured against a large watermark from a stream that no longer
+exists it was called stale and discarded. The client refuses the one thing that could recover it, and keeps
+refusing.
+
+All three library defects are the same shape: **one component was told about a change and another was not.** The
+gap tracker, the requester and the snapshot planner each hold state that a session change or a snapshot
+invalidates, and each was updated on a different path. That is the kind of pattern a fuzzer surfaces and a
+reading does not, because every individual path is correct.
+
 ### What it found, and what it found first
 
 It found a real defect, in seven bytes: **a session change reported the previous session's holes as repaired.**
@@ -143,6 +156,7 @@ picture of what writing a fuzzer is like:
 | `buffer_message` called outside the `recovering` state | the program, violating a documented precondition |
 | a session change reporting stale holes as repaired | **the library** |
 | a snapshot leaving superseded retransmit requests behind | **the library** |
+| a new session's snapshot judged stale against the old session's watermark | **the library** |
 
 Two of those came from the library's own naming. `delivered_through()` returned the sequence *after* the last one
 delivered and was documented as "the highest sequence handed downstream", one less than what it returns. Writing

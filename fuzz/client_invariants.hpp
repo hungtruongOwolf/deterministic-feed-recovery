@@ -78,7 +78,8 @@ struct history {
  *    are above the watermark by construction. Anything tying the buffer to the watermark forbids the ordinary
  *    case, which is how the first two attempts failed.
  */
-inline void check(const fuzz_client& client, const venue_model& venue, history& before) noexcept {
+inline void check(const fuzz_client& client, const venue_model& venue, history& before,
+                  bool accepted) noexcept {
   const auto now_delivered = client.delivered_before();
   // What the merged stream has *seen*, which is ahead of what has been delivered whenever a snapshot is
   // replaying: arriving packets are held rather than handed on, so they move this and not the other.
@@ -119,8 +120,10 @@ inline void check(const fuzz_client& client, const venue_model& venue, history& 
           "the reorder buffer holds a message the venue never published");
 
   before.delivered_before = now_delivered;
-  before.session = venue.session;
-  before.started = true;
+  if (accepted) {
+    before.session = venue.session;
+    before.started = true;
+  }
   before.has_failed = failed;
 }
 

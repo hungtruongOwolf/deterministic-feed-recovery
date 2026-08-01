@@ -218,13 +218,8 @@ class client {
     return ok();
   }
 
-  // Records that the venue refused a retransmit request.
-  //
-  // Without it, a client whose data has aged out of the publisher's window would spend every
-  // remaining attempt asking a facility that has already said the messages are gone, reaching a
-  // snapshot late by timing out instead of promptly by being told. A fatal reason escalates at
-  // once; a transient one is left to the retry schedule, since "busy, try later" is not evidence
-  // that the data is unrecoverable.
+  // Records that the venue refused a retransmit request. A fatal reason escalates at once; a transient one is
+  // left to the retry schedule, since "busy, try later" is not evidence that the data is unrecoverable.
   [[nodiscard]] constexpr result<void> on_retransmit_refused(
       sequence_range range, error reason) noexcept {
     if (state_ == client_state::failed) DFR_UNLIKELY {
@@ -290,6 +285,12 @@ class client {
       return failure_;
     }
 
+    // A snapshot for another session describes another stream, so this client's numbers cannot judge it: without
+    // the restart, one at sequence 5 is measured against an old watermark of 500, called stale, and refused.
+    if (started_ && session != session_) DFR_UNLIKELY {
+      restart_for_new_session(session);
+    }
+
     const snapshot_plan plan = plan_snapshot(snapshot_next_sequence,
                                              buffer_.buffered(),
                                              delivered_before());
@@ -310,10 +311,8 @@ class client {
         DFR_UNREACHABLE("snapshot plan with no verdict");
     }
 
-    // Trim the buffer to exactly what the plan says to replay, and leave it there. The
-    // caller has not replayed anything yet, so clearing here would destroy the messages
-    // that sit on top of the snapshot: the one part of recovery that cannot be fetched
-    // again.
+    // Trim the buffer to exactly what the plan says to replay, and leave it there. The caller has not replayed
+    // anything yet, so clearing here would destroy the one part of recovery that cannot be fetched again.
     if (plan.replay.empty()) {
       buffer_.clear();
     } else {

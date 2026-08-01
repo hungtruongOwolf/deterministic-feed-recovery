@@ -38,22 +38,23 @@ inline rec::client_options fuzz_options() noexcept {
 // and the caller owes it `buffer_message` for each sequence. Skipping that is not a fuzzing shortcut, it is the
 // caller bug the assertion in buffer_message() exists to catch: the first version of this program called it
 // whenever it felt like it and tripped that assertion, which is the API stating its precondition, not a defect.
-inline void offer_packet(fuzz_client& client, std::size_t line, const venue_model& venue,
-                         std::uint64_t first, std::uint64_t count,
-                         dfr::manual_clock::time_point now) noexcept {
+[[nodiscard]] inline bool offer_packet(fuzz_client& client, std::size_t line, const venue_model& venue,
+                                       std::uint64_t first, std::uint64_t count,
+                                       dfr::manual_clock::time_point now) noexcept {
   rec::ingest_report report;
   if (client.on_packet(line, venue.session, first, count, 0, now).get(report) != dfr::error::ok) {
-    return;
+    return false;
   }
   if (!report.held_for_replay) {
-    return;
+    return true;
   }
   const std::uint8_t body[1]{0};
   for (std::uint64_t s = report.accepted.first; s < report.accepted.end; ++s) {
     if (!client.buffer_message(s, dfr::packet_view{body, sizeof body})) {
-      return;
+      return true;
     }
   }
+  return true;
 }
 
 // One run: build a client, decode the input as operations, check the invariants after each.
@@ -70,11 +71,15 @@ inline void run_client_program(dfr::packet_view input) noexcept {
   rec::sequence_range last_hole{};
 
   for (std::size_t step = 0; step < kMaxSteps && !reader.done(); ++step) {
+    // Whether the client took anything in this step. A packet offered while a snapshot is replaying is refused
+    // before on_packet even looks at the session, so a session change can sit unabsorbed for several steps and
+    // the watermark resets later than the venue's own switch. The oracle has to follow the client, not the venue.
+    bool accepted = false;
     switch (op_at(reader.byte())) {
       case op::publish_in_order: {
         const std::uint64_t count = 1 + reader.upto(kMaxBatch);
         const std::uint64_t first = venue.publish(count);
-        offer_packet(client, 0, venue, first, count, now);
+        accepted = offer_packet(client, 0, venue, first, count, now) || accepted;
         break;
       }
       case op::publish_after_loss: {
@@ -84,21 +89,21 @@ inline void run_client_program(dfr::packet_view input) noexcept {
         last_hole = rec::sequence_range{.first = lost_first, .end = lost_first + lost};
         const std::uint64_t count = 1 + reader.upto(kMaxBatch);
         const std::uint64_t first = venue.publish(count);
-        offer_packet(client, 0, venue, first, count, now);
+        accepted = offer_packet(client, 0, venue, first, count, now) || accepted;
         break;
       }
       case op::publish_duplicate: {
         // The same packet twice, which is what an A/B pair produces on every packet that is not lost.
         const std::uint64_t count = 1 + reader.upto(kMaxBatch);
         const std::uint64_t first = venue.publish(count);
-        offer_packet(client, 0, venue, first, count, now);
-        offer_packet(client, 1, venue, first, count, now);
+        accepted = offer_packet(client, 0, venue, first, count, now) || accepted;
+        accepted = offer_packet(client, 1, venue, first, count, now) || accepted;
         break;
       }
       case op::publish_on_second_line: {
         const std::uint64_t count = 1 + reader.upto(kMaxBatch);
         const std::uint64_t first = venue.publish(count);
-        offer_packet(client, 1, venue, first, count, now);
+        accepted = offer_packet(client, 1, venue, first, count, now) || accepted;
         break;
       }
       case op::publish_overlapping: {
@@ -112,7 +117,7 @@ inline void run_client_program(dfr::packet_view input) noexcept {
         const std::uint64_t count = 1 + reader.upto(kMaxBatch);
         const std::uint64_t fresh_first = venue.publish(count);
         const std::uint64_t first = fresh_first > back ? fresh_first - back : 1;
-        offer_packet(client, 0, venue, first, count + (fresh_first - first), now);
+        accepted = offer_packet(client, 0, venue, first, count + (fresh_first - first), now) || accepted;
         break;
       }
       case op::publish_out_of_session: {
@@ -121,7 +126,7 @@ inline void run_client_program(dfr::packet_view input) noexcept {
         venue.reset_session(venue.session + 1);
         const std::uint64_t count = 1 + reader.upto(kMaxBatch);
         const std::uint64_t first = venue.publish(count);
-        offer_packet(client, 0, venue, first, count, now);
+        accepted = offer_packet(client, 0, venue, first, count, now) || accepted;
         break;
       }
       case op::deliver_retransmit: {
@@ -130,7 +135,7 @@ inline void run_client_program(dfr::packet_view input) noexcept {
         if (last_hole.empty()) {
           break;
         }
-        offer_packet(client, 0, venue, last_hole.first, last_hole.count(), now);
+        accepted = offer_packet(client, 0, venue, last_hole.first, last_hole.count(), now) || accepted;
         last_hole = rec::sequence_range{};
         break;
       }
@@ -171,7 +176,7 @@ inline void run_client_program(dfr::packet_view input) noexcept {
         break;
     }
 
-    check(client, venue, seen);
+    check(client, venue, seen, accepted);
   }
 }
 
