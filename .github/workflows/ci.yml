@@ -158,6 +158,40 @@ jobs:
       - name: Test
         run: ctest --test-dir build/gcc --output-on-failure
 
+  # .clang-tidy has sat in this repository choosing its checks and justifying every exclusion, and nothing ran
+  # it: not CI, not CMake, not a script. A config file nobody executes is a config file nobody can trust, which is
+  # the same complaint this project makes about a benchmark nobody reproduces.
+  #
+  # Exploratory for now (continue-on-error): the first run against ~700 translation units is going to say
+  # something, and finding out what before deciding this blocks the build is the honest order to do it in.
+  clang-tidy:
+    name: clang-tidy reads the library
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install clang-tidy
+        run: sudo apt-get update && sudo apt-get install -y clang-tidy
+      - name: Versions
+        run: |
+          clang-tidy --version
+          clang++ --version
+      - name: Configure
+        run: cmake --preset dev
+      - name: Every translation unit that includes the library
+        run: |
+          find tests tools bench fuzz -name '*.cpp' | sort > /tmp/tus.txt
+          wc -l /tmp/tus.txt
+      - name: clang-tidy
+        run: |
+          clang-tidy -p build/dev --quiet $(cat /tmp/tus.txt) > /tmp/clang-tidy.log 2>&1 || true
+          cat /tmp/clang-tidy.log
+          echo "---"
+          echo "warnings: $(grep -c 'warning:' /tmp/clang-tidy.log || true)"
+
   # Hostile bytes, with a real coverage-guided fuzzer.
   #
   # The committed corpus is real IEX packets, so every mutation starts from something that parses, which is
