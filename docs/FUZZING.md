@@ -135,6 +135,15 @@ gap tracker, the requester and the snapshot planner each hold state that a sessi
 invalidates, and each was updated on a different path. That is the kind of pattern a fuzzer surfaces and a
 reading does not, because every individual path is correct.
 
+### Four wrong invariants, and what that says
+
+Property 7 took four attempts, all mine. The final one bounds a hole by the *tracker's own expectation*, not by
+the delivery watermark and not by the arbiter's. The arbiter and the tracker are kept in step deliberately and the
+library asserts the consequence itself, but they are allowed to differ for the span of a call, and a fuzzer that
+policed the gap between two lines of one function would be reporting the ordering of those lines rather than a
+defect. Writing an oracle is choosing which component owns each fact, and getting that wrong looks exactly like
+finding a bug.
+
 ### What it found, and what it found first
 
 It found a real defect, in seven bytes: **a session change reported the previous session's holes as repaired.**

@@ -62,8 +62,8 @@ struct history {
  *    lost that property would ask for the same range twice, or ask for one that is already filled.
  * 6. `total_missing()` equals the sum of the holes. Two ways of counting the same thing, which is worth
  *    checking precisely because one of them is a cached number.
- * 7. Every hole lies below what the merged stream has *seen*. A hole is only ever discovered by a later message
- *    arriving, so one above everything seen would mean the tracker invented it.
+ * 7. Every hole lies below the tracker's own expectation. A hole is only ever discovered by a later message
+ *    arriving, so one above the highest sequence expected would mean the tracker invented it.
  *
  *    Three wrong versions before this one, all mine. First "no hole at or below the delivery watermark", which is
  *    the opposite of the truth: the client keeps delivering behind an open hole on purpose, because stalling on a
@@ -81,9 +81,10 @@ struct history {
 inline void check(const fuzz_client& client, const venue_model& venue, history& before,
                   bool accepted) noexcept {
   const auto now_delivered = client.delivered_before();
-  // What the merged stream has *seen*, which is ahead of what has been delivered whenever a snapshot is
-  // replaying: arriving packets are held rather than handed on, so they move this and not the other.
-  const auto now_seen = client.arbitration().delivered_before();
+  // The tracker's own expectation, which is what bounds a hole. Not the arbiter's watermark: the two are kept in
+  // step deliberately and the library asserts the consequence itself, but they are allowed to differ for the span
+  // of a call, and a fuzzer that policed the gap between them would be reporting the ordering of two lines.
+  const auto expected = client.tracking().expected_sequence(rec::channel_id::at(0));
 
   // Monotonic *within a session*. A session change renumbers the feed from its own beginning, so the watermark
   // resets to zero on purpose: carrying it across would classify the new session's first packets as duplicates
@@ -111,7 +112,7 @@ inline void check(const fuzz_client& client, const venue_model& venue, history& 
             "the outstanding holes are not sorted, disjoint and non-adjacent");
     previous_end = hole.end;
     summed += hole.count();
-    require(hole.end <= now_seen, "a hole is outstanding above anything the client has seen");
+    require(hole.end <= expected, "a hole is outstanding above the tracker's own expectation");
   }
   require(summed == held.total_missing(), "total_missing() disagrees with the holes it counts");
 
