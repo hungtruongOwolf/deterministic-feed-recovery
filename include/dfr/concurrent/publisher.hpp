@@ -35,8 +35,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace concurrent {
+namespace dfr::inline v1::concurrent {
 
 struct publisher_stats {
   std::uint64_t offered{0};
@@ -172,7 +171,5 @@ class publisher {
   std::array<bool, Pending> have_{};
 };
 
-}  // namespace concurrent
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::concurrent
 #endif  // DFR_CONCURRENT_PUBLISHER_HPP

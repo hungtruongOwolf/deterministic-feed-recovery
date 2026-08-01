@@ -24,8 +24,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 // Owns the scratch buffer and the two day-unique counters the exchange assigns.
 //
@@ -164,7 +163,5 @@ class message_writer {
   std::uint64_t next_match_{0};
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_ORDER_MESSAGES_HPP

@@ -22,8 +22,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace capture::pcapng {
+namespace dfr::inline v1::capture::pcapng {
 
 class block_walker {
  public:
@@ -109,7 +108,5 @@ class block_walker {
   bool little_{true};
 };
 
-}  // namespace capture::pcapng
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::capture::pcapng
 #endif  // DFR_CAPTURE_PCAPNG_BLOCK_HPP

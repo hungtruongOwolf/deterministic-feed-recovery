@@ -36,8 +36,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::glimpse {
+namespace dfr::inline v1::wire::glimpse {
 
 // The message types Glimpse adds to whatever the feed already carries.
 //
@@ -138,7 +137,5 @@ struct end_snapshot {
   return end_snapshot{.session = message.le32_at(kSessionOffset), .next_sequence = next};
 }
 
-}  // namespace wire::glimpse
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::glimpse
 #endif  // DFR_WIRE_GLIMPSE_MESSAGES_HPP

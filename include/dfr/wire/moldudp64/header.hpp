@@ -21,8 +21,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace dfr::inline v1 {
-namespace wire::moldudp64 {
+namespace dfr::inline v1::wire::moldudp64 {
 
 // ---------------------------------------------------------------------------
 // header
@@ -113,7 +112,5 @@ static_assert(std::is_trivially_copyable_v<header>);
   };
 }
 
-}  // namespace wire::moldudp64
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::moldudp64
 #endif  // DFR_WIRE_MOLDUDP64_HEADER_HPP

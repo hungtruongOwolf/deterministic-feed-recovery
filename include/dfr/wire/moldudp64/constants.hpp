@@ -9,8 +9,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::moldudp64 {
+namespace dfr::inline v1::wire::moldudp64 {
 
 // ---------------------------------------------------------------------------
 // Wire constants
@@ -62,7 +61,5 @@ static_assert(kMaxMessagesPerRequest < kEndOfSession,
               "a request count must never collide with the end-of-session "
               "sentinel");
 
-}  // namespace wire::moldudp64
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::moldudp64
 #endif  // DFR_WIRE_MOLDUDP64_CONSTANTS_HPP

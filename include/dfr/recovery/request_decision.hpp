@@ -15,8 +15,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 // What the caller should do next.
 enum class action : std::uint8_t {
@@ -71,7 +70,5 @@ struct requester_stats {
                                                  const requester_stats&) = default;
 };
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_REQUEST_DECISION_HPP

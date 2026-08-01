@@ -22,8 +22,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace chaos {
+namespace dfr::inline v1::chaos {
 
 // Every operation returns a result rather than asserting, because the packet is
 // wire data: a real capture contains datagrams too short to hold the field a
@@ -202,7 +201,5 @@ static_assert(fault_target<iextp_target>);
 static_assert(moldudp64_target::kHeaderSize == 20);
 static_assert(iextp_target::kHeaderSize == 40);
 
-}  // namespace chaos
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::chaos
 #endif  // DFR_CHAOS_TARGET_HPP

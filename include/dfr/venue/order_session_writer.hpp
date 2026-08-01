@@ -23,8 +23,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 // Builds the frames a session sends, and counts what it numbered.
 //
@@ -122,7 +121,5 @@ class order_session_writer {
   std::uint64_t acks_{0};
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_ORDER_SESSION_WRITER_HPP

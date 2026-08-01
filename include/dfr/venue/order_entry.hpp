@@ -36,8 +36,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 inline constexpr std::size_t kMaxLiveOrders = 512;
 
@@ -381,7 +380,5 @@ class order_entry {
   message_writer writer_{};
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_ORDER_ENTRY_HPP

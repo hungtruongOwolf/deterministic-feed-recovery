@@ -24,8 +24,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 namespace ouch = wire::ouch;
 
@@ -87,7 +86,5 @@ struct order_record {
   [[nodiscard]] constexpr bool is_cross() const noexcept { return cross_type != 'N'; }
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_ORDER_RECORD_HPP

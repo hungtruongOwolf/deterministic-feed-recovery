@@ -18,8 +18,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace dfr::inline v1 {
-namespace wire::iextp {
+namespace dfr::inline v1::wire::iextp {
 
 // ---------------------------------------------------------------------------
 // header
@@ -130,7 +129,5 @@ static_assert(std::is_trivially_copyable_v<header>);
   };
 }
 
-}  // namespace wire::iextp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::iextp
 #endif  // DFR_WIRE_IEXTP_HEADER_HPP

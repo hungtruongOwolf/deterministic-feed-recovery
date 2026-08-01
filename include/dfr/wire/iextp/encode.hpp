@@ -18,8 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::iextp {
+namespace dfr::inline v1::wire::iextp {
 
 // ---------------------------------------------------------------------------
 // Encoding
@@ -139,7 +138,5 @@ class packet_builder {
   return encode_header(out, value);
 }
 
-}  // namespace wire::iextp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::iextp
 #endif  // DFR_WIRE_IEXTP_ENCODE_HPP

@@ -40,8 +40,7 @@
 #include <cstdint>
 #include <span>
 
-namespace dfr::inline v1 {
-namespace chaos {
+namespace dfr::inline v1::chaos {
 
 // A fixed ceiling, so a schedule needs no allocation and can live in a
 // simulation's static state. TIGER_STYLE: put a limit on everything, and allocate
@@ -344,7 +343,5 @@ class schedule {
   std::size_t count_{0};
 };
 
-}  // namespace chaos
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::chaos
 #endif  // DFR_CHAOS_SCHEDULE_HPP

@@ -36,8 +36,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 // A datagram this size fits inside a 1500-byte Ethernet MTU with room for the IPv4 and UDP
 // headers and a VLAN tag. Chosen rather than 1500 because a publisher that emitted packets
@@ -270,7 +269,5 @@ using iextp_publisher = publisher<Clock, iextp_target, MaxDatagram>;
 template <clock_source Clock, std::size_t MaxDatagram = kMaxDatagramBytes>
 using moldudp64_publisher = publisher<Clock, moldudp64_target, MaxDatagram>;
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_PUBLISHER_HPP

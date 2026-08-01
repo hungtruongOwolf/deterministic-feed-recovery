@@ -11,8 +11,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::iextp {
+namespace dfr::inline v1::wire::iextp {
 
 // ---------------------------------------------------------------------------
 // Wire constants
@@ -89,7 +88,5 @@ enum class protocol_id : std::uint16_t {
   return "<unknown protocol_id>";
 }
 
-}  // namespace wire::iextp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::iextp
 #endif  // DFR_WIRE_IEXTP_CONSTANTS_HPP

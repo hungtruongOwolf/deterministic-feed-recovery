@@ -42,8 +42,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace capture::pcap {
+namespace dfr::inline v1::capture::pcap {
 
 inline constexpr std::size_t kFileHeaderSize = 24;
 inline constexpr std::size_t kRecordHeaderSize = 16;
@@ -250,7 +249,5 @@ class reader {
   std::uint64_t records_read_{0};
 };
 
-}  // namespace capture::pcap
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::capture::pcap
 #endif  // DFR_CAPTURE_PCAP_HPP

@@ -18,8 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::ouch {
+namespace dfr::inline v1::wire::ouch {
 
 // ---------------------------------------------------------------------------
 // Field widths shared across messages
@@ -271,7 +270,5 @@ static_assert(priority_update_at::kSize ==
 // The largest message, so a buffer sized for one fits all of them.
 inline constexpr std::size_t kMaxMessageBytes = replaced_at::kSize;
 
-}  // namespace wire::ouch
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::ouch
 #endif  // DFR_WIRE_OUCH_CONSTANTS_HPP

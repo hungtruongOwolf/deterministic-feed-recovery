@@ -17,8 +17,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::soupbintcp {
+namespace dfr::inline v1::wire::soupbintcp {
 
 struct login_accepted {
   std::string_view session{};
@@ -135,7 +134,5 @@ struct login_request {
   return error::not_supported;
 }
 
-}  // namespace wire::soupbintcp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::soupbintcp
 #endif  // DFR_WIRE_SOUPBINTCP_LOGIN_HPP

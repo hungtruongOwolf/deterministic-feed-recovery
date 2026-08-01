@@ -24,8 +24,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::soupbintcp {
+namespace dfr::inline v1::wire::soupbintcp {
 
 // Writes a frame with the given payload, and returns how many bytes it occupied.
 //
@@ -157,7 +156,5 @@ namespace wire::soupbintcp {
   return frame;
 }
 
-}  // namespace wire::soupbintcp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::soupbintcp
 #endif  // DFR_WIRE_SOUPBINTCP_ENCODE_HPP

@@ -52,8 +52,7 @@
 #include <cstdint>
 #include <new>
 
-namespace dfr::inline v1 {
-namespace concurrent {
+namespace dfr::inline v1::concurrent {
 
 // The line size to pad to comes from core/attributes.hpp, and this file used to define its own.
 //
@@ -187,7 +186,5 @@ class spsc_ring {
   std::array<T, Capacity> slots_{};
 };
 
-}  // namespace concurrent
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::concurrent
 #endif  // DFR_CONCURRENT_SPSC_RING_HPP

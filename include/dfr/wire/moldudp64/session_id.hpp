@@ -12,8 +12,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace dfr::inline v1 {
-namespace wire::moldudp64 {
+namespace dfr::inline v1::wire::moldudp64 {
 
 // ---------------------------------------------------------------------------
 // session_id
@@ -84,7 +83,5 @@ static_assert(sizeof(session_id) == kSessionSize,
               "has no padding");
 static_assert(std::is_trivially_copyable_v<session_id>);
 
-}  // namespace wire::moldudp64
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::moldudp64
 #endif  // DFR_WIRE_MOLDUDP64_SESSION_ID_HPP

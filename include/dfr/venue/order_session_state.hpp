@@ -13,8 +13,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 // The three phases a SoupBinTCP session on the server side can be in.
 //
@@ -116,7 +115,5 @@ struct order_session_stats {
                                                  const order_session_stats&) = default;
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_ORDER_SESSION_STATE_HPP

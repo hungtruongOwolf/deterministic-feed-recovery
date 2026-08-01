@@ -25,8 +25,7 @@
 #include <cstdint>
 #include <span>
 
-namespace dfr::inline v1 {
-namespace trace {
+namespace dfr::inline v1::trace {
 
 template <std::size_t Capacity = 4096>
 class recorder {
@@ -151,7 +150,5 @@ struct context {
   }
 };
 
-}  // namespace trace
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::trace
 #endif  // DFR_TRACE_RECORDER_HPP

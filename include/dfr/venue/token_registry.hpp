@@ -37,8 +37,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 // How many tokens one account may use in a day. Bounded like everything else: a registry that grew
 // without limit would be the one place in the venue that allocated in the steady state.
@@ -104,7 +103,5 @@ class token_registry {
   std::size_t count_{0};
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_TOKEN_REGISTRY_HPP

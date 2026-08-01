@@ -18,8 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::soupbintcp {
+namespace dfr::inline v1::wire::soupbintcp {
 
 struct packet {
   packet_type type{packet_type::server_heartbeat};
@@ -107,7 +106,5 @@ struct packet {
   return false;
 }
 
-}  // namespace wire::soupbintcp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::soupbintcp
 #endif  // DFR_WIRE_SOUPBINTCP_PACKET_HPP

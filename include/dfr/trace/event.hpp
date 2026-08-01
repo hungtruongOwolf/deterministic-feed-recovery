@@ -26,8 +26,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace trace {
+namespace dfr::inline v1::trace {
 
 using recovery::sequence_range;
 
@@ -227,7 +226,5 @@ struct event {
   [[nodiscard]] friend constexpr bool operator==(const event&, const event&) = default;
 };
 
-}  // namespace trace
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::trace
 #endif  // DFR_TRACE_EVENT_HPP

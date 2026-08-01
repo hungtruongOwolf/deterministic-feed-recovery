@@ -21,8 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace capture::pcapng {
+namespace dfr::inline v1::capture::pcapng {
 
 // One option, as found.
 struct option {
@@ -96,7 +95,5 @@ template <typename Handler>
   return found;
 }
 
-}  // namespace capture::pcapng
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::capture::pcapng
 #endif  // DFR_CAPTURE_PCAPNG_OPTIONS_HPP

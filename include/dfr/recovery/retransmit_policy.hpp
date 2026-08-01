@@ -27,8 +27,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 // MoldUDP64's Message Count is 16 bits, and the specification caps a request at
 // 60,000 messages rather than 65,535. Requesting more is not "ambitious": the
@@ -128,7 +127,5 @@ struct retransmit_policy {
   }
 };
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_RETRANSMIT_POLICY_HPP

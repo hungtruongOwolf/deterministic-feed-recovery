@@ -36,8 +36,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 // Where a publisher is in the stream. Passed whole rather than as four arguments so a target cannot pick
 // the wrong two, and so the one field a protocol may ignore is visibly ignored.
@@ -160,7 +159,5 @@ static_assert(moldudp64_target::kHeaderSize == 20);
 static_assert(iextp_target::kTracksStreamOffset);
 static_assert(!moldudp64_target::kTracksStreamOffset);
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_PUBLISHER_TARGET_HPP

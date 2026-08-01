@@ -39,8 +39,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 template <clock_source Clock>
 class requester {
@@ -284,7 +283,5 @@ class requester {
   std::size_t count_{0};
 };
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_REQUESTER_HPP

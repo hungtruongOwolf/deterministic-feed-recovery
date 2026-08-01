@@ -35,8 +35,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 class gap_tracker {
  public:
@@ -217,7 +216,5 @@ class gap_tracker {
   std::array<channel_stats, kMaxChannels> stats_{};
 };
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_GAP_TRACKER_HPP

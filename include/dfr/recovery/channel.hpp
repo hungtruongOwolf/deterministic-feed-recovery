@@ -33,8 +33,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 // How many channels one tracker follows. IEX DEEP publishes one; CME MDP 3.0
 // separates incremental, snapshot and instrument-definition channels per group.
@@ -140,7 +139,5 @@ class channel_table {
   std::size_t count_{0};
 };
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_CHANNEL_HPP

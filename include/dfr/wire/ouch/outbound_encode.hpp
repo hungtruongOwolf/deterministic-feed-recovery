@@ -18,8 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::ouch {
+namespace dfr::inline v1::wire::ouch {
 
 namespace detail {
 
@@ -223,7 +222,5 @@ namespace detail {
   return priority_update_at::kSize;
 }
 
-}  // namespace wire::ouch
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::ouch
 #endif  // DFR_WIRE_OUCH_OUTBOUND_ENCODE_HPP

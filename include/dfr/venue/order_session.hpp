@@ -40,8 +40,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 template <clock_source Clock>
 class order_session {
@@ -390,7 +389,5 @@ class order_session {
   bool received_{false};
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_ORDER_SESSION_HPP

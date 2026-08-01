@@ -28,8 +28,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::soupbintcp {
+namespace dfr::inline v1::wire::soupbintcp {
 
 // ---------------------------------------------------------------------------
 // The frame
@@ -144,7 +143,5 @@ enum class reject_reason : std::uint8_t {
 inline constexpr std::int64_t kHeartbeatIntervalMillis = 1'000;
 inline constexpr std::int64_t kSilenceTimeoutMillis = 15'000;
 
-}  // namespace wire::soupbintcp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::soupbintcp
 #endif  // DFR_WIRE_SOUPBINTCP_CONSTANTS_HPP

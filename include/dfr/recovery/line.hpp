@@ -30,8 +30,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 // Two is the norm; four leaves room for a venue that publishes more copies without
 // making the per-line state large enough to matter.
@@ -118,7 +117,5 @@ struct arbiter_options {
   }
 };
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_LINE_HPP

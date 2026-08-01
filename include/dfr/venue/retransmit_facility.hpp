@@ -32,8 +32,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 // MoldUDP64 caps a request at 60,000 messages, and a real server answers a larger one with
 // silence. Modelled as a refusal rather than as silence so a test can tell the difference
@@ -198,7 +197,5 @@ class retransmit_facility {
   facility_stats stats_{};
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_RETRANSMIT_FACILITY_HPP

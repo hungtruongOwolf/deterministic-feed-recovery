@@ -17,8 +17,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace capture::pcapng {
+namespace dfr::inline v1::capture::pcapng {
 
 inline constexpr std::size_t kBlockFrameSize = 12;   // type + length + length
 inline constexpr std::size_t kBlockHeaderSize = 8;   // type + leading length
@@ -99,7 +98,5 @@ static_assert(pad4(1) == 4);
 static_assert(pad4(4) == 4);
 static_assert(pad4(5) == 8);
 
-}  // namespace capture::pcapng
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::capture::pcapng
 #endif  // DFR_CAPTURE_PCAPNG_CONSTANTS_HPP

@@ -12,8 +12,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 // What the host did with an inbound message. Returned alongside whatever was emitted, because several
 // outcomes emit *nothing* and a caller cannot tell those apart from the wire.
@@ -76,7 +75,5 @@ struct order_entry_stats {
                                                  const order_entry_stats&) = default;
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_ORDER_OUTCOME_HPP

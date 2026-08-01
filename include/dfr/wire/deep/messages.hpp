@@ -19,8 +19,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::deep {
+namespace dfr::inline v1::wire::deep {
 
 // A price as it is on the wire, and arithmetic that cannot silently lose a fraction.
 //
@@ -289,7 +288,5 @@ namespace detail {
   return other_message{.head = head, .symbol = symbol, .body = message};
 }
 
-}  // namespace wire::deep
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::deep
 #endif  // DFR_WIRE_DEEP_MESSAGES_HPP

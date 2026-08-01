@@ -40,8 +40,7 @@
 #include <cstdint>
 #include <span>
 
-namespace dfr::inline v1 {
-namespace book {
+namespace dfr::inline v1::book {
 
 using wire::deep::price;
 
@@ -227,7 +226,5 @@ class order_book {
   std::uint64_t broken_trades_{0};
 };
 
-}  // namespace book
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::book
 #endif  // DFR_BOOK_ORDER_BOOK_HPP

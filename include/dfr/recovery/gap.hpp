@@ -20,8 +20,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 // A half-open span of message sequence numbers.
 //
@@ -136,7 +135,5 @@ struct remainder {
   return out;
 }
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_GAP_HPP

@@ -44,8 +44,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 enum class snapshot_verdict : std::uint8_t {
   // The snapshot can be applied and the buffer replayed on top of it. The ordinary
@@ -172,7 +171,5 @@ struct snapshot_plan {
       .resume_from = buffered.end};
 }
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_SNAPSHOT_HPP

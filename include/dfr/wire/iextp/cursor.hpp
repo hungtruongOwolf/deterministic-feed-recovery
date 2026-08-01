@@ -16,8 +16,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::iextp {
+namespace dfr::inline v1::wire::iextp {
 
 struct message {
   std::uint64_t sequence{0};
@@ -142,7 +141,5 @@ class message_cursor {
   std::uint16_t remaining_{0};
 };
 
-}  // namespace wire::iextp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::iextp
 #endif  // DFR_WIRE_IEXTP_CURSOR_HPP

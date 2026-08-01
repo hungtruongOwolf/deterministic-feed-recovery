@@ -34,8 +34,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 struct snapshot_options {
   std::uint32_t session{1};
@@ -160,7 +159,5 @@ class snapshot_facility {
   snapshot_stats stats_{};
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_SNAPSHOT_FACILITY_HPP

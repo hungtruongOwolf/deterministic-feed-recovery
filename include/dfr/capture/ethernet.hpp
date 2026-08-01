@@ -26,8 +26,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace capture {
+namespace dfr::inline v1::capture {
 
 // ---------------------------------------------------------------------------
 // Layer constants
@@ -234,7 +233,5 @@ struct udp_datagram {
   return parse_ethernet_udp(captured.data);
 }
 
-}  // namespace capture
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::capture
 #endif  // DFR_CAPTURE_ETHERNET_HPP

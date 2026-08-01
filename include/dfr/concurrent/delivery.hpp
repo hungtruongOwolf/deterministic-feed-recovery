@@ -23,8 +23,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace concurrent {
+namespace dfr::inline v1::concurrent {
 
 // The largest message body that crosses the boundary.
 //
@@ -75,7 +74,5 @@ struct delivery {
   }
 };
 
-}  // namespace concurrent
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::concurrent
 #endif  // DFR_CONCURRENT_DELIVERY_HPP

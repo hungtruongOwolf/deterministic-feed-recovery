@@ -22,8 +22,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::deep {
+namespace dfr::inline v1::wire::deep {
 
 namespace detail {
 
@@ -131,7 +130,5 @@ namespace detail {
   return expected_size(message_type::trading_status);
 }
 
-}  // namespace wire::deep
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::deep
 #endif  // DFR_WIRE_DEEP_ENCODE_HPP

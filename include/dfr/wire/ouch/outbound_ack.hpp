@@ -30,8 +30,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::ouch {
+namespace dfr::inline v1::wire::ouch {
 
 // What both acknowledgements say about the order, with the same meaning in each.
 //
@@ -222,7 +221,5 @@ inline constexpr ack_offsets kReplacedOffsets{
   return out;
 }
 
-}  // namespace wire::ouch
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::ouch
 #endif  // DFR_WIRE_OUCH_OUTBOUND_ACK_HPP

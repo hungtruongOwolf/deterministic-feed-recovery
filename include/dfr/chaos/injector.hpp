@@ -32,8 +32,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace dfr::inline v1 {
-namespace chaos {
+namespace dfr::inline v1::chaos {
 
 // Large enough for any non-jumbo Ethernet payload. A source packet above this is
 // refused rather than silently truncated, because a truncation the caller did not
@@ -324,7 +323,5 @@ class injector {
   std::size_t delayed_count_{0};
 };
 
-}  // namespace chaos
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::chaos
 #endif  // DFR_CHAOS_INJECTOR_HPP

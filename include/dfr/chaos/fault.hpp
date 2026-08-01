@@ -24,8 +24,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace dfr::inline v1 {
-namespace chaos {
+namespace dfr::inline v1::chaos {
 
 // What to do to a packet.
 //
@@ -182,7 +181,5 @@ static_assert(sizeof(fault) <= kCacheLineSize,
               "a fault must fit in a cache line so that walking a schedule "
               "touches one line per few entries");
 
-}  // namespace chaos
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::chaos
 #endif  // DFR_CHAOS_FAULT_HPP

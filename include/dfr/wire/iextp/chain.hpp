@@ -16,8 +16,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::iextp {
+namespace dfr::inline v1::wire::iextp {
 
 // ---------------------------------------------------------------------------
 // The three-chain check
@@ -126,7 +125,5 @@ class chain_checker {
   return cursor.drain([](const message&) {});
 }
 
-}  // namespace wire::iextp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::iextp
 #endif  // DFR_WIRE_IEXTP_CHAIN_HPP

@@ -37,8 +37,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace venue {
+namespace dfr::inline v1::venue {
 
 struct glimpse_stats {
   std::uint64_t sessions_served{0};
@@ -203,7 +202,5 @@ class glimpse_service {
   glimpse_stats stats_{};
 };
 
-}  // namespace venue
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::venue
 #endif  // DFR_VENUE_GLIMPSE_SERVICE_HPP

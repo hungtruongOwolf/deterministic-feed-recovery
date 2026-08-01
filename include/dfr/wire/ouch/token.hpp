@@ -31,8 +31,7 @@
 #include <cstdint>
 #include <string_view>
 
-namespace dfr::inline v1 {
-namespace wire::ouch {
+namespace dfr::inline v1::wire::ouch {
 
 inline constexpr std::size_t kTokenSize = 14;
 
@@ -121,7 +120,5 @@ class order_token {
   std::array<std::byte, kTokenSize> bytes_{};
 };
 
-}  // namespace wire::ouch
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::ouch
 #endif  // DFR_WIRE_OUCH_TOKEN_HPP

@@ -35,8 +35,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace capture::pcapng {
+namespace dfr::inline v1::capture::pcapng {
 
 struct interface_info {
   std::uint16_t link{0};
@@ -292,7 +291,5 @@ class reader {
   std::uint32_t sections_{0};
 };
 
-}  // namespace capture::pcapng
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::capture::pcapng
 #endif  // DFR_CAPTURE_PCAPNG_READER_HPP

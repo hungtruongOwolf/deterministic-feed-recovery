@@ -21,8 +21,7 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace wire::soupbintcp {
+namespace dfr::inline v1::wire::soupbintcp {
 
 // A packet together with the sequence number it turned out to have.
 //
@@ -107,7 +106,5 @@ class stream_cursor {
   bool started_{false};
 };
 
-}  // namespace wire::soupbintcp
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::wire::soupbintcp
 #endif  // DFR_WIRE_SOUPBINTCP_CURSOR_HPP

@@ -22,8 +22,7 @@
 
 #include <cstdint>
 
-namespace dfr::inline v1 {
-namespace capture::pcapng {
+namespace dfr::inline v1::capture::pcapng {
 
 // The `if_tsresol` option value, stored raw.
 //
@@ -118,7 +117,5 @@ static_assert(tick_resolution{0}.to_nanoseconds(1) == 1'000'000'000);
 static_assert(tick_resolution{}.exact_in_nanoseconds());
 static_assert(!tick_resolution{12}.exact_in_nanoseconds());
 
-}  // namespace capture::pcapng
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::capture::pcapng
 #endif  // DFR_CAPTURE_PCAPNG_TIMESTAMP_HPP

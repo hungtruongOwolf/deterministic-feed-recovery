@@ -30,8 +30,7 @@
 #include <cstdint>
 #include <span>
 
-namespace dfr::inline v1 {
-namespace recovery {
+namespace dfr::inline v1::recovery {
 
 // How many distinct holes one channel may be missing at once.
 //
@@ -258,7 +257,5 @@ class gap_set {
   std::size_t count_{0};
 };
 
-}  // namespace recovery
-}  // namespace dfr::inline v1
-
+}  // namespace dfr::inline v1::recovery
 #endif  // DFR_RECOVERY_GAP_SET_HPP
