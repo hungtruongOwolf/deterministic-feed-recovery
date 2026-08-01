@@ -82,7 +82,7 @@ inline constexpr std::uint8_t kPad = ' ';
       // convention, and a mistake worth naming rather than tolerating.
       return error::invalid_argument;
     }
-    const std::uint64_t digit = static_cast<std::uint64_t>(byte - '0');
+    const auto digit = static_cast<std::uint64_t>(byte - '0');
     constexpr std::uint64_t kCeiling = UINT64_MAX / 10;
     if (value > kCeiling || (value == kCeiling && digit > UINT64_MAX % 10))
         DFR_UNLIKELY {

@@ -102,7 +102,7 @@ namespace dfr::inline v1::wire::soupbintcp {
   // because the other overloads need a reinterpret_cast that constant evaluation forbids. Using the
   // wrong one here made the whole function unusable at compile time, which the compiler reported
   // rather than letting it pass as merely slow.
-  const std::byte payload = static_cast<std::byte>(reason);
+  const auto payload = static_cast<std::byte>(reason);
   return encode_packet(out, packet_type::login_rejected,
                        packet_view{&payload, 1});
 }

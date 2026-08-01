@@ -210,7 +210,7 @@ class prng {
       return;
     }
     for (std::size_t i = items.size() - 1; i > 0; --i) {
-      const std::size_t j = narrowed<std::size_t>(below(i + 1));
+      const auto j = narrowed<std::size_t>(below(i + 1));
       if (i != j) {
         using std::swap;
         swap(items[i], items[j]);

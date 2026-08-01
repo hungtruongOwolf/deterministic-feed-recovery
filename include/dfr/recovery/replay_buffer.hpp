@@ -131,7 +131,7 @@ class replay_buffer {
       return dropped;
     }
 
-    const std::size_t dropped = narrowed<std::size_t>(sequence - first_sequence_);
+    const auto dropped = narrowed<std::size_t>(sequence - first_sequence_);
     const std::size_t byte_offset = index_[dropped].offset;
     const std::size_t remaining_bytes = used_ - byte_offset;
 
@@ -164,7 +164,7 @@ class replay_buffer {
     if (!buffered().contains(sequence)) {
       return error::invalid_argument;
     }
-    const std::size_t i = narrowed<std::size_t>(sequence - first_sequence_);
+    const auto i = narrowed<std::size_t>(sequence - first_sequence_);
     return packet_view{arena_.data() + index_[i].offset, index_[i].length};
   }
 
