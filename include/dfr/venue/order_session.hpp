@@ -340,9 +340,6 @@ class order_session {
   }
 
 
-
-
-
   // Everything order_entry emits, numbered and framed. One lambda rather than a member, because the writer needs
   // no notion of "now" and the session's clock has no business in a frame builder.
   template <typename Emit>
