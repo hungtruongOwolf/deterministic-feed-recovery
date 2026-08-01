@@ -1,0 +1,65 @@
+# The one thread boundary in the library: recovery's deterministic core hands a delivery to
+# whatever thread the caller wants to run its strategy on. Rendered by
+# scripts/regenerate-diagrams.sh into concurrency.svg, which is what README.md embeds.
+#
+# Field names and the direction each side advances are read directly from
+# include/dfr/concurrent/spsc_ring.hpp, not assumed: push() advances tail_, pop() advances head_.
+
+vars: {
+  d2-config: {
+    layout-engine: dagre
+    theme-overrides: {
+      B1: "#92876f"
+      B2: "#92876f"
+      B3: "#e7e0d2"
+      B4: "#e7e0d2"
+      B5: "#f1ece1"
+      B6: "#f1ece1"
+      N1: "#1b1a17"
+      N2: "#6d675c"
+      N7: "#f1ece1"
+      AA2: "#a8452c"
+      AA4: "#f1ece1"
+      AA5: "#f1ece1"
+    }
+  }
+}
+
+direction: right
+
+producer: one thread\ndeterministic core {
+  recovery: dfr::recovery::client
+  push: "push(delivery)\nrefused if full, never overwrites"
+  recovery -> push
+}
+
+ring: dfr::concurrent::spsc_ring {
+  style.fill: "#e7e0d2"
+  tail: tail_, advanced by push()\nits own cache line
+  head: head_, advanced by pop()\nits own cache line
+  slots: "fixed-size delivery slots\nflat, memcpy'd in, no pointers"
+}
+
+consumer: another thread\nthe strategy {
+  pop: "pop() -> delivery"
+  strategy: whatever a caller\nwants to run on it
+  pop -> strategy
+}
+
+producer.push -> ring.slots: "release store"
+ring.slots -> consumer.pop: "acquire load"
+
+note: "TSan alone passed a version with the release/acquire\nrelaxed to weaker orders. An arm64 property test\ncaught it 12/12 runs; TSan does not model ordering,\nonly the presence of a race. docs/CONCURRENCY.md" {
+  shape: text
+  style: {
+    font-color: "#6d675c"
+    italic: true
+  }
+}
+
+ring.head -> note: {
+  style: {
+    stroke-dash: 4
+    stroke: "#cfc7b5"
+  }
+}
