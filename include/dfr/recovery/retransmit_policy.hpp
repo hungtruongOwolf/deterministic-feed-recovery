@@ -2,7 +2,7 @@
 //
 // Separate from the requester because these are the numbers an operator tunes per
 // venue, and because they are worth reading without the state machine around them.
-// Every one of them is a duration or a count — nothing here is a strategy object, so
+// Every one of them is a duration or a count: nothing here is a strategy object, so
 // a configuration is a value that can be printed, diffed and committed alongside the
 // seed that reproduced a failure.
 //
@@ -42,8 +42,8 @@ struct retransmit_policy {
   // How long to wait after discovering a hole before asking for anything.
   //
   // Not zero, and this is the substance of NAK suppression rather than a politeness.
-  // On a multicast feed most gaps are transient reordering — a datagram arriving a
-  // few hundred microseconds late — and a receiver that requests immediately
+  // On a multicast feed most gaps are transient reordering: a datagram arriving a
+  // few hundred microseconds late, and a receiver that requests immediately
   // generates recovery traffic for data that was already on its way. Every receiver
   // on the group does it at the same instant, for the same packet, which is how a
   // single dropped datagram becomes a load spike on the retransmit server.

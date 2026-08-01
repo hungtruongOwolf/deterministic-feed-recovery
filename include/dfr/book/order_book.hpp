@@ -7,7 +7,7 @@
 //
 // Aggregated, not order-by-order
 // ------------------------------
-// DEEP publishes the *total size at a price*, not individual orders — so this holds one size per price and a
+// DEEP publishes the *total size at a price*, not individual orders, so this holds one size per price and a
 // level with size zero is a level that is gone. That is the protocol's model rather than a simplification, and
 // getting it wrong the other way is a classic error: treating a size-zero update as "a level with no shares"
 // leaves a phantom price in the book forever, and the book then quotes a bid nobody is offering.
@@ -16,7 +16,7 @@
 // -------------------------
 // Levels are kept sorted, bids descending and asks ascending, so the best price is always at index zero and
 // reading the top of book is one load rather than a tree walk. Insertion is a memmove, and for the depth a real
-// feed publishes — tens of levels, not thousands — that beats a node-per-level structure on every access
+// feed publishes(tens of levels, not thousands) that beats a node-per-level structure on every access
 // pattern, because the whole side fits in a cache line or two and a map does not.
 //
 // No allocation, ever
@@ -176,7 +176,7 @@ class order_book {
   [[nodiscard]] constexpr std::uint64_t traded_shares() const noexcept { return traded_shares_; }
 
   /**
-   * Whether the book is crossed — a bid at or above the best ask.
+   * Whether the book is crossed: a bid at or above the best ask.
    *
    * Not an error and not corrected. A DEEP feed publishes one side at a time, so a book *is* briefly crossed
    * between the two halves of a quote change; that is why `price_level_update::event_complete()` exists. What

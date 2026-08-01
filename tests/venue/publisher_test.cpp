@@ -1,8 +1,8 @@
 // The publisher, checked against the decoder that was verified on real data.
 //
 // This is the point of having a publisher rather than a test helper: every packet it produces
-// is fed straight back through wire::iextp, and chain_checker — which held on 460,578 real IEX
-// packets — has to accept the result. The encoder and the decoder check each other, and one of
+// is fed straight back through wire::iextp, and chain_checker, which held on 460,578 real IEX
+// packets: has to accept the result. The encoder and the decoder check each other, and one of
 // them has already been checked against reality.
 
 #include <dfr/venue/publisher.hpp>
@@ -142,7 +142,7 @@ TEST_CASE("a published stream satisfies both chains", "[venue][publisher]") {
 TEST_CASE("the stream is intact with heartbeats interleaved",
           "[venue][publisher]") {
   // A heartbeat must advance neither chain. If it advanced the offset, the next data packet
-  // would fail the offset check while the sequence check passed — the exact class of fault
+  // would fail the offset check while the sequence check passed: the exact class of fault
   // IEX-TP's redundancy exists to catch, so a publisher that produced it would be indicting
   // itself.
   test_publisher publisher{readable_options()};

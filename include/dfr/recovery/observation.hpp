@@ -2,8 +2,8 @@
 //
 // Separate from gap_tracker.hpp because the audiences differ: a reporting tool, a
 // log formatter or a test oracle needs this vocabulary and never needs the tracker
-// itself. Splitting it also keeps the tracker file about one thing — the state
-// machine — which is the seam docs/STYLE.md §1.10 asks for.
+// itself. Splitting it also keeps the tracker file about one thing: the state
+// machine, which is the seam docs/STYLE.md §1.10 asks for.
 
 #ifndef DFR_RECOVERY_OBSERVATION_HPP
 #define DFR_RECOVERY_OBSERVATION_HPP
@@ -23,7 +23,7 @@ namespace recovery {
 //
 // Not an `error`: three of these are good news, and forcing them through an error
 // type would make the caller's success path read as failure handling. The two that
-// are also error codes — sequence_gap, session_changed — keep their meaning; a
+// are also error codes(sequence_gap, session_changed) keep their meaning; a
 // caller wanting the error-shaped view asks is_fatal() on the code observe() also
 // returns.
 enum class sequencing : std::uint8_t {
@@ -80,7 +80,7 @@ struct observation {
   // covered sequences that were not missing, which is the normal A/B case.
   std::uint64_t recovered{0};
 
-  // The equivalent error code, for a caller that wants one — is_fatal() applies.
+  // The equivalent error code, for a caller that wants one: is_fatal() applies.
   // `ok` for the outcomes that are not errors at all.
   [[nodiscard]] constexpr error code() const noexcept {
     switch (outcome) {

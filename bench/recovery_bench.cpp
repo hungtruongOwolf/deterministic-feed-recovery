@@ -6,7 +6,7 @@
 //
 // What is measured, and what is deliberately not
 // ----------------------------------------------
-// Measured: the cost of the operations the recovery path performs — framing a datagram, decoding a header,
+// Measured: the cost of the operations the recovery path performs, framing a datagram, decoding a header,
 // the gap-set arithmetic, one client poll, and a whole feed end to end. Nanoseconds per operation, reported
 // as best / p50 / p99 / worst so the tail is visible rather than averaged away.
 //
@@ -213,7 +213,7 @@ int main(int argc, char** argv) {
   //
   // The first version of this timed a fresh eight-hole set being *built* inside the loop and then divided by
   // one, reporting ~950 ns for a single `open`. That is nine operations plus a construction called one, and
-  // the number was wrong by an order of magnitude in the flattering direction for the wrong reason — it
+  // the number was wrong by an order of magnitude in the flattering direction for the wrong reason: it
   // looked slow, but it was measuring the wrong thing, which is the same defect either way.
   //
   // So the unit is the whole cycle: eight holes opened, then all eight filled. Sixteen operations, divided by
@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
         for (std::size_t i = 0; i < cycles; ++i) {
           // Offset by the running total, so no iteration is a copy of the last one. Without this the
           // optimiser folds all `cycles` iterations into one and the benchmark reports 0.3 ns for sixteen
-          // set operations — a number that describes the compiler, not the code.
+          // set operations: a number that describes the compiler, not the code.
           const std::uint64_t base = 1 + (total & 0xFFF);
           rec::gap_set holes;
           for (std::uint64_t h = 0; h < 8; ++h) {
@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
   //
   //   1. polling a synchronised client reported 0.0 ns and ninety-seven billion polls a second. The state
   //      never changed, so the loop was invariant and the optimiser kept one answer.
-  //   2. constructing a fresh client each iteration reported ~594 ns for "one poll" — which was mostly the
+  //   2. constructing a fresh client each iteration reported ~594 ns for "one poll", which was mostly the
   //      cost of zero-initialising a 53 KB object, not of polling.
   //
   // So: one client, one long feed, every seventh packet dropped so holes open and close, and a poll after
@@ -356,7 +356,7 @@ int main(int argc, char** argv) {
 
   std::printf("\ndfr recovery benchmarks · assertions %s · %zu samples per measurement\n",
               assertions.data(), samples);
-  std::printf("nanoseconds per operation, from batch means — see docs/BENCHMARKS.md for what that "
+  std::printf("nanoseconds per operation, from batch means, see docs/BENCHMARKS.md for what that "
               "does and does not say\n\n");
   std::printf("  %-38s %9s %9s %9s %9s   %14s\n", "", "best", "p50", "p99", "worst", "rate");
   for (const auto& r : results) {

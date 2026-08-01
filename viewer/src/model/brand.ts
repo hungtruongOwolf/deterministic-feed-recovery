@@ -1,4 +1,4 @@
-// What this thing is called, and what it is — in one place, so the page, the tab and the checker agree.
+// What this thing is called, and what it is: in one place, so the page, the tab and the checker agree.
 //
 // The header used to read `deterministic feed recovery` in lower case, which is a style a repository slug can
 // afford and a page cannot: somebody arriving cold reads it as three words rather than as the name of
@@ -17,7 +17,7 @@ export const PROJECT_TAGLINE =
 
 /** The second sentence: what this particular page is, as opposed to the project. */
 export const PAGE_TAGLINE =
-  "This page replays three recorded runs of it — no server, no live connection, every number read from the recording.";
+  "This page replays three recorded runs of it: no server, no live connection, every number read from the recording.";
 
 /** For the browser tab, where the name has to carry the explanation on its own. */
-export const PAGE_TITLE = `${PROJECT_NAME} — a market-data client under fault injection`;
+export const PAGE_TITLE = `${PROJECT_NAME}: a market-data client under fault injection`;

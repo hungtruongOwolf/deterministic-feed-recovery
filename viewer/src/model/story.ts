@@ -1,6 +1,6 @@
 // Turning a trace into something watchable: one beat per event, each with a picture and a sentence.
 //
-// This is presentation, not domain logic. Every number a beat shows is read from the event — the state, the
+// This is presentation, not domain logic. Every number a beat shows is read from the event: the state, the
 // watermark, the holes. What is added here is *how it moves* and *what it means in plain words*, which are
 // the two things a trace file cannot carry and a reader cannot get from a table of field names.
 //
@@ -74,7 +74,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         notable: false,
         label: "♥",
         caption:
-          "A heartbeat. It carries no messages, but it tells the client where the feed has reached — which is how a gap is noticed during a quiet period.",
+          "A heartbeat. It carries no messages, but it tells the client where the feed has reached, which is how a gap is noticed during a quiet period.",
       };
 
     case "fault_applied":
@@ -109,7 +109,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         notable: false,
         label: "×2",
         caption:
-          "This packet arrives twice. The client must recognise the second copy and not deliver it again — a duplicate corrupts a book as surely as a loss.",
+          "This packet arrives twice. The client must recognise the second copy and not deliver it again: a duplicate corrupts a book as surely as a loss.",
       };
 
     case "packet_delayed":
@@ -121,7 +121,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         notable: false,
         label: "…",
         caption:
-          "This packet is held back and arrives out of position. Most gaps on a real feed are this, not loss — which is why the client waits before asking for anything.",
+          "This packet is held back and arrives out of position. Most gaps on a real feed are this, not loss, which is why the client waits before asking for anything.",
       };
 
     case "packet_discarded":
@@ -133,7 +133,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         notable: false,
         label: "⌀",
         caption:
-          "The packet arrives, but its framing does not add up, so the client refuses it — exactly as a real receiver would. From the client's side this is indistinguishable from a loss.",
+          "The packet arrives, but its framing does not add up, so the client refuses it: exactly as a real receiver would. From the client's side this is indistinguishable from a loss.",
       };
 
     case "packet_accepted":
@@ -156,7 +156,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         notable: false,
         label: "dup",
         caption:
-          "A copy of something already delivered. The client drops it and carries on — routine, and the reason the duplicate count is not an error rate.",
+          "A copy of something already delivered. The client drops it and carries on: routine, and the reason the duplicate count is not an error rate.",
       };
 
     case "gap_opened":
@@ -167,7 +167,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         tone: "fault",
         notable: true,
         label: r,
-        caption: `The client notices that messages ${r} never arrived — ${n} of them. It keeps delivering what does arrive; stalling on a hole would make one loss into an outage.`,
+        caption: `The client notices that messages ${r} never arrived, ${n} of them. It keeps delivering what does arrive; stalling on a hole would make one loss into an outage.`,
       };
 
     case "gap_filled":
@@ -201,7 +201,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         tone: "repair",
         notable: true,
         label: `${r} · try ${event.attempt}`,
-        caption: `The client asks the venue to resend messages ${r}. Attempt ${event.attempt} — it waited first, because a packet that is merely late needs no help.`,
+        caption: `The client asks the venue to resend messages ${r}. Attempt ${event.attempt}: it waited first, because a packet that is merely late needs no help.`,
       };
 
     case "retransmit_served":
@@ -258,7 +258,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         tone: "repair",
         notable: true,
         label: `frozen at ${event.first}`,
-        caption: `The snapshot arrives. It shows the book as it was at message ${event.first} — the moment the request reached the venue, not the moment the reply left it.`,
+        caption: `The snapshot arrives. It shows the book as it was at message ${event.first}: the moment the request reached the venue, not the moment the reply left it.`,
       };
 
     case "snapshot_applied":
@@ -281,7 +281,7 @@ function describe(event: TraceEvent): Omit<Beat, "at" | "event"> {
         tone: "fatal",
         notable: true,
         label: `${n} lost`,
-        caption: `The snapshot is older than the oldest message the client managed to keep. Messages ${r} — ${n} of them — exist in neither the snapshot nor the buffer, and nothing knows they are gone. A client that carried on here would publish a book that looks complete and is permanently wrong. This one refuses.`,
+        caption: `The snapshot is older than the oldest message the client managed to keep. Messages ${r}(${n} of them) exist in neither the snapshot nor the buffer, and nothing knows they are gone. A client that carried on here would publish a book that looks complete and is permanently wrong. This one refuses.`,
       };
 
     case "replay_started":

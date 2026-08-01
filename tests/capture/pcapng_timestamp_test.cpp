@@ -46,7 +46,7 @@ TEST_CASE("decimal resolutions coarser than a nanosecond are exact",
 TEST_CASE("decimal resolutions finer than a nanosecond truncate, and say so",
           "[capture][pcapng][timestamp]") {
   // Picoseconds. The result cannot be represented exactly in nanoseconds, so it
-  // is truncated — and exact_in_nanoseconds() reports that, which is what lets a
+  // is truncated, and exact_in_nanoseconds() reports that, which is what lets a
   // caller comparing captures know it is looking at rounded values.
   const ng::tick_resolution picos{12};
   CHECK_FALSE(picos.exact_in_nanoseconds());

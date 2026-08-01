@@ -1,7 +1,7 @@
 // What each decoder is asked, when the bytes are hostile.
 //
 // Every decoder in this library takes bytes off a network, and a network hands you whatever it likes. The
-// existing tests feed them bytes chosen by a person, which finds the cases a person thought of — and the whole
+// existing tests feed them bytes chosen by a person, which finds the cases a person thought of, and the whole
 // premise of the project is that the interesting failures are the ones nobody thought of.
 //
 // One header rather than one file per protocol, because the *checks* are the reviewable part and having them
@@ -123,7 +123,7 @@ inline void fuzz_moldudp64(dfr::packet_view input) {
 }
 
 // ---------------------------------------------------------------------------
-// SoupBinTCP — a stream, so the interesting property is that framing makes progress
+// SoupBinTCP: a stream, so the interesting property is that framing makes progress
 // ---------------------------------------------------------------------------
 
 inline void fuzz_soupbintcp(dfr::packet_view input) {
@@ -163,7 +163,7 @@ inline void fuzz_soupbintcp(dfr::packet_view input) {
 }
 
 // ---------------------------------------------------------------------------
-// OUCH — every inbound and outbound decoder, on the same bytes
+// OUCH: every inbound and outbound decoder, on the same bytes
 // ---------------------------------------------------------------------------
 
 inline void fuzz_ouch(dfr::packet_view input) {
@@ -189,7 +189,7 @@ inline void fuzz_ouch(dfr::packet_view input) {
 }
 
 // ---------------------------------------------------------------------------
-// DEEP — the newest decoders, and therefore the least exercised
+// DEEP: the newest decoders, and therefore the least exercised
 // ---------------------------------------------------------------------------
 
 inline void fuzz_deep(dfr::packet_view input) {
@@ -221,7 +221,7 @@ inline void fuzz_deep(dfr::packet_view input) {
 }
 
 // ---------------------------------------------------------------------------
-// Capture files — the largest attack surface, because a pcap is a file somebody sent you
+// Capture files: the largest attack surface, because a pcap is a file somebody sent you
 // ---------------------------------------------------------------------------
 
 inline void fuzz_capture(dfr::packet_view input) {

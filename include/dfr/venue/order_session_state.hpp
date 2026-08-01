@@ -56,7 +56,7 @@ enum class session_ending : std::uint8_t {
   logout_requested,
   // Nothing arrived for kSilenceTimeoutMillis. §4: the connection is presumed dead.
   client_silent,
-  // The client sent something illegal for its phase — a Sequenced Data Packet, say, which only a
+  // The client sent something illegal for its phase: a Sequenced Data Packet, say, which only a
   // server may send. Ending is the honest answer; carrying on would be guessing.
   protocol_error,
   // The host asked to close the session, and an End Of Session packet went out.

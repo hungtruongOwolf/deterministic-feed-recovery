@@ -2,7 +2,7 @@
 //
 // Extracted from tools/trace.cpp when the browser needed the same output: the viewer now runs this library
 // compiled to WebAssembly, and a second implementation of the format would have been a second format. So
-// there is one writer, and a trace produced in a browser is byte-identical to one produced in a terminal —
+// there is one writer, and a trace produced in a browser is byte-identical to one produced in a terminal,
 // which the tests assert rather than assume.
 //
 // Minimal JSON by hand, on purpose: a dependency for twelve fields would be a dependency in the build, and

@@ -25,7 +25,7 @@ struct frame {
   // Nanoseconds since the Unix epoch, as the capturing host's clock saw it.
   //
   // Deliberately a bare integer rather than a dfr clock time_point. It comes
-  // from a foreign clock — a different machine, with its own offset and drift —
+  // from a foreign clock: a different machine, with its own offset and drift,
   // and the type system should refuse to compare it against a local one without
   // an explicit correction. The same reasoning as IEX-TP's send_time.
   std::uint64_t timestamp_ns{0};

@@ -1,13 +1,13 @@
 // The first ten seconds, designed for the person who has them.
 //
 // The page used to open with a two-minute film behind a play button. A hiring manager with thirty seconds does
-// not press play, and until they do the page has told them nothing they can act on — not what was built, not
+// not press play, and until they do the page has told them nothing they can act on: not what was built, not
 // how much of it there is, not whether anybody checked it. Meanwhile "685 tests across five sanitiser
 // configurations" appeared on the page exactly zero times, which is the single most useful sentence about the
 // project.
 //
 // So: one line saying what it is, four numbers that are hard to argue with, and a link to the code. The film is
-// still here and is still the best part — it is just no longer the toll gate.
+// still here and is still the best part: it is just no longer the toll gate.
 
 import { evidence, type Evidence } from "../model/findings";
 
@@ -26,7 +26,7 @@ export function Hero({ tests, allocations, perPacket, live, onWatch }: Props) {
   return (
     <section className="hero">
       <p className="hero__what">
-        A market-data feed is broken on purpose — packets lost, duplicated, reordered, a line diverging — and a
+        A market-data feed is broken on purpose(packets lost, duplicated, reordered, a line diverging) and a
         C++20 client puts it back together. Then it has to prove the <em>book</em> it rebuilt is the book that
         would have existed if nothing had been lost.
       </p>
@@ -50,7 +50,7 @@ export function Hero({ tests, allocations, perPacket, live, onWatch }: Props) {
         <span className={`hero__live ${live ? "is-live" : ""}`}>
           {live
             ? "everything below is computed in your browser, not replayed"
-            : "showing recorded runs — WebAssembly did not load"}
+            : "showing recorded runs, WebAssembly did not load"}
         </span>
       </div>
     </section>

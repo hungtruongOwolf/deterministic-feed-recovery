@@ -1,4 +1,4 @@
-// mutable_packet_view — the write side.
+// mutable_packet_view: the write side.
 //
 // Separate from packet_view because the read path and the write path have
 // different callers: everything decodes, only dfr::chaos and dfr::venue encode.

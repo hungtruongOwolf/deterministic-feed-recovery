@@ -8,7 +8,7 @@
 #   2. A latency figure taken under a sanitiser is not a latency figure. Instrumented loads and stores move
 #      every number by an order of magnitude, so publishing one would be publishing a different quantity.
 #
-# The properties the benchmark asserts — zero allocations, the ring refusing rather than overwriting — are
+# The properties the benchmark asserts (zero allocations, the ring refusing rather than overwriting) are
 # checked by the tests, which *do* run under every sanitiser.
 if(DFR_SANITIZER STREQUAL "none")
   find_package(Threads REQUIRED)

@@ -6,7 +6,7 @@
 // docs/DESIGN.md describes and the reason this library verifies against captures.
 //
 // The strongest assertion here is not any single field. It is that a Price Level Update Buy and a Sell for the
-// same symbol at the same instant decode to $20.8900 and $20.9000 — a valid one-cent spread. A wrong price
+// same symbol at the same instant decode to $20.8900 and $20.9000: a valid one-cent spread. A wrong price
 // offset cannot produce a coherent spread by accident.
 
 #include <dfr/wire/deep.hpp>
@@ -137,7 +137,7 @@ TEST_CASE("an unknown type is named as unknown rather than guessed at") {
 TEST_CASE("asking a decoder for the wrong message is refused") {
   deep::trade_report out;
   // A well-formed Price Level Update handed to the trade decoder. Both are valid messages, so only the type
-  // check catches this — and a caller dispatching on a type table can get it wrong.
+  // check catches this, and a caller dispatching on a type table can get it wrong.
   CHECK(deep::decode_trade(view(kBuy)).get(out) == dfr::error::unknown_message_type);
 }
 

@@ -4,7 +4,7 @@
 // Performs no I/O and reads no clock: poll() says what to send and the caller sends it, time
 // arrives as an argument, and nothing allocates after construction.
 //
-// Three composition decisions are argued in docs/DESIGN.md §7b rather than here — one client
+// Three composition decisions are argued in docs/DESIGN.md §7b rather than here: one client
 // per channel, a message-granular replay buffer under packet-granular sequencing, and why the
 // arbiter's position and the tracker's expectation are kept in step explicitly.
 
@@ -48,7 +48,7 @@ class client {
 
   [[nodiscard]] constexpr client_state state() const noexcept { return state_; }
 
-  // The highest sequence actually handed downstream — deliberately not the arbiter's
+  // The highest sequence actually handed downstream: deliberately not the arbiter's
   // watermark, which means "seen on the merged stream". See docs/DESIGN.md §7b.
   [[nodiscard]] constexpr std::uint64_t delivered_through() const noexcept {
     return delivered_through_;
@@ -128,15 +128,15 @@ class client {
     ingest_report report{.merge = merged.outcome, .accepted = merged.deliver};
 
     // "Is this a duplicate?" and "is this useful?" are different questions, and the
-    // arbiter can only answer the first. A retransmit — or the other line's copy arriving
-    // late — lands below the merged watermark and looks like a duplicate while being
+    // arbiter can only answer the first. A retransmit, or the other line's copy arriving
+    // late: lands below the merged watermark and looks like a duplicate while being
     // exactly what recovery was waiting for. The holes are the only thing that can tell
     // them apart, so they are consulted here, before observe() closes them.
     last_recovered_ = tracker_.outstanding(kChannel).intersect(arrived);
     report.recovered = last_recovered_.total_missing();
 
     // A heartbeat carries no messages, so there is nothing to deliver and nothing to
-    // repair — but the sequence number it carries is how a receiver learns its position
+    // repair, but the sequence number it carries is how a receiver learns its position
     // during a quiet period. Returning here would mean a jump announced by a heartbeat was
     // never noticed, and on IEX two thirds of all packets are heartbeats, so that is not a
     // corner case but the common one.
@@ -166,7 +166,7 @@ class client {
     //
     // They must agree, and they do not always move together: a heartbeat carries no
     // messages, so the arbiter's watermark cannot advance on it, while the tracker's
-    // expectation does — and on IEX two thirds of packets are heartbeats. Once the two
+    // expectation does, and on IEX two thirds of packets are heartbeats. Once the two
     // disagree, a hole can sit *above* the watermark, and the retransmit that fills it then
     // counts as both new and repaired. That is one message delivered twice, which corrupts a
     // book exactly as thoroughly as losing one.
@@ -284,8 +284,8 @@ class client {
 
   // Applies the outcome of a snapshot request.
   //
-  // Returns the plan so the caller can act on it — which messages to discard and which to
-  // replay — rather than the client silently doing something with data it does not own. Takes no
+  // Returns the plan so the caller can act on it, which messages to discard and which to
+  // replay: rather than the client silently doing something with data it does not own. Takes no
   // time argument: whether a snapshot is usable depends only on sequence numbers.
   [[nodiscard]] constexpr result<snapshot_plan> on_snapshot(
       std::uint32_t session, std::uint64_t snapshot_next_sequence) noexcept {
@@ -315,7 +315,7 @@ class client {
 
     // Trim the buffer to exactly what the plan says to replay, and leave it there. The
     // caller has not replayed anything yet, so clearing here would destroy the messages
-    // that sit on top of the snapshot — the one part of recovery that cannot be fetched
+    // that sit on top of the snapshot: the one part of recovery that cannot be fetched
     // again.
     if (plan.replay.empty()) {
       buffer_.clear();

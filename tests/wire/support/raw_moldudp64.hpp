@@ -2,8 +2,8 @@
 //
 // Shared rather than copied into each test file, per docs/STYLE.md section 1.10.
 // Its whole purpose is to produce packets the library's own encoder is
-// deliberately incapable of producing — an overstated block count, a lying
-// length field — so that the decoder's refusals can be tested at all.
+// deliberately incapable of producing: an overstated block count, a lying
+// length field, so that the decoder's refusals can be tested at all.
 
 #ifndef DFR_TESTS_WIRE_SUPPORT_RAW_MOLDUDP64_HPP
 #define DFR_TESTS_WIRE_SUPPORT_RAW_MOLDUDP64_HPP

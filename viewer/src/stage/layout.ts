@@ -2,13 +2,13 @@
 //
 // Why the three defences are drawn as three stacked planes
 // --------------------------------------------------------
-// They are layers. Not three options a reader picks between — a ladder that a packet *descends* when the
+// They are layers. Not three options a reader picks between: a ladder that a packet *descends* when the
 // layer above it fails. A flat drawing has to say that in words; a stack says it by being a stack, and
 // escalation becomes literal downward movement between planes.
 //
 //   plane 0  two multicast paths, running in parallel across the depth of the plane
-//   plane 1  the TCP retransmit service — reached only when both paths above missed
-//   plane 2  the snapshot service — reached only when the retransmit came too late
+//   plane 1  the TCP retransmit service: reached only when both paths above missed
+//   plane 2  the snapshot service: reached only when the retransmit came too late
 //
 // The receiver stands at the right-hand edge of all three, and a column drops through them. That column is
 // the escalation: the run is at whichever plane the marker has fallen to.
@@ -17,7 +17,7 @@
 // length is a length wherever it sits, and nothing is foreshortened into a lie.
 //
 // Nothing here is a literal. An earlier version placed coordinates by hand and a label ended up inside the
-// box it described while the title block ran past the frame — invisible to a compiler and to me. So the
+// box it described while the title block ran past the frame: invisible to a compiler and to me. So the
 // positions derive from the sheet, and `boxes()` exports what was drawn so a check can measure it.
 
 export interface Box {
@@ -198,7 +198,7 @@ const stackRight = planeBox(0).x + planeBox(0).w;
 
 export const BOOK = { x: stackRight + 34, y: inner.y + 22, w: inner.x + inner.w - (stackRight + 34), h: 430 } as const;
 // The quote sits inside the book region, under the grid. Not a region of its own: the grid and the quote are the
-// same subject — what arrived, and what it means — and giving them separate boxes would let the checker approve a
+// same subject(what arrived, and what it means) and giving them separate boxes would let the checker approve a
 // layout where they had drifted apart.
 export const QUOTE = { x: BOOK.x + 4, y: BOOK.y + BOOK.h - 72 } as const;
 

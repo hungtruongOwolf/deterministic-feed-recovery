@@ -40,7 +40,7 @@ TEST_CASE("a zero backoff denominator is rejected", "[recovery][policy]") {
 
 TEST_CASE("a shrinking backoff is rejected", "[recovery][policy]") {
   // A ratio below one would make a struggling receiver ask *faster* the longer it
-  // failed — the opposite of backoff, and a recipe for the storm backoff exists to
+  // failed: the opposite of backoff, and a recipe for the storm backoff exists to
   // prevent. Cheap to catch here and hard to spot in production.
   rec::retransmit_policy policy;
   policy.backoff_numerator = 1;

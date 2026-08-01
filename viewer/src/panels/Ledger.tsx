@@ -7,7 +7,7 @@
 // Grouped, and the grouping is the fix for a real misreading
 // ----------------------------------------------------------
 // The first version listed all six rows together and drew `not-measurable` in the colour it uses for lost
-// data. A reader took that to mean the project was unfinished — which is the opposite of what those rows
+// data. A reader took that to mean the project was unfinished, which is the opposite of what those rows
 // say. They are the claims this project *refuses to make*, because a cloud VM has no PMU counters and AWS
 // has no multicast on an ordinary VPC, and a latency figure produced anyway would be a number with nothing
 // behind it. Saying so is the strongest thing on the page, so it is headed as such and drawn in ink rather

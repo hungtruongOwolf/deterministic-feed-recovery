@@ -85,8 +85,8 @@ namespace detail {
 // without ending the process: throwing satisfies "must not return", but only
 // where the assertion sits in a function that permits an exception to escape.
 // An assertion inside a `noexcept` function turns a throwing handler into
-// std::terminate. That is the right runtime behaviour — a violated precondition
-// in an infallible operation should crash — but it means such assertions can
+// std::terminate. That is the right runtime behaviour: a violated precondition
+// in an infallible operation should crash, but it means such assertions can
 // only be observed from another process. tests/support/death_test.hpp exists
 // for exactly those, and the split is not a workaround: it mirrors a real
 // distinction between assertions that are recoverable to a caller and ones that

@@ -7,7 +7,7 @@
 //   **the book after loss and repair is the book that would have existed if nothing had been lost.**
 //
 // That was not expressible until the messages meant something. It is expressible now, and it is a much harder
-// invariant than the sequence one — it fails if recovery delivers the right messages in the wrong order, or
+// invariant than the sequence one: it fails if recovery delivers the right messages in the wrong order, or
 // applies a repair twice, or drops a size-zero deletion, none of which a sequence count can see.
 //
 // How the test works
@@ -18,14 +18,14 @@
 //   * the subject: the same packets through the fault injector and recovery::client, which loses some, notices,
 //     asks for them back, and replays what it recovered.
 //
-// The two books must be equal at the end. The reference is not a second implementation of anything — it is the
+// The two books must be equal at the end. The reference is not a second implementation of anything: it is the
 // same decoder and the same book, fed the packets the venue sent, which is what makes the comparison mean
 // "recovery lost nothing" rather than "two implementations agree".
 //
 // What writing this found
 // ----------------------
 // The first version applied messages in the order the client delivered them, and the books did not match: same
-// 600 messages, same update counts, different book. Recovery was right and the consumer was wrong — see the last
+// 600 messages, same update counts, different book. Recovery was right and the consumer was wrong: see the last
 // test in this file, which keeps that mistake alive on purpose.
 
 #include "support/oracle_replay.hpp"
@@ -35,7 +35,7 @@
 using namespace dfr_test::oracle;  // NOLINT(google-build-using-namespace)
 
 TEST_CASE("with no loss at all, the two books agree trivially") {
-  // The control. If this ever fails, the harness is broken and every result below is meaningless — so it is
+  // The control. If this ever fails, the harness is broken and every result below is meaningless, so it is
   // asserted rather than assumed, before anything interesting is tried.
   const auto feed = publish_feed(600, /*symbols=*/4);
   const auto reference = replay_clean(feed);
@@ -73,7 +73,7 @@ TEST_CASE("a repair applied twice would be caught, and is not applied twice") {
   const auto reference = replay_clean(feed);
   // Duplication is the fault a sequence count is blindest to: delivering a message twice keeps every sequence
   // accounted for and doubles a price level's size. An aggregated book *replaces* rather than adds, so a
-  // duplicate price level is invisible here — but a duplicated *trade* is not, and the counts catch it.
+  // duplicate price level is invisible here, but a duplicated *trade* is not, and the counts catch it.
   const auto through = replay_recovered(feed, /*seed=*/31337, /*faults=*/10);
 
   CHECK(through.books == reference.books);
@@ -102,7 +102,7 @@ TEST_CASE("applying a gap-filling feed in arrival order gives the wrong book") {
 
   // The trap, kept because a hazard nobody demonstrates is a hazard everybody rediscovers.
   //
-  // While a hole is open the client keeps delivering later messages — deliberately, because stalling on a gap
+  // While a hole is open the client keeps delivering later messages: deliberately, because stalling on a gap
   // turns one loss into an outage. So a repair arrives *after* messages with higher sequence numbers, and an
   // aggregated book is last-write-wins: applying the older update second leaves the wrong size at that price,
   // permanently.

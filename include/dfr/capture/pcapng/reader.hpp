@@ -176,7 +176,7 @@ class reader {
         DFR_UNLIKELY {
       return err;
     }
-    // Valid in either order because the SHB type is palindromic — the bootstrap
+    // Valid in either order because the SHB type is palindromic: the bootstrap
     // that lets the byte order be discovered at all.
     if (peeked != kSectionHeaderBlock) DFR_UNLIKELY {
       return error::not_supported;

@@ -46,7 +46,7 @@ fi
 # Every wire protocol gets an umbrella header, and only wire protocols do.
 #
 # I got this wrong first: I assumed every namespace had one and added two that did not belong. It is a convention
-# about *protocols* — the thing an external consumer includes by name, "give me SoupBinTCP" — and `dfr::book` with
+# about *protocols*(the thing an external consumer includes by name, "give me SoupBinTCP") and `dfr::book` with
 # one header does not need a file whose only content is including that header. Enforcing the convention that
 # exists beats enforcing the one I imagined.
 missing=0
@@ -81,7 +81,7 @@ fi
 
 # The size rule, from docs/STYLE.md: "Target 200 lines; treat 300 as a smell and 400 as a defect."
 #
-# A defect is a defect whoever wrote it, and five files had crossed the line — one of them written the same week
+# A defect is a defect whoever wrote it, and five files had crossed the line: one of them written the same week
 # the rule was quoted at somebody. Enforcing it here means the next one fails a build instead of accumulating.
 oversize="$(find "${here}/include" "${here}/tests" "${here}/tools" "${here}/bench" "${here}/fuzz" \
   \( -name '*.hpp' -o -name '*.cpp' \) -exec wc -l {} + 2>/dev/null \
@@ -98,7 +98,7 @@ fi
 if python3 "${here}/scripts/sync-benchmark-table.py" --check >/dev/null 2>&1; then
   say "✓" "the benchmark table matches bench/results-*.json"
 else
-  say "✗" "docs/BENCHMARKS.md disagrees with bench/results-*.json — run scripts/sync-benchmark-table.py"
+  say "✗" "docs/BENCHMARKS.md disagrees with bench/results-*.json: run scripts/sync-benchmark-table.py"
   failures=$((failures + 1))
 fi
 
@@ -108,7 +108,7 @@ words=(zero one two three four five six seven eight nine ten eleven twelve)
 # Joined with a real pipe. `${words[*]// /|}` looks like it builds an alternation and does not: bash applies the
 # substitution to each element and then joins with a space, and since no element contains a space the result is
 # "zero one two ...". Both counting guards below used it, so both grepped for a pattern that cannot match, took the
-# else branch, and printed a tick while checking nothing. Found by doing what the last guard taught me to do —
+# else branch, and printed a tick while checking nothing. Found by doing what the last guard taught me to do:
 # breaking the thing on purpose to watch the check fail, and watching it pass instead.
 alternatives="$(IFS='|'; echo "${words[*]}")"
 if grep -qiE "All (${alternatives}) namespaces" "${here}/README.md" &&
@@ -120,10 +120,10 @@ else
 fi
 
 # The defect count. The README said "nine defects" the moment a tenth was added, and the defects are the strongest
-# thing on the page — an undercount there is the one number a reader would have been given for free.
+# thing on the page: an undercount there is the one number a reader would have been given for free.
 findings="$(grep -cE '^    kind: ' "${here}/viewer/src/model/findings.ts" | tr -d ' ')"
-if grep -qE "\*\*[^*]+\*\* — (${alternatives}) defects" "${here}/README.md" &&
-   ! grep -qE "— ${words[${findings}]} defects" "${here}/README.md"; then
+if grep -qE "\*\*[^*]+\*\*: (${alternatives}) defects" "${here}/README.md" &&
+   ! grep -qE ": ${words[${findings}]} defects" "${here}/README.md"; then
   say "✗" "the README miscounts the ${findings} defects on the page"
   failures=$((failures + 1))
 else
@@ -137,6 +137,21 @@ for token in hero Findings "What broke"; do
     failures=$((failures + 1))
   fi
 done
+
+# No em dashes, anywhere. A house rule rather than a matter of taste: the character was everywhere in this
+# repository, in code comments, docs and on the page, and it reads as one writer's tic rather than as prose. A
+# rule nobody can check is a preference, so it is checked. Colons, commas and full stops say the same things.
+# Built at run time from its code point, and the escape written in three pieces, so this line does not itself
+# contain the character it is banning. It also catches the JavaScript escape for it, which renders as one on the page.
+em="$(printf '\xe2\x80\x94')"
+dashes="$(grep -rIlE "${em}|.u20""14" "${here}" \
+  --exclude-dir=build --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist 2>/dev/null || true)"
+if [[ -n "${dashes}" ]]; then
+  say "✗" "em dashes are back in: $(echo "${dashes}" | tr '\n' ' ')"
+  failures=$((failures + 1))
+else
+  say "✓" "no em dashes"
+fi
 
 if [[ ${failures} -ne 0 ]]; then
   echo "check-docs: ${failures} checks failed" >&2

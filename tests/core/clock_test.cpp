@@ -73,7 +73,7 @@ TEST_CASE("advancing accumulates and advance_to jumps", "[core][clock]") {
   clock.advance_to(dfr::manual_clock::time_point{1s});
   CHECK(clock.now().time_since_epoch() == 1s);
 
-  // A zero advance is legal — two events at the same timestamp are ordinary.
+  // A zero advance is legal: two events at the same timestamp are ordinary.
   clock.advance(0ns);
   CHECK(clock.now().time_since_epoch() == 1s);
   clock.advance_to(clock.now());
@@ -92,7 +92,7 @@ TEST_CASE("time never runs backwards", "[core][clock]") {
   //
   // A death test rather than a throwing handler, because advance() is noexcept.
   // Throwing out of a noexcept function calls std::terminate, so the exception
-  // never reaches a catch site — the process aborts, which is the correct
+  // never reaches a catch site: the process aborts, which is the correct
   // behaviour and is only observable from another process. See
   // tests/support/death_test.hpp.
   DFR_CHECK_ABORTS({

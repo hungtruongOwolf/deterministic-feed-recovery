@@ -3,7 +3,7 @@
 // This exists because of a specific defect in a real library. `bbalouki/itchcpp`
 // constructs `const std::string key{session}` **on every packet** to index an
 // `unordered_map<std::string, uint64_t>` (include/itch/transport/sequencing.hpp:86-96),
-// and repeats it in expected_next() (:138) — one heap allocation and a hash per
+// and repeats it in expected_next() (:138), one heap allocation and a hash per
 // packet, on the hot path, to answer a question whose answer was fixed before the
 // feed opened. docs/DESIGN.md §0 records the consequence for us: no map, no string,
 // no std::function.
@@ -16,8 +16,8 @@
 // Two integers, kept apart by the type system
 // -------------------------------------------
 // The wire carries a 32-bit channel number chosen by the venue; internally a channel
-// is an index into fixed-size arrays. Confusing them means using a venue's number —
-// IEX's observed values run into the thousands — as an array index, which is a
+// is an index into fixed-size arrays. Confusing them means using a venue's number:
+// IEX's observed values run into the thousands: as an array index, which is a
 // silent out-of-bounds read on a hot path. `channel_id` therefore cannot be
 // constructed from an arbitrary integer or converted back to one implicitly.
 
@@ -47,7 +47,7 @@ class channel_id {
  public:
   // Defaults to channel 0, and that is a concession worth stating plainly.
   //
-  // Deleting the default constructor is tempting — channel 0 is a real channel, so a
+  // Deleting the default constructor is tempting: channel 0 is a real channel, so a
   // forgotten initialisation would quietly attribute one feed's sequence numbers to
   // another. But `result<T>` stores its value and its error side by side rather than
   // in a variant, deliberately, following simdjson_result, so it requires a
@@ -114,7 +114,7 @@ class channel_table {
   //
   // An unregistered channel is `not_supported` rather than being added on demand.
   // Growing the table from wire data would let a corrupted channel field silently
-  // consume configuration slots, and — worse — a receiver would start tracking
+  // consume configuration slots, and(worse) a receiver would start tracking
   // sequence numbers for a stream nobody asked it to follow, reporting gaps in it.
   [[nodiscard]] constexpr result<channel_id> find(
       std::uint32_t wire_channel) const noexcept {

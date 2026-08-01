@@ -2,14 +2,14 @@
 //
 // The recovery path's own cost is measured in recovery_bench. This measures the seam: one thread producing
 // deliveries into an SPSC ring and another consuming them. It is the only number in this project that
-// involves two cores, and it is the number a feed handler's architecture actually turns on — because the
+// involves two cores, and it is the number a feed handler's architecture actually turns on, because the
 // hand-off is where a badly built one loses an order of magnitude to false sharing.
 //
 // Three things are measured, and the third is the one people forget:
 //
 //   1. the round trip with an idle consumer, which is the best case;
 //   2. the same with a batched drain, which amortises one acquire over many records;
-//   3. what happens when the consumer cannot keep up — because a ring that refuses is only a good design if
+//   3. what happens when the consumer cannot keep up, because a ring that refuses is only a good design if
 //      you can say how often it refused.
 //
 // Wall-clock throughput here, not per-operation batch means: two threads make the batch-mean trick
@@ -43,7 +43,7 @@ using ring_type = conc::spsc_ring<conc::delivery, 8192>;
 //
 // This exists to price the single most expensive mistake available in this structure. When the producer's
 // index and the consumer's index share a cache line, every push invalidates the line the consumer is reading
-// its own index from and every pop returns the favour — so the two cores spend their time passing one line
+// its own index from and every pop returns the favour, so the two cores spend their time passing one line
 // back and forth instead of moving data. It is invisible in the source, invisible to a test, and it is the
 // reason `alignas` appears in spsc_ring.hpp with a paragraph next to it.
 //
@@ -108,7 +108,7 @@ using unpadded_type = unpadded_ring<conc::delivery, 8192>;
 // The same comparison over an 8-byte record.
 //
 // The first attempt at pricing false sharing used the 272-byte delivery record and found the unpadded ring
-// *faster* — which is not a result about padding, it is a result about what dominates. Copying 272 bytes
+// *faster*, which is not a result about padding, it is a result about what dominates. Copying 272 bytes
 // costs more than the cache line the two indices fight over, so the fight is invisible underneath it.
 //
 // Isolating it needs a record small enough that the index traffic is the whole cost. That is also the honest
@@ -273,7 +273,7 @@ int main(int argc, char** argv) {
 
   // The row that matters for the design decision: the consumer is deliberately slow, the ring fills, and the
   // producer is refused rather than silently overwriting. The refusal count is the point.
-  // The cost of the mistake, measured rather than asserted. Same protocol, same records, same batch size —
+  // The cost of the mistake, measured rather than asserted. Same protocol, same records, same batch size:
   // only the padding differs.
   results.push_back(run<unpadded_type>(
       "unpadded, one at a time", "the two indices sharing a cache line", count, true,
@@ -299,7 +299,7 @@ int main(int argc, char** argv) {
       }));
 
   results.push_back(run<small_unpadded, std::uint64_t>(
-      "8-byte records, unpadded", "both indices on one line — the mistake", count, true,
+      "8-byte records, unpadded", "both indices on one line: the mistake", count, true,
       [](small_unpadded& ring, std::uint64_t& checksum) -> std::uint64_t {
         std::uint64_t value = 0;
         if (!ring.pop(value)) {
@@ -318,7 +318,7 @@ int main(int argc, char** argv) {
                           }
                           // Enough work that the consumer genuinely cannot keep up. The first version did
                           // forty exclusive-ors, the ring of 8,192 absorbed all of it, and the row reported
-                          // zero refusals — a "consumer falling behind" measurement in which nobody fell
+                          // zero refusals: a "consumer falling behind" measurement in which nobody fell
                           // behind. The number is only worth printing if the condition it names occurs.
                           for (int i = 0; i < 3'000; ++i) {
                             checksum += record.sequence ^ static_cast<std::uint64_t>(i);
@@ -329,7 +329,7 @@ int main(int argc, char** argv) {
 
   std::printf("\ndfr thread hand-off · SPSC ring of %zu records · %llu messages\n",
               ring_type::capacity(), static_cast<unsigned long long>(count));
-  std::printf("wall clock across two cores of one machine — not a wire latency\n\n");
+  std::printf("wall clock across two cores of one machine, not a wire latency\n\n");
   std::printf("  %-28s %12s %18s %12s\n", "", "ns/message", "messages/s", "refused");
   for (const auto& r : results) {
     std::printf("  %-28s %12.1f %18.0f %12llu\n", r.name.c_str(), r.nanos_per_message,

@@ -1,8 +1,8 @@
 // Serving a Glimpse snapshot and consuming it, in one place, so the tool and the browser cannot diverge.
 //
 // The consumer here is a real one: a `stream_cursor` framing bytes and an `order_book` applying decoded messages. It
-// has no access to the service's memory and is told nothing about what was sent. That is the whole claim — a client
-// with nothing but frames ends up with the venue's book — and a harness that took a shortcut anywhere would be
+// has no access to the service's memory and is told nothing about what was sent. That is the whole claim: a client
+// with nothing but frames ends up with the venue's book, and a harness that took a shortcut anywhere would be
 // checking that the service can describe itself.
 
 #ifndef DFR_TOOLS_SUPPORT_GLIMPSE_RUN_HPP

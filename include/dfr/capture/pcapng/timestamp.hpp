@@ -1,14 +1,14 @@
 // pcapng timestamp resolution.
 //
 // An Enhanced Packet Block carries a 64-bit tick count split across two 32-bit
-// fields. What one tick *means* is not in the packet block at all — it comes
+// fields. What one tick *means* is not in the packet block at all: it comes
 // from the `if_tsresol` option of the interface the packet arrived on, and it
 // defaults to microseconds when that option is absent.
 //
 // So a reader that assumes microseconds is right for most files and silently
 // wrong by a factor of a thousand for the nanosecond ones, with no symptom until
 // two captures are compared. That is the same trap as classic pcap's magic, one
-// layer further from the data — and worse, because here the answer is per
+// layer further from the data, and worse, because here the answer is per
 // interface rather than per file.
 //
 // Its own file because the arithmetic is worth testing in isolation: the binary
@@ -78,7 +78,7 @@ class tick_resolution {
 
     // Binary: one tick is 2^-n seconds, so nanoseconds are ticks * 1e9 / 2^n.
     // Doing the multiply first keeps the precision, which is why it needs 128
-    // bits — ticks alone can approach 2^64.
+    // bits: ticks alone can approach 2^64.
     const auto product = detail::wide_multiply(ticks, 1'000'000'000ULL);
     const std::uint8_t shift = exponent();
     if (shift == 0) {

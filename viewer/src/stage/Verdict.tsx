@@ -21,7 +21,7 @@ export function Verdict({ verdict, x, y }: Props) {
     return (
       <g className="verdict verdict--waiting" transform={`translate(${x},${y})`}>
         <text className="verdict__line" x={0} y={0}>
-          still playing — the book is compared when the feed ends
+          still playing: the book is compared when the feed ends
         </text>
       </g>
     );

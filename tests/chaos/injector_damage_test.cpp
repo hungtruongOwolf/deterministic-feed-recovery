@@ -58,7 +58,7 @@ TEST_CASE("flip_bit changes exactly one bit", "[chaos][injector]") {
 
 TEST_CASE("truncate only ever shortens", "[chaos][injector][regression]") {
   // A "truncation" that lengthened the packet would be reading uninitialised
-  // scratch — a determinism leak as well as the wrong fault. An out-of-range
+  // scratch: a determinism leak as well as the wrong fault. An out-of-range
   // length is counted as not applied instead.
   const auto stream = iextp_stream(6);
 
@@ -166,7 +166,7 @@ TEST_CASE("overstating the block count breaks the framing chain only",
           "[chaos][injector][oracle]") {
   // The fault that exists because penberg/helix trusts the count. On IEX-TP,
   // Message Count is redundant with Payload Length, and only Message Count is
-  // rewritten — deliberately. Rewriting both would make the packet
+  // rewritten: deliberately. Rewriting both would make the packet
   // self-consistent and therefore uninteresting.
   const auto stream = iextp_stream(10);
   iex_injector injector{

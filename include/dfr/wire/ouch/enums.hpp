@@ -7,7 +7,7 @@
 //
 // Others are explicitly open. Of the cancel reasons and the reject reasons the specification says:
 // *"Clients should anticipate additions to this list and thus support all capital letters of the
-// English alphabet."* NASDAQ has in fact added to both repeatedly — the revision history lists cancel
+// English alphabet."* NASDAQ has in fact added to both repeatedly: the revision history lists cancel
 // reasons E, X, H, K, F, G and reject reasons W, o, u, q, Q arriving over ten years. A client that
 // validated those against a fixed list would start rejecting messages the day the exchange shipped a
 // new code, and it would reject them *at the moment something unusual was happening to its orders*.
@@ -34,7 +34,7 @@ enum class side : std::uint8_t {
   buy = 'B',
   sell = 'S',
   // "sell short, client affirms ability to borrow securities in good deliverable form for delivery
-  // within three business days" — a distinct value, not a flag on sell, and Modify Order restricts
+  // within three business days": a distinct value, not a flag on sell, and Modify Order restricts
   // which transitions between the short variants are allowed.
   sell_short = 'T',
   sell_short_exempt = 'E',
@@ -61,7 +61,7 @@ enum class side : std::uint8_t {
   DFR_UNREACHABLE("unnamed side");
 }
 
-// §3.4: the transitions Modify Order permits. Buy cannot become a sell and a sell cannot become a buy —
+// §3.4: the transitions Modify Order permits. Buy cannot become a sell and a sell cannot become a buy:
 // only the three short variants may be exchanged for one another.
 [[nodiscard]] constexpr bool is_permitted_modify_transition(side from,
                                                            side to) noexcept {
@@ -76,7 +76,7 @@ enum class side : std::uint8_t {
 }
 
 // §3.3: "L" = Order Live, "D" = Order Dead. Dead on an Accepted message means the order was accepted
-// and immediately canceled, and no further messages will arrive for it — which is a different thing
+// and immediately canceled, and no further messages will arrive for it, which is a different thing
 // from a rejection and must not be reported as one.
 enum class order_state : std::uint8_t {
   live = 'L',
@@ -209,7 +209,7 @@ class reason_code {
   }
 }
 
-// §3.10.1 Rejected Order Reasons — the longest and most frequently extended list in the protocol.
+// §3.10.1 Rejected Order Reasons: the longest and most frequently extended list in the protocol.
 // Only the ones a simulator can plausibly produce are named; the rest answer "unknown" by design.
 [[nodiscard]] constexpr std::string_view name_of_reject_reason(
     reason_code reason) noexcept {
@@ -231,7 +231,7 @@ class reason_code {
 }
 
 // A liquidity flag. Thirty-odd values in the current revision and more added most years, so it is a
-// byte with a lookup rather than an enumeration — and the one distinction a caller usually needs is
+// byte with a lookup rather than an enumeration, and the one distinction a caller usually needs is
 // simply whether the execution added or removed liquidity, which is what the two helpers answer.
 [[nodiscard]] constexpr bool added_liquidity(reason_code flag) noexcept {
   switch (flag.as_char()) {

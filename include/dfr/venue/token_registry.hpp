@@ -59,7 +59,7 @@ class token_registry {
 
   // Marks a token as used for the rest of the day.
   //
-  // Returns `invalid_argument` for a token already present — the caller's cue to ignore the message
+  // Returns `invalid_argument` for a token already present: the caller's cue to ignore the message
   // rather than to report an error to the client, since the protocol's answer to a duplicate is
   // silence.
   [[nodiscard]] constexpr result<void> consume(

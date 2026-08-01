@@ -65,7 +65,7 @@ TEST_CASE("an unnamed layer aborts rather than printing nothing", "[trace]") {
 
 TEST_CASE("a context stamps the run state onto every event", "[trace]") {
   // The reason context exists: the resulting-state fields are identical for every event recorded
-  // at the same moment, and repeating them at twenty call sites is how one ends up stale — which
+  // at the same moment, and repeating them at twenty call sites is how one ends up stale, which
   // would make the viewer draw a moment that never existed.
   const auto stamped = context_at(7).with(trace::event_kind::gap_opened);
   CHECK(stamped.packet_index == 7);
@@ -102,7 +102,7 @@ TEST_CASE("events are kept in the order they happened", "[trace]") {
 TEST_CASE("a full recorder stops and counts what it lost",
           "[trace][regression]") {
   // It does not overwrite the oldest events. The beginning of a trace is where the cause is, and a
-  // ring would keep the consequences and discard the explanation — the shape of every unhelpful log
+  // ring would keep the consequences and discard the explanation: the shape of every unhelpful log
   // file, and the same mistake recovery::replay_buffer refuses to make with data.
   small_recorder recorder;
   for (std::uint64_t i = 0; i < 10; ++i) {

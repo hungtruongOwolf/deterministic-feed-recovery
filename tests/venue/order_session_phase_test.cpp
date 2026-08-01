@@ -4,7 +4,7 @@
 // order_session_flow_test.cpp at a real seam rather than a line count: a reader checking who may speak when never
 // needs the sequence arithmetic, and a reader checking the sequence arithmetic never needs the phase table.
 //
-// The joins are what both files are about — a join is where a defect lives without either side being wrong. These
+// The joins are what both files are about: a join is where a defect lives without either side being wrong. These
 // are the joins about *authority*: what a server does with a packet only a server may send, and what becomes of an
 // order that arrives before the login it needs.
 
@@ -33,7 +33,7 @@ TEST_CASE("a login is answered, and the answer names where the server is") {
   CHECK(accepted.session == "DFRSESSION");
   // The number is the sequence of the *next* Sequenced Data Packet. Had the session numbered the login
   // itself this would be 2, and every acknowledgement would be off by one for the life of the
-  // connection — with both halves still passing their own tests.
+  // connection: with both halves still passing their own tests.
   CHECK(accepted.next_sequence == 1);
   CHECK(host.next_sequence() == 1);
 }
@@ -204,7 +204,7 @@ TEST_CASE("a second login on an open session is refused rather than renumbering 
   REQUIRE(host.offer(stream.view(), at_ms(1), out).get(taken) == dfr::error::ok);
 
   // Answering it would leave two ideas of the sequence in play, and the client would believe the newer
-  // one — which is how a session ends up numbering acknowledgements a client has already seen.
+  // one, which is how a session ends up numbering acknowledgements a client has already seen.
   CHECK(host.phase() == venue::session_phase::ended);
   CHECK(host.ending() == venue::session_ending::protocol_error);
   CHECK(out.count() == 0);

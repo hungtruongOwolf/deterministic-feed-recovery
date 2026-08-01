@@ -77,7 +77,7 @@ struct file_info {
 // Reads records out of a classic pcap file held in memory.
 //
 // Deliberately not a range or an iterator pair. A record can fail to decode, and
-// an iterator has nowhere to put the reason — it would have to either throw or
+// an iterator has nowhere to put the reason: it would have to either throw or
 // silently stop, and "silently stop" on a truncated capture is how a partial file
 // gets mistaken for a complete one.
 class reader {
@@ -138,7 +138,7 @@ class reader {
   // always leaves done() false and remaining() non-zero.
   //
   // Without that, a file whose last record header is present but whose payload is
-  // missing would consume the header, leave nothing behind, and report done() —
+  // missing would consume the header, leave nothing behind, and report done(),
   // so a caller could not distinguish a clean end from a capture stopped by a
   // full disk. That distinction is the whole reason to read a capture carefully.
   [[nodiscard]] constexpr bool done() const noexcept { return rest_.empty(); }

@@ -1,4 +1,4 @@
-// Where you are in the film — one strip, three stretches.
+// Where you are in the film: one strip, three stretches.
 //
 // This replaces the chapter buttons, and the difference is not cosmetic. Three buttons are three things to
 // pick between, which is what made the acts read as three methods being compared. A strip is one object: the
@@ -24,7 +24,7 @@ export function ActStrip({ film, position, onSeek }: Props) {
   return (
     <nav className="strip" aria-label="position in the film">
       <div className="strip__head mono">
-        ONE RUN, THREE TIMES — A DEFENCE REMOVED AT EACH DIVIDER
+        ONE RUN, THREE TIMES: A DEFENCE REMOVED AT EACH DIVIDER
       </div>
 
       <div className="strip__bar">
@@ -37,7 +37,7 @@ export function ActStrip({ film, position, onSeek }: Props) {
             }`}
             style={{ flexGrow: act.to - act.from }}
             onClick={() => onSeek(act.from)}
-            title={`go back to act ${act.ordinal} — ${act.title}`}
+            title={`go back to act ${act.ordinal}: ${act.title}`}
           >
             <span className="strip__ordinal">{act.ordinal}</span>
             <span className="strip__title">{act.title}</span>

@@ -7,7 +7,7 @@
 #
 # Clang only, and that is a stated limit rather than a preference: the local development machine has no
 # real GCC, so a GCC job would be a configuration nobody had verified before committing it. The warning
-# set in CMakeLists.txt already branches on the compiler, so adding GCC is a small change — it just has
+# set in CMakeLists.txt already branches on the compiler, so adding GCC is a small change: it just has
 # not been run.
 
 name: ci
@@ -63,7 +63,7 @@ jobs:
 
       # Running a concurrency test once tells you almost nothing, and I proved it on myself: the threaded book test
       # aborted intermittently, I read "720 tests passed" and shipped it, and it failed here. Looked for on purpose
-      # afterwards, it reproduced on the second run — the flake was in the harness, not the platform.
+      # afterwards, it reproduced on the second run: the flake was in the harness, not the platform.
       #
       # The count is measured rather than chosen; scripts/hammer-concurrency.sh has the arithmetic. Skipped under the
       # sanitisers, where one run already inspects far more than a repetition would and four hundred would take
@@ -74,7 +74,7 @@ jobs:
 
       # The most useful sentence on the page is its test count, and a number typed into a component becomes a lie
       # the next time a suite is added. Checked here rather than in the viewer job because this one already has a
-      # configured build with a pinned compiler — putting a C++ build into the viewer job made it pick up the
+      # configured build with a pinned compiler: putting a C++ build into the viewer job made it pick up the
       # runner's default GCC, which is a different subject (see docs/DESIGN.md).
       - name: The page's test count matches the build
         if: matrix.preset == 'dev'
@@ -110,7 +110,7 @@ jobs:
           git diff --exit-code -- traces/ viewer/public/traces/
 
   # The benchmarks have to keep compiling and the two hard claims have to keep holding. The *figures* are not
-  # asserted — they move with the machine and a CI runner is a different machine — but "zero allocations after
+  # asserted(they move with the machine and a CI runner is a different machine) but "zero allocations after
   # start-up" and "the ring refuses rather than overwriting" are properties, not measurements, and a runner can
   # check them as well as a laptop.
   bench:
@@ -137,8 +137,8 @@ jobs:
   #
   # This exists because an accidental GCC build found three real things Clang does not say: -Winterference-size
   # on `std::hardware_destructive_interference_size`, whose value is part of the GCC ABI and therefore not a
-  # property of the machine, and two casts that are genuinely redundant. The local machine has no real GCC —
-  # Apple clang answers to `g++` — so this is the only place the third opinion exists, and a warning nobody
+  # property of the machine, and two casts that are genuinely redundant. The local machine has no real GCC:
+  # Apple clang answers to `g++`, so this is the only place the third opinion exists, and a warning nobody
   # sees is a warning that comes back.
   gcc:
     name: a third compiler disagrees, or does not
@@ -158,7 +158,7 @@ jobs:
 
   # Hostile bytes, with a real coverage-guided fuzzer.
   #
-  # The committed corpus is real IEX packets, so every mutation starts from something that parses — which is
+  # The committed corpus is real IEX packets, so every mutation starts from something that parses, which is
   # where the interesting failures are, rather than noise every decoder rejects at the first byte. Bounded per
   # target: a CI job is a regression check, not a fuzzing campaign, and the campaign is run by hand.
   fuzz:
@@ -192,7 +192,7 @@ jobs:
 
   # The load-bearing check for the WebAssembly build: does the browser produce the same trace as the
   # terminal? Two compilers, two targets, one seed. If the bytes ever differ then something in the library
-  # depends on its platform, and "deterministic" was a word rather than a property — so this fails the build
+  # depends on its platform, and "deterministic" was a word rather than a property, so this fails the build
   # rather than being noticed later by a reader comparing numbers.
   wasm:
     name: wasm matches native, byte for byte
@@ -218,7 +218,7 @@ jobs:
       # The committed module is an artifact, committed on purpose so Pages can deploy without an Emscripten
       # toolchain. Staleness is checked by *behaviour*, not by bytes: a WebAssembly binary is not
       # reproducible across emsdk versions or hosts, so a byte diff would fail for reasons nobody caused.
-      # What matters is that the module the page will actually load still agrees with the native build — so
+      # What matters is that the module the page will actually load still agrees with the native build, so
       # if somebody changes the library and forgets to rebuild, this is the step that says so.
       - name: The committed module still agrees with native
         run: ./scripts/check-wasm.sh dev

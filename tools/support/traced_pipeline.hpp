@@ -247,7 +247,7 @@ class traced_pipeline {
 
   void deliver(const rec::ingest_report& report) {
     // Repairs first, then what this packet newly carried. Both go to the book, which orders them by sequence
-    // itself — see deliver_to_book for why arrival order is not good enough.
+    // itself: see deliver_to_book for why arrival order is not good enough.
     for (const auto& repaired : client_.last_recovered().ranges()) {
       for (std::uint64_t s = repaired.first; s < repaired.end; ++s) {
         ++deliveries_[s];
@@ -263,7 +263,7 @@ class traced_pipeline {
   // The body for one delivered sequence, from what the venue published.
   //
   // Looked up rather than carried through the client, and the distinction matters for what the trace can claim:
-  // recovery decides *which* sequences reach a consumer, *how many times* and *in what order* — it never rewrites a
+  // recovery decides *which* sequences reach a consumer, *how many times* and *in what order*: it never rewrites a
   // body. So the lookup is equivalent to carrying it, and the book still shows a repair applied twice or out of
   // order, which is what the drawing is for.
   void offer_to_book(std::uint64_t sequence) {

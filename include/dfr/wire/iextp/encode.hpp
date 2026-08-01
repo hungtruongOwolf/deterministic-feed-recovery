@@ -1,7 +1,7 @@
 // Producing IEX-TP datagrams.
 //
 // The builder computes Payload Length and Message Count on finish(), so it
-// cannot emit a packet that fails its own chain check — the fault dfr::chaos will
+// cannot emit a packet that fails its own chain check: the fault dfr::chaos will
 // inject deliberately.
 
 #ifndef DFR_WIRE_IEXTP_ENCODE_HPP

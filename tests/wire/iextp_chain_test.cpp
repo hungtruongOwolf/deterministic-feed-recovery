@@ -82,7 +82,7 @@ TEST_CASE("a sequence gap is reported and then resynchronised",
   CHECK_FALSE(gap.is_fatal());
 
   // Resynchronised, so one gap does not produce an error on every packet after
-  // it — which would bury the next real fault in noise.
+  // it, which would bury the next real fault in noise.
   const iex::header following{
       .payload_length = 4, .message_count = 1, .stream_offset = 8,
       .first_sequence = 11};
@@ -131,7 +131,7 @@ TEST_CASE("a broken offset chain is caught when the sequence chain is intact",
   //
   // Sequence numbers chain perfectly and stream offsets do not, which is what a
   // corrupted Payload Length looks like. A receiver checking only sequence
-  // numbers — which is all MoldUDP64 permits — sees nothing wrong and carries a
+  // numbers(which is all MoldUDP64 permits) sees nothing wrong and carries a
   // silently wrong byte position for the rest of the session.
   iex::chain_checker checker;
   const iex::header first{

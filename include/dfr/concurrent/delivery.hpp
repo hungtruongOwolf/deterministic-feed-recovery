@@ -8,8 +8,8 @@
 // ------------------------------------------
 // A ring of pointers would be smaller and would be wrong here. The producer would have to keep the pointed-to
 // bytes alive until a consumer it cannot see is finished with them, which means either a second ring going
-// back or a lifetime rule enforced by comment. And the consumer would pay a dependent load — the pointer, then
-// the cache miss it leads to — on the critical path, which is the cost this whole structure exists to avoid.
+// back or a lifetime rule enforced by comment. And the consumer would pay a dependent load: the pointer, then
+// the cache miss it leads to: on the critical path, which is the cost this whole structure exists to avoid.
 //
 // So the body is copied into the slot. That is a memcpy of a bounded size, and it buys an ownership story with
 // no rules in it: once `push` returns true the producer is done, forever.
@@ -37,7 +37,7 @@ inline constexpr std::size_t kMaxDeliveryBytes = 256;
 // ---------------------------------------------
 // The consumer is on another thread and cannot ask the client anything: by the time it looks, the client has
 // moved on. So every field it needs to make sense of the message is in the record. This is the same rule the
-// trace format follows — carry the conclusions, do not make the reader recompute them — applied to a thread
+// trace format follows(carry the conclusions, do not make the reader recompute them) applied to a thread
 // boundary instead of a file.
 struct delivery {
   std::uint64_t sequence{0};
@@ -47,7 +47,7 @@ struct delivery {
   std::uint8_t line{0};
 
   // True when this message was recovered rather than received live. A consumer that treats a repair
-  // differently — most risk systems do — cannot tell otherwise.
+  // differently(most risk systems do) cannot tell otherwise.
   bool recovered{false};
 
   std::uint16_t size{0};

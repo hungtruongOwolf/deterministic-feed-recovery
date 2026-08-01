@@ -3,7 +3,7 @@
 // Where the threads go, and why not in the core
 // ---------------------------------------------
 // The recovery core is single-threaded and stays that way. That is not caution: determinism is the property
-// the whole project is built on — a failing run must replay from a seed — and a multi-threaded core would
+// the whole project is built on(a failing run must replay from a seed) and a multi-threaded core would
 // make the interleaving part of the input. There would be nothing left to reproduce.
 //
 // But a feed handler that never leaves its own thread is not a feed handler. Somebody downstream has to
@@ -13,19 +13,19 @@
 //
 // Full means refused, never overwritten
 // -------------------------------------
-// When the consumer falls behind, `push` fails and says so. It does not overwrite the oldest record — the
+// When the consumer falls behind, `push` fails and says so. It does not overwrite the oldest record: the
 // same decision recovery::replay_buffer and trace::recorder make, for the same reason applied to a third
 // place: overwriting turns a *known* backlog into a silent hole. A refused message is still in the caller's
 // hands and the caller already knows how to report a gap; an overwritten one is data loss nobody recorded.
 //
-// A dropping ring is a defensible design for some feeds — stale quotes are worthless — but it must be the
+// A dropping ring is a defensible design for some feeds(stale quotes are worthless) but it must be the
 // caller's choice, made where the caller can account for it. `refused()` is how this one accounts.
 //
 // What makes it fast, stated rather than assumed
 // ---------------------------------------------
 //   * The two indices sit on separate cache lines, so a producer write does not invalidate the line the
 //     consumer reads its own index from. **Measured at 10–25%**, consistently, not the order of magnitude I
-//     assumed before measuring it — see docs/CONCURRENCY.md. The floor underneath both is core-to-core cache
+//     assumed before measuring it: see docs/CONCURRENCY.md. The floor underneath both is core-to-core cache
 //     line transfer, which no arrangement of the code removes.
 //   * Each side caches the other's index and only re-reads it when its own cached copy says the ring looks
 //     full or empty. In the common case neither thread touches the other's cache line at all.
@@ -58,7 +58,7 @@ namespace concurrent {
 // The line size to pad to comes from core/attributes.hpp, and this file used to define its own.
 //
 // Two definitions of the cache line is the bug: fixing the ABI dependency in one of them left the other still
-// reading `std::hardware_destructive_interference_size`, whose value is part of the GCC ABI — so two translation
+// reading `std::hardware_destructive_interference_size`, whose value is part of the GCC ABI, so two translation
 // units built with different GCC versions could disagree about how wide this ring's padded members are, which is
 // a layout mismatch rather than a performance question. GCC said so; one definition is the fix.
 
@@ -106,7 +106,7 @@ class spsc_ring {
   //
   // `bool` rather than `void` because a full ring is a normal condition a caller must handle, and rather than
   // `result<void>` because there is exactly one reason it can fail and naming it in a return type would be
-  // ceremony. TIGER_STYLE's ordering — void, then bool, then a richer type — points here.
+  // ceremony. TIGER_STYLE's ordering(void, then bool, then a richer type) points here.
   [[nodiscard]] bool push(const T& value) noexcept {
     const auto tail = tail_.load(std::memory_order_relaxed);
 

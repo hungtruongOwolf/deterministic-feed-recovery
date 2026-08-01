@@ -5,7 +5,7 @@
 // arriving at the same answer without the number ever crossing between them.
 //
 // SoupBinTCP puts that number nowhere in the packet. Agreement is the only evidence either side is right, and
-// neither component could assert it alone — one assigns, the other counts.
+// neither component could assert it alone: one assigns, the other counts.
 
 #include <dfr/venue/order_session.hpp>
 
@@ -56,7 +56,7 @@ TEST_CASE("a client counting the server's stream arrives at the numbers the serv
 
   // The client starts counting from what Login Accepted told it, exactly as it would on a real
   // connection: the sequence is never on the wire, so agreement is the only evidence either side is
-  // right. Neither component could assert this alone — one assigns, the other counts.
+  // right. Neither component could assert this alone: one assigns, the other counts.
   soup::stream_cursor counting{accepted.next_sequence};
 
   for (const auto* text : {"COUNT0001", "COUNT0002"}) {
@@ -207,7 +207,7 @@ TEST_CASE("the accounting balances across a whole session, and the sequence agre
   stream.put_order(dfr::packet_view{cancel.data(), cancel.size()});
   REQUIRE(host.offer(stream.view(), at_ms(4), out).get(taken) == dfr::error::ok);
 
-  // Every share ever made liable is executed, canceled or still open — asserted once across a session
+  // Every share ever made liable is executed, canceled or still open: asserted once across a session
   // rather than after each step, which is what catches an accounting error that needs two paths to have
   // both run before it shows.
   CHECK(host.orders().accounts());

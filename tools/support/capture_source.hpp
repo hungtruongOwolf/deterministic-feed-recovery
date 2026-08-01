@@ -1,6 +1,6 @@
 // Reading a capture file and walking its frames, for the tools that need it.
 //
-// Two tools now do this — inspect and verify — and the format handling is the part with a
+// Two tools now do this(inspect and verify) and the format handling is the part with a
 // real finding behind it, so it lives in one place rather than being copied. From the
 // README: there is no format switch to find. `20170826` is classic pcap, `20170923` is
 // pcapng, and `20241001` is classic pcap again seven years later with a different snaplen.
@@ -27,7 +27,7 @@ namespace cap = dfr::capture;
 // How a walk ended, so a partial read can reach the exit code.
 //
 // Reporting a truncated capture as success is exactly the mistake the readers were built to
-// prevent, so a tool must not make it either — which means the outcome has to be a value
+// prevent, so a tool must not make it either, which means the outcome has to be a value
 // the caller cannot ignore rather than something printed and forgotten.
 struct read_outcome {
   dfr::error stopped{dfr::error::ok};

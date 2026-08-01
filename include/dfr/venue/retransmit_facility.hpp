@@ -4,7 +4,7 @@
 // -----------------------------------------------------------------------
 // recovery::replay_buffer refuses when it fills, because silently dropping its oldest entries
 // is what makes the Glimpse race undetectable. This does the opposite and overwrites its
-// oldest entries, because that is not a compromise — it is the definition of a retention
+// oldest entries, because that is not a compromise: it is the definition of a retention
 // window. A retransmit facility that never forgot would be a facility no client could ever
 // provoke into saying no, and `error::retransmit_window_exceeded` would be dead code that a
 // client had never been driven through.
@@ -37,7 +37,7 @@ namespace venue {
 
 // MoldUDP64 caps a request at 60,000 messages, and a real server answers a larger one with
 // silence. Modelled as a refusal rather than as silence so a test can tell the difference
-// between the facility declining and the harness forgetting to ask — silence is indistinguishable
+// between the facility declining and the harness forgetting to ask: silence is indistinguishable
 // from a bug in the test.
 inline constexpr std::uint64_t kMaxMessagesPerResponse = 60'000;
 
@@ -57,7 +57,7 @@ struct facility_stats {
 
 // `Packets` is the retention window, measured in datagrams rather than in time. A venue's
 // published window is usually a duration, but a facility bounded by memory is bounded in
-// packets, and converting one to the other requires a rate nobody controls — so the honest
+// packets, and converting one to the other requires a rate nobody controls, so the honest
 // parameter is the one that is actually fixed.
 template <std::size_t Packets = 256, std::size_t MaxDatagram = kMaxDatagramBytes>
 class retransmit_facility {

@@ -46,7 +46,7 @@ TEST_CASE("an unregistered channel is not added on demand",
           "[recovery][channel]") {
   // Growing the table from wire data would let a corrupted channel field consume
   // configuration slots, and would make the receiver start tracking a stream nobody
-  // asked it to follow — then report gaps in it.
+  // asked it to follow, then report gaps in it.
   rec::channel_table table;
   rec::channel_id id;
   REQUIRE(table.add(7).get(id) == dfr::error::ok);

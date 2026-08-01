@@ -1,4 +1,4 @@
-// result<T> — a value paired with an error code.
+// result<T>: a value paired with an error code.
 //
 // Modelled on simdjson's simdjson_result rather than on std::expected, for two
 // reasons that matter here:
@@ -17,7 +17,7 @@
 // Storage: value and error side by side, which requires T to be default
 // initializable. That is the same trade simdjson makes. It keeps the type
 // trivially copyable when T is, needs no union or manual lifetime management,
-// and costs sizeof(T) on the error path — acceptable because every T here is a
+// and costs sizeof(T) on the error path: acceptable because every T here is a
 // small POD or a view.
 
 #ifndef DFR_CORE_RESULT_HPP
@@ -102,8 +102,8 @@ class [[nodiscard]] result {
   using value_type = T;
   using error_type = error;
 
-  // A default-constructed result is an error, not a success. The alternative —
-  // defaulting to ok with a default-constructed value — would make a forgotten
+  // A default-constructed result is an error, not a success. The alternative:
+  // defaulting to ok with a default-constructed value: would make a forgotten
   // assignment look like a successful decode.
   constexpr result() noexcept(std::is_nothrow_default_constructible_v<T>)
       : error_(error::invalid_argument) {}
@@ -122,7 +122,7 @@ class [[nodiscard]] result {
   }
 
   // Both, for a decoder that produced something usable *and* wants to report a
-  // condition — a header that parsed but whose sequence number revealed a gap,
+  // condition: a header that parsed but whose sequence number revealed a gap,
   // for instance. This is the constructor that lets the hot path avoid a
   // branch at construction.
   constexpr result(T value, error err) noexcept(
@@ -304,7 +304,7 @@ class [[nodiscard]] result {
 };
 
 // Reads better than the two-argument constructor at a return statement, and
-// makes the intent — a usable value plus a reported condition — explicit.
+// makes the intent(a usable value plus a reported condition) explicit.
 template <typename T>
 [[nodiscard]] constexpr result<T> partial(T value, error err) {
   DFR_ASSERT(err != error::ok,
@@ -314,7 +314,7 @@ template <typename T>
 }
 
 // ---------------------------------------------------------------------------
-// result<void> — for operations that report only an error.
+// result<void>: for operations that report only an error.
 //
 // A distinct specialisation rather than result<std::monostate>, so that
 // `if (auto r = step(); !r)` reads the same for both and no caller has to name

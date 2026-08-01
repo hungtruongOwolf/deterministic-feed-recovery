@@ -3,7 +3,7 @@
 // Why this exists at all
 // ----------------------
 // Until now this library decoded the *envelope* and never the letter. MoldUDP64 and IEX-TP frame messages, and
-// the messages themselves were opaque bytes — the benchmark literally filled them with `(i + at) & 0xFF`. So
+// the messages themselves were opaque bytes: the benchmark literally filled them with `(i + at) & 0xFF`. So
 // recovery could prove "every sequence number arrived exactly once" and could not prove anything about what
 // arrived. The strongest invariant a feed handler can offer is not about sequence numbers: it is that **the
 // book after recovery equals the book that would have existed with no loss at all**, and that needs the
@@ -12,7 +12,7 @@
 // Where these offsets came from, which is the part that matters
 // ------------------------------------------------------------
 // Not transcribed from a specification. The DEEP specification's live URL serves a stub, the same way IEX-TP's
-// does, so a transcription would have exactly one source and no way to check it — the situation
+// does, so a transcription would have exactly one source and no way to check it: the situation
 // docs/DESIGN.md calls out as how a decoder ends up confidently wrong.
 //
 // Instead: a real IEX HIST capture (2017-08-26 DEEP, 20,145 packets, 48,635 messages) was tabulated by message
@@ -21,10 +21,10 @@
 // matching a document:
 //
 //   * every timestamp decodes to 2017-08-26, the capture's own date;
-//   * the symbols decode to real tickers — WWE, IEXT, VIAV;
+//   * the symbols decode to real tickers: WWE, IEXT, VIAV;
 //   * a Price Level Update Buy at $20.8900 and a Sell at $20.9000 on the same symbol at the same instant,
 //     which is a valid one-cent spread and would be impossible if the price offset were wrong;
-//   * a Trade Report at $20.9000 — the ask — for 100 shares.
+//   * a Trade Report at $20.9000(the ask) for 100 shares.
 //
 // A wrong offset cannot produce a coherent spread by accident. That is the evidence, and `tools/inspect
 // --deep` reproduces it on any capture.
@@ -58,7 +58,7 @@ enum class message_type : std::uint8_t {
   trading_status = 'H',      // 8,895
   operational_halt = 'O',    // 8,445
   short_sale_test = 'P',     // 8,697
-  security_event = 'E',      // 16,884 — the most common message in the capture
+  security_event = 'E',      // 16,884: the most common message in the capture
 
   // The book.
   price_level_buy = '8',   // 138
@@ -124,7 +124,7 @@ enum class message_type : std::uint8_t {
 // Field offsets
 // ---------------------------------------------------------------------------
 //
-// Every message starts the same way — type, one flag byte, an eight-byte timestamp — and every message except
+// Every message starts the same way(type, one flag byte, an eight-byte timestamp) and every message except
 // System Event follows with an eight-byte symbol. Naming that prefix once rather than per message is what makes
 // the decoders short enough to check by eye.
 
@@ -153,7 +153,7 @@ inline constexpr std::size_t kDetailOffset = 18;
 
 // Prices are signed 64-bit fixed point with four implied decimal places: 20.8900 is 208,900.
 //
-// Signed, and the sign is not decoration — DEEP uses a negative price for "no price" in some auction fields,
+// Signed, and the sign is not decoration: DEEP uses a negative price for "no price" in some auction fields,
 // so an unsigned read would turn an absence into an enormous number.
 inline constexpr std::int64_t kPriceScale = 10'000;
 

@@ -7,8 +7,8 @@ slower, never faster. So the minimum over repetitions converges on what the code
 converges on what the machine was doing that afternoon.
 
 The percentiles are merged the same way, which needs saying: the reported p99 is the *lowest p99 observed
-across rounds*, i.e. the tail of the least disturbed run. That is the honest reading — it describes the tail
-the code produces, not the tail the operating system added — and it is written down here rather than left for
+across rounds*, i.e. the tail of the least disturbed run. That is the honest reading: it describes the tail
+the code produces, not the tail the operating system added, and it is written down here rather than left for
 somebody to infer.
 """
 import json

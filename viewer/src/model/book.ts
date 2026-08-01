@@ -1,7 +1,7 @@
 // Whether the book this act rebuilt is the book that would have existed.
 //
 // The one thing the page most needs to say and could not. A visitor watching a bid and an ask tick has no way to
-// know they are looking at the project's central claim — that the book after loss and repair equals the book that
+// know they are looking at the project's central claim: that the book after loss and repair equals the book that
 // lost nothing. The numbers were on the page; the *argument* was not.
 //
 // Both sides come from the trace: the run's own book on each event, the loss-free book in the summary. Nothing here
@@ -16,7 +16,7 @@ export interface BookVerdict {
   readonly referenceTraded: number;
   /** Shares the run never saw. Zero when it matches. */
   readonly missingShares: number;
-  /** False before any message has been delivered — there is nothing to compare yet. */
+  /** False before any message has been delivered: there is nothing to compare yet. */
   readonly comparable: boolean;
 }
 

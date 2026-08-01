@@ -4,7 +4,7 @@
 //         [--out FILE]
 //
 // One JSON object per line: a header describing the run, one line per event, and a summary. The
-// format is a deliverable, not a debug dump — a trace is a deterministic function of the seed, so
+// format is a deliverable, not a debug dump: a trace is a deterministic function of the seed, so
 // it can be committed next to the test that produced it and diffed when behaviour changes. "Here is
 // the three-fault schedule that breaks it" becomes a file somebody can open.
 //
@@ -13,7 +13,7 @@
 // Every event carries the resulting client state and headline numbers, so drawing any moment needs
 // one line and no replay. A viewer that reconstructed state from the event sequence would be a
 // second implementation of the state machine, written in another language by someone reading the
-// first — and when the two disagreed, the picture would be wrong with nothing to say so.
+// first, and when the two disagreed, the picture would be wrong with nothing to say so.
 //
 // The honesty ledger is in the data
 // -------------------------------

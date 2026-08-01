@@ -2,7 +2,7 @@
 //
 // A scrubber can reach any instant, which sounds better and is worse: the instants that matter are a handful
 // out of six hundred, and finding them by dragging is a search. The rail marks them, colours them by what
-// they were, and puts the shape of the whole film on one line — three acts' worth, so without playing
+// they were, and puts the shape of the whole film on one line: three acts' worth, so without playing
 // anything you can see that act one is nearly all quiet, act two is a rhythm of loss and repair, and act
 // three ends in a colour the other two never reach.
 //
@@ -24,7 +24,7 @@ export function EventRail({ film, at, onSeek }: Props) {
   return (
     <div className="rail">
       <div className="rail__head mono">
-        MOMENTS WORTH GOING BACK TO — click one
+        MOMENTS WORTH GOING BACK TO: click one
         <span className="rail__count">
           {marks.length} of {film.moments.length} steps
         </span>
@@ -45,7 +45,7 @@ export function EventRail({ film, at, onSeek }: Props) {
             className={`rail__mark rail__mark--${mark.beat.tone} ${mark.at === at ? "is-now" : ""}`}
             style={{ left: `${(mark.at / span) * 100}%` }}
             onClick={() => onSeek(mark.at)}
-            title={`act ${film.acts[mark.act]!.ordinal}, step ${mark.local + 1} — ${mark.beat.caption}`}
+            title={`act ${film.acts[mark.act]!.ordinal}, step ${mark.local + 1}: ${mark.beat.caption}`}
             aria-label={`go to act ${film.acts[mark.act]!.ordinal}, step ${mark.local + 1}: ${mark.beat.caption}`}
           />
         ))}

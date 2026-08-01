@@ -4,7 +4,7 @@
 // exactly how the component is meant to be used and because a bug in a retry timeline
 // is otherwise only visible under load in production.
 //
-// Chunking, merging and partial fills are in requester_chunking_test.cpp — those are
+// Chunking, merging and partial fills are in requester_chunking_test.cpp: those are
 // about *what* is asked for rather than *when*.
 
 #include <dfr/recovery/requester.hpp>
@@ -40,7 +40,7 @@ TEST_CASE("a fresh gap is not requested immediately",
           "[recovery][requester]") {
   // The substance of NAK suppression. Most gaps on a multicast feed are transient
   // reordering, and a receiver that asks the instant it notices generates recovery
-  // traffic for data already in flight — simultaneously, from every receiver on the
+  // traffic for data already in flight: simultaneously, from every receiver on the
   // group, for the same packet.
   test_requester requester{readable_policy()};
   must_open(requester, range(10, 20), at_ms(0));
@@ -141,7 +141,7 @@ TEST_CASE("a reply stops the retries", "[recovery][requester]") {
 TEST_CASE("the last attempt is given its full timeout before giving up",
           "[recovery][requester][regression]") {
   // Abandoning the moment the final request is sent would throw away a range whose
-  // reply was still in flight — and the reply would then arrive for a range the
+  // reply was still in flight, and the reply would then arrive for a range the
   // requester had already declared unrecoverable.
   test_requester requester{readable_policy()};
   must_open(requester, range(10, 20), at_ms(0));
@@ -200,7 +200,7 @@ TEST_CASE("the window is measured from discovery, not from the last attempt",
           "[recovery][requester][regression]") {
   // Measuring from the last attempt would let a persistent receiver keep a range alive
   // indefinitely by continuing to ask about it, long after the publisher had dropped
-  // it — asking forever for something that can never arrive.
+  // it: asking forever for something that can never arrive.
   auto policy = readable_policy();
   policy.max_attempts = 100;
   policy.retention_window = std::chrono::milliseconds{100};

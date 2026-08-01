@@ -2,7 +2,7 @@
 // one fewer defence.
 //
 // There is deliberately nothing to choose. The three runs are one film that plays through, because offering
-// them as options — a dropdown, then buttons — made them read as three competing methods rather than three
+// them as options(a dropdown, then buttons) made them read as three competing methods rather than three
 // layers of one system. See src/model/film.ts.
 //
 // It reads trace files and draws them. No server, no live connection, and no domain logic: every number on
@@ -300,7 +300,7 @@ export function App() {
   return (
     <div className="app">
       {/* One line, because the page has to say what it is before it says anything else. Everything that used to
-          be here — two taglines, a note, a promise about what there is nothing to choose — was competing with
+          be here(two taglines, a note, a promise about what there is nothing to choose) was competing with
           the drawing for the first thing a reader looks at. */}
       <header className="app__bar">
         <h1 className="app__title">
@@ -332,7 +332,7 @@ export function App() {
             allocations={perf?.shipping.allocations_after_init ?? 0}
             perPacket={
               perf === undefined
-                ? "—"
+                ? "n/a"
                 : nanos(
                     perf.shipping.measurements.find((m) => m.name.startsWith("ingest a packet"))
                       ?.best_ns ?? 0,
@@ -408,7 +408,7 @@ export function App() {
 
             <EventRail film={film} at={view.at} onSeek={(to) => playback.seek(to)} />
 
-            <Disclosure summary="this act in numbers — delivery, line health, and what the run does not claim">
+            <Disclosure summary="this act in numbers: delivery, line health, and what the run does not claim">
               <div className="app__aside">
                 <Summary trace={view.act.trace} />
                 <LineHealth trace={view.act.trace} />
@@ -445,7 +445,7 @@ export function App() {
                 The other direction: sending orders in
               </h2>
               <p className="act-section__lede">
-                Above is the exchange sending. This is the exchange listening — and answering every order with a
+                Above is the exchange sending. This is the exchange listening, and answering every order with a
                 numbered reply.
               </p>
               <SessionSection
@@ -467,7 +467,7 @@ export function App() {
             </h2>
             <p className="act-section__lede">
               This section is for engineers, and the rest of the page does not depend on it. Real defects from the
-              commit history — several of them mine, found rather than avoided, because a list of things that went
+              commit history: several of them mine, found rather than avoided, because a list of things that went
               right is a list of things nobody checked.
             </p>
             <Findings />

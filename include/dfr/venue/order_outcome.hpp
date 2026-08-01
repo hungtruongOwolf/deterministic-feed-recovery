@@ -52,7 +52,7 @@ enum class order_outcome : std::uint8_t {
 struct order_entry_options {
   // Whether cross orders are currently in the late period, during which they cannot be canceled. This
   // is the condition §2.2 gives for a replace being *rejected* rather than turned into a cancel, and
-  // without it the Reject path — and the token consumption that goes with it — is unreachable.
+  // without it the Reject path(and the token consumption that goes with it) is unreachable.
   bool late_cross_period{false};
 
   // The firm to stamp on an order whose Firm field was left blank, as §2.1 describes.

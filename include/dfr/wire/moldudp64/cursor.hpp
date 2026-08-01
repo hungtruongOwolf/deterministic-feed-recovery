@@ -32,7 +32,7 @@ struct message {
 //
 // An explicit cursor rather than a callback. helix and most implementations take
 // a handler, which forces control flow to invert and makes it awkward to stop
-// half way — which is exactly what a fault injector and a differential test
+// half way, which is exactly what a fault injector and a differential test
 // both need to do. TIGER_STYLE's "centralize control flow" points the same way:
 // the loop belongs to the caller.
 //
@@ -48,7 +48,7 @@ class message_cursor {
   // A cursor over nothing: exhausted, with no messages and no bytes left.
   //
   // Required because result<message_cursor> stores the value beside the error
-  // and so needs a default-constructible T — the trade documented in
+  // and so needs a default-constructible T: the trade documented in
   // result.hpp. It costs nothing here because the state is genuinely
   // meaningful rather than an "invalid" sentinel: done() is true, remaining()
   // is zero, rest() is empty, and next() asserts exactly as it does on any
@@ -124,7 +124,7 @@ class message_cursor {
     }
 
     // A zero-length block is legal on the wire, and is not the end-of-session
-    // marker — that is signalled by Message Count, not by a length. Recorded
+    // marker: that is signalled by Message Count, not by a length. Recorded
     // rather than asserted, because it is a state a correct publisher may
     // produce and a reader should not be surprised by it.
     DFR_MAYBE(length == 0);

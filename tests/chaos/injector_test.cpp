@@ -1,6 +1,6 @@
 // Faults that change *which* packets arrive and *when*: drop, duplicate, delay.
 //
-// The damage faults — the ones that rewrite bytes — live in
+// The damage faults(the ones that rewrite bytes) live in
 // injector_damage_test.cpp. This file never decodes a packet; it only watches the
 // sequence of emissions, which is the whole of what a delivery fault means.
 
@@ -108,7 +108,7 @@ TEST_CASE("a delay moves a packet later without losing it",
 
 TEST_CASE("a delay past the end of the stream is still delivered",
           "[chaos][injector][regression]") {
-  // Without flush(), a packet delayed past the last index would simply vanish —
+  // Without flush(), a packet delayed past the last index would simply vanish,
   // which is a drop, not a reorder, and would make an oracle expect the wrong
   // thing.
   const auto stream = iextp_stream(5);

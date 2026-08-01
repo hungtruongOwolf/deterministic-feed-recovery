@@ -4,7 +4,7 @@
 // the *script* a session runs never needs the field formatting, and the formatter has no opinion about the script.
 //
 // Everything here decodes before it prints. A tool that formatted bytes at offsets it knew would agree with itself
-// about a layout that was wrong — the same rule the venue emitters follow, applied to output.
+// about a layout that was wrong: the same rule the venue emitters follow, applied to output.
 
 #ifndef DFR_TOOLS_SUPPORT_SESSION_RENDER_HPP
 #define DFR_TOOLS_SUPPORT_SESSION_RENDER_HPP

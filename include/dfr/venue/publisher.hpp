@@ -8,7 +8,7 @@
 // The chains are why this is worth building rather than faking
 // ----------------------------------------------------------
 // IEX-TP numbers messages and *also* counts payload bytes in a Stream Offset. A publisher that got either
-// wrong produces a stream chain_checker rejects — and chain_checker is the component that held on 460,578
+// wrong produces a stream chain_checker rejects, and chain_checker is the component that held on 460,578
 // real IEX packets. So the encoder and the decoder check each other here, and one of them has already been
 // checked against the world. That is a stronger position than either alone.
 //
@@ -18,7 +18,7 @@
 // Parameterised over the protocol, now that there are two
 // -----------------------------------------------------
 // The policy lives in publisher_target.hpp and was written when the second implementation arrived rather
-// than in anticipation of it. See that file for what actually differed — three things, and only three.
+// than in anticipation of it. See that file for what actually differed: three things, and only three.
 
 #ifndef DFR_VENUE_PUBLISHER_HPP
 #define DFR_VENUE_PUBLISHER_HPP
@@ -41,7 +41,7 @@ namespace venue {
 
 // A datagram this size fits inside a 1500-byte Ethernet MTU with room for the IPv4 and UDP
 // headers and a VLAN tag. Chosen rather than 1500 because a publisher that emitted packets
-// which fragmented in transit would be testing IP reassembly, not feed recovery — and the
+// which fragmented in transit would be testing IP reassembly, not feed recovery, and the
 // 2017 IEX capture carries a VLAN tag while later ones do not, so the allowance has to hold
 // either way.
 inline constexpr std::size_t kMaxDatagramBytes = 1400;
@@ -111,7 +111,7 @@ class publisher {
   //
   // Packing rather than one message per packet, because that is what a venue does and because
   // a receiver tested only against one-message packets never exercises the distinction
-  // between a lost packet and a lost message — which is the distinction the whole of
+  // between a lost packet and a lost message, which is the distinction the whole of
   // dfr::recovery is built on.
   template <typename Emit>
   [[nodiscard]] constexpr result<void> submit(packet_view message, time_point now,
@@ -130,7 +130,7 @@ class publisher {
       }
     }
     if (const auto err = builder_.append(message); !err) {
-      // Full. Send what is there and start a fresh datagram — never split a message across
+      // Full. Send what is there and start a fresh datagram: never split a message across
       // two packets, which IEX-TP has no way to express.
       if (const auto flushed = flush(now, emit); !flushed) DFR_UNLIKELY {
         return flushed;

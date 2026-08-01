@@ -6,7 +6,7 @@ load-bearing claims. Constraints as given: **cloud VMs only, open-ended timeline
 
 ---
 
-## 1. The saturation data — this is the whole argument
+## 1. The saturation data: this is the whole argument
 
 All counts from the authenticated GitHub API, 2026-07-29/30.
 
@@ -35,8 +35,8 @@ All counts from the authenticated GitHub API, 2026-07-29/30.
 **1,071 C++ order books in seven months. Zero multicast gap-fill libraries, ever.**
 
 That asymmetry is the finding. Everything that *decodes* a feed or *matches* an order is
-saturated to statistical invisibility. Everything that models **the counterparty side** — the
-queue, the exchange's behaviour toward your order, the recovery path, the wire, the clock — is
+saturated to statistical invisibility. Everything that models **the counterparty side**: the
+queue, the exchange's behaviour toward your order, the recovery path, the wire, the clock: is
 empty.
 
 ### The correctness study that proves the ceiling
@@ -50,10 +50,10 @@ engines in 20+ languages**:
 - **87 diverge, crash, or are infeasible**
 - **181 GitHub issues filed, 250+ findings, 18 fixed upstream, none declined**
 
-Named defects in the *popular* repos: `Kautenja` (311★) — use-after-free on cancel.
-`slmolenaar` (266★) — swap-and-pop breaks FIFO time priority. `lanpishu` (387★) — broken RB-tree
+Named defects in the *popular* repos: `Kautenja` (311★), use-after-free on cancel.
+`slmolenaar` (266★)(swap-and-pop breaks FIFO time priority. `lanpishu` (387★)) broken RB-tree
 delete-fixup. The single most common bug class, found independently in ten engines: **fills
-priced at the aggressor's limit instead of the resting maker's** — which is not an optimization
+priced at the aggressor's limit instead of the resting maker's**, which is not an optimization
 detail, it is the definition of a limit order book.
 
 Caveat: Flash One is a patent-licensing business and reports its own engine fastest. But the
@@ -63,7 +63,7 @@ checkable in source. The methodology stands independent of their commercial inte
 
 **Read this as calibration, not discouragement.** It is proof that (a) the saturated space is
 saturated with *broken* code, and (b) a rigorous differential-testing artifact in this domain
-gets 181 issues filed and 18 upstream fixes — i.e. it lands.
+gets 181 issues filed and 18 upstream fixes: i.e. it lands.
 
 ---
 
@@ -72,11 +72,11 @@ gets 181 issues filed and 18 upstream fixes — i.e. it lands.
 An order book fails not because it is easy, but because **it carries no falsifiable claim.** It
 is an artifact whose quality a reviewer cannot assess in five minutes.
 
-- *"I wouldn't 'showcase' it in a resume"* — insider, TeamBlind 2021
+- *"I wouldn't 'showcase' it in a resume"*: insider, TeamBlind 2021
 - *"Literally a Python dictionary with lists for each price. Can be done in 10 mins."*
 - *"is there like a popular YouTube video going around? It seems like there's a big spike in the
   number of students and new grads wanting to show off their TPP matching engine benchmarks"*
-  — r/highfreqtrading, 2026-01-16
+ : r/highfreqtrading, 2026-01-16
 - *"Full stack HFT projects are dime a dozen."*
 
 **The unit of distinctiveness is a falsifiable claim, not a codebase.** Compare *"I built a
@@ -88,15 +88,15 @@ competencies the job requires.
 ### Verified independently by me (own reads, not relayed)
 
 - `rigtorp/MPMCQueue` README TODO: `- [X] Add allocator supports so that the queue could be
-  used with huge pages and shared memory` — marked **done**.
-- `include/rigtorp/MPMCQueue.h:278` — `Slot<T> *slots_;`. A raw pointer data member, so the
+  used with huge pages and shared memory`: marked **done**.
+- `include/rigtorp/MPMCQueue.h:278`, `Slot<T> *slots_;`. A raw pointer data member, so the
   control block is **not position-independent**: map it at a different address in a second
   process and it breaks.
 - `grep -niE "shared memory|shm|interprocess|process"` over the header → **zero matches**.
 - Maintenance: MPMCQueue 1,555★ last pushed 2024-03-08; SPSCQueue 1,269★ 2024-01-04. Both
   unmaintained. `max0x7ba/atomic_queue` (1,880★, active) documents position-independence
   correctly, but its runtime-sized `AtomicQueueB*` variants use `std::allocator` and silently
-  forfeit it — undocumented.
+  forfeit it: undocumented.
 
 A real, checkable finding sitting in plain sight in a repo with 1,555 stars. Cost: one `curl`
 and one `grep`.
@@ -114,11 +114,11 @@ and one `grep`.
 | `tokio-rs/turmoil` | 1,230 | 2026-07-21 | alive |
 
 Rust has four healthy options; the JVM has Lincheck and Fray. **C++ has one dead 48-star pthread
-shim** — the sole entry in the C/C++ section of `awesome-deterministic-simulation-testing`.
+shim**: the sole entry in the C/C++ section of `awesome-deterministic-simulation-testing`.
 Microsoft's own attempt is archived.
 
 **⚠️ CORRECTION (2026-07-30), and it makes the framing stronger.** An earlier version of this
-section said "C++20 coroutines removed the barrier that made Flow a dialect — nobody has walked
+section said "C++20 coroutines removed the barrier that made Flow a dialect: nobody has walked
 through the door." **Someone did.** Verified directly: `apple/foundationdb` on `main` now has
 `flow/include/flow/Coroutines.h` and `flow/include/flow/CoroutinesImpl.h` (1,497 lines);
 `.actor.cpp/.h` files went **500 → 21** between `release-7.3` and `main`; `Net2.actor.cpp` became
@@ -134,11 +134,11 @@ internally and welded it shut behind them.** Flow's coroutines are inseparable f
 → **0**; `deterministic executor coroutine language:C++` → **0**.
 
 Practical consequence: `flow/include/flow/CoroutinesImpl.h` is now **the single most valuable file
-to read before writing any code** — a production DST engine on native C++20 coroutines. See
+to read before writing any code**: a production DST engine on native C++20 coroutines. See
 `BUILD-GUIDE.md` §11 for the two design choices in it that answer the hardest problems.
 
 Supporting: TSan **cannot see weak memory**. Clang's own `force_seq_cst_atomics` flag is the
-admission — TSan observes one real execution on x86-TSO, which hides the very reorderings your
+admission: TSan observes one real execution on x86-TSO, which hides the very reorderings your
 `relaxed`/`acquire` reasoning depends on. It will pass a queue that breaks on Graviton, and its
 Limitations section never says so. Most practitioners believe green TSan means correct.
 
@@ -157,9 +157,9 @@ Limitations section never says so. Most practitioners believe green TSan means c
 | Anything LLM-smelling | An HFT CTO publicly called out a public repo as LLM-generated (HN 46387677). HRT screens for it. **Actively counterproductive.** |
 
 Also: `PacktPublishing/Building-Low-Latency-Applications-with-CPP` (688★) is Sourav Ghosh's book
-code — a complete teaching trading ecosystem that candidates increasingly clone and present as
-their own. **Assume interviewers recognize it.** And `0burak/imperial_hft` — the
-second-highest-starred "HFT C++" repo on GitHub at 1,230★ — is **nine commits** of technique
+code: a complete teaching trading ecosystem that candidates increasingly clone and present as
+their own. **Assume interviewers recognize it.** And `0burak/imperial_hft`: the
+second-highest-starred "HFT C++" repo on GitHub at 1,230★: is **nine commits** of technique
 tips with no license.
 
 ---
@@ -185,7 +185,7 @@ recommend it as the headline**, for four reasons:
    interesting findings in that space require trustworthy hardware.
 
 **The constraint is clarifying rather than limiting.** It rules out the entire
-"measure-nanoseconds-on-tuned-bare-metal" class — which is exactly the class that is both
+"measure-nanoseconds-on-tuned-bare-metal" class, which is exactly the class that is both
 saturated with unverifiable claims and impossible to do credibly without hardware you don't
 have. What survives is *also* what the survey ranks as the emptiest and highest-status space:
 
@@ -194,7 +194,7 @@ have. What survives is *also* what the survey ranks as the emptiest and highest-
 > recognize as the work of someone who has shipped rather than someone who has read."*
 
 Correctness, recovery, determinism and protocol semantics are **hardware-independent by
-construction** — determinism is *simulated*, not measured. A cloud VM is a perfectly legitimate
+construction**: determinism is *simulated*, not measured. A cloud VM is a perfectly legitimate
 place to do all of it.
 
 ---
@@ -202,13 +202,13 @@ place to do all of it.
 ## 5. Recommended thesis: build the counterparty
 
 > **A deterministic exchange-simulation and market-data recovery stack in C++.** Build the thing
-> that behaves like an exchange, and the thing that survives an exchange behaving badly — with a
+> that behaves like an exchange, and the thing that survives an exchange behaving badly: with a
 > seeded deterministic simulator that makes both reproducible.
 
 Three composable components. Each is an independently verified void. None needs special
 hardware. Together they close a loop.
 
-### Component 1 — A mock exchange that speaks real wire protocols
+### Component 1: A mock exchange that speaks real wire protocols
 
 The gap, verbatim from the survey: *"There is no maintained OSS mock exchange that speaks real
 ITCH over multicast + OUCH/SoupBinTCP over TCP, runs a price-time-priority engine, and injects
@@ -216,7 +216,7 @@ realistic per-hop latency."*
 
 The direction of travel is the whole point: **ITCH *decoders* are saturated to absurdity; ITCH
 and OUCH *encoders that behave like an exchange* number roughly zero.** Everyone builds ingress.
-Nobody builds egress, which is where the hard correctness problems live — session sequencing,
+Nobody builds egress, which is where the hard correctness problems live: session sequencing,
 replay-on-reconnect, sequenced vs unsequenced packets, in-flight order state across reconnect,
 cancel-on-disconnect.
 
@@ -224,14 +224,14 @@ Supporting gap #4: `"OUCH protocol nasdaq"` → **0 repos**. The only dedicated 
 is 8★ and dead 11 years. The best C++ SoupBinTCP implementation in existence
 (`bobbleclank/soupbintcp`) has **three stars**.
 
-Prior art to mine, not copy: `paritytrading/parity` (502★) was a complete OSS equities exchange —
+Prior art to mine, not copy: `paritytrading/parity` (502★) was a complete OSS equities exchange,
 **archived 2022-02-09**. `mkipnis/DistributedATS` (115★, active) is the most architecturally
 complete C++ thing in OSS (QuickFIX + LiquiBook + FastDDS, real gateways, `LatencyTest`) but is
 FIX-only with no binary multicast feed, single maintainer. `libtrading` (738★, dead 5.5 years,
-never replaced) has the most protocol-complete headers anyone has open-sourced — ten exchange
+never replaced) has the most protocol-complete headers anyone has open-sourced: ten exchange
 protocols, both directions, session layers included.
 
-### Component 2 — The recovery layer (ranked #1 by how much a firm would care)
+### Component 2: The recovery layer (ranked #1 by how much a firm would care)
 
 Gap detection + retransmit/rewind server + Glimpse-style snapshot/refresh + **A/B line
 arbitration** + NAK suppression, as a reusable C++ library.
@@ -242,10 +242,10 @@ arbitration** + NAK suppression, as a reusable C++ library.
 
 Firms pay Informatica Ultra Messaging six figures a year largely for exactly this. Aeron
 (8,765★) gives you reliable transport and **zero market-data recovery semantics**. Note also
-that Aeron Cluster has no C or C++ implementation at all — `aeron-cluster/src/main/` contains
+that Aeron Cluster has no C or C++ implementation at all: `aeron-cluster/src/main/` contains
 only `java` and `resources`. This is a real, expensive, unsolved layer.
 
-### Component 3 — The deterministic fault injector and simulator
+### Component 3: The deterministic fault injector and simulator
 
 This is the differentiator, and it is where the C++20-coroutine DST framework from §2 lives.
 
@@ -256,20 +256,20 @@ MoldUDP64 / SBE sequence numbers and timestamps so a receiver's gap logic is gen
 Replays from a seed.
 
 Gap #3 in the survey, described as the **best gap-to-effort ratio on the list**. `tcpreplay`
-(1,336★) is protocol-blind — it cannot rewrite a MoldUDP64 sequence number or arbitrate A/B
+(1,336★) is protocol-blind: it cannot rewrite a MoldUDP64 sequence number or arbitrate A/B
 lines. The de facto market-data replay tool, `rigtorp/udpreplay` (288★), is **34 kilobytes** and
 dead since 2023. The only exchange-aware replayer found has **0 stars**.
 
 Reference designs: TigerBeetle's VOPR (*"an entire cluster, running real code, subjected to
 network, storage and process faults, at 1000× speed"*), FoundationDB's simulation-first
-architecture, and `shadow/shadow` (1,712★, active — runs unmodified native binaries under
+architecture, and `shadow/shadow` (1,712★, active: runs unmodified native binaries under
 simulated time with 150+ syscalls intercepted; arguably repurposable rather than rebuilt).
 
 ### Why the three together are more than the sum
 
 The mock exchange generates the feed. The fault injector corrupts it deterministically. The
 recovery layer must survive it. The whole thing replays from a seed. That is TigerBeetle's VOPR
-applied to exchange connectivity — and it runs entirely on a cloud VM.
+applied to exchange connectivity, and it runs entirely on a cloud VM.
 
 ### The falsifiable claim this produces
 
@@ -278,18 +278,18 @@ applied to exchange connectivity — and it runs entirely on a cloud VM.
 > Here are N published ITCH feed handlers, and here is the deterministic fault schedule that
 > makes each of them silently produce a wrong book."*
 
-That is precisely the flash1-dev methodology applied to the one layer they did not test — and
+That is precisely the flash1-dev methodology applied to the one layer they did not test, and
 that study got 181 issues filed and 18 fixed upstream. It is proof the shape of the artifact
 lands with maintainers, which is the closest available proxy for landing with interviewers.
 
 ### Optional add-on if you want wire-level depth
 
-**Gap #8 — an AF_XDP multicast market-data receiver.** IGMP coexistence alongside an XDP
+**Gap #8: an AF_XDP multicast market-data receiver.** IGMP coexistence alongside an XDP
 redirect program, per-channel XSK steering via `XDP_REDIRECT` + BPF maps, `XDP_METADATA`
 hardware RX timestamps, gap detection. `AF_XDP multicast` → **0 repos**; `AF_XDP market data` →
 one 0★, 19 KB repo.
 
-Crucially, this is *"the only item you can build and CI-test on commodity hardware"* — `veth` +
+Crucially, this is *"the only item you can build and CI-test on commodity hardware"*: `veth` +
 `XDP_SKB`, no Solarflare NIC required. It is the one kernel-bypass-adjacent project that
 survives the cloud-only constraint. Trap to avoid: the AF_XDP socket API was **removed from
 libbpf** into libxdp, and nearly every tutorial and 0-star repo still `#include <bpf/xsk.h>`.
@@ -304,8 +304,8 @@ conversation opener, and it demonstrates the habit of checking claims.
 
 ## 6. Cross-cutting: the write-up is the asset, not the repo
 
-- The one detailed success story in the corpus — 4 years of unrelated cloud/front-end experience
-  → interviews at multiple major firms — hinged on: *"I made logbook entries as I worked on the
+- The one detailed success story in the corpus: 4 years of unrelated cloud/front-end experience
+  → interviews at multiple major firms: hinged on: *"I made logbook entries as I worked on the
   projects, and uploaded everything to the 2 github repos."*
 - patio11's advice is the same: publish the deep technical write-up, use it for cold outreach.
 - Every latency or correctness claim in public triggers a **methodology** challenge, never an
@@ -318,7 +318,7 @@ conversation opener, and it demonstrates the habit of checking claims.
   anything with "ultra-low-latency trading engine" in the title.
 - HRT, on what they screen for: *"truly understanding something inside and out"*; *"we rate our
   engineers as much on communication as we do on technical ability."* Notably, their engineering
-  interview post never mentions portfolio repos at all — which is why the *write-up* and the
+  interview post never mentions portfolio repos at all, which is why the *write-up* and the
   *finding* matter more than the artifact.
 
 ---
@@ -339,9 +339,9 @@ conversation opener, and it demonstrates the habit of checking claims.
   asymmetry, and it means Component 1 should target ITCH/OUCH first.
 - Research sourcing limits: X/Twitter returned HTTP 402 throughout (zero quotes, none invented).
   nuclearphynance.com is dead; wilmott.com contains essentially zero low-latency engineering
-  discussion; r/hft is an interview-prep graveyard — r/highfreqtrading carries the signal. Reddit
+  discussion; r/hft is an interview-prep graveyard: r/highfreqtrading carries the signal. Reddit
   required a mirror. The WebSearch budget (200 calls) was exhausted before verification, so late
   checks were done via direct fetches and the GitHub API.
 - One subagent claim I corrected on inspection: `microsoft/cpp-systematic-testing` was reported
-  as archived 2026-06-11. It is archived, but its last push was **2022-09-29** — dead four years,
+  as archived 2026-06-11. It is archived, but its last push was **2022-09-29**: dead four years,
   2 commits ever.

@@ -224,7 +224,7 @@ TEST_CASE("a session change re-synchronises rather than reporting a gap",
           "[recovery][client][regression]") {
   // The new session renumbers from its own beginning. Carrying the old watermark across
   // would classify every packet of the new session as a duplicate, and the client would
-  // sit silent forever — which is why the session check runs before arbitration rather
+  // sit silent forever, which is why the session check runs before arbitration rather
   // than after it.
   test_client client{readable_options()};
   offer(client, kLineA, range(1'000, 1'010), at_ms(0));
@@ -253,7 +253,7 @@ TEST_CASE("a session change re-synchronises rather than reporting a gap",
 TEST_CASE("a heartbeat announcing a jump opens a gap",
           "[recovery][client][regression]") {
   // On IEX two thirds of all packets are heartbeats, and a heartbeat carries the sequence
-  // number of the *next* message — so a heartbeat whose number has jumped is how a receiver
+  // number of the *next* message, so a heartbeat whose number has jumped is how a receiver
   // learns it missed the end of a quiet period. The client used to return early on any
   // packet carrying no messages, which meant that jump was never noticed at all.
   test_client client{readable_options()};

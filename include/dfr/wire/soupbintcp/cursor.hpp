@@ -31,7 +31,7 @@ namespace wire::soupbintcp {
 struct sequenced_packet {
   packet frame{};
   // The sequence of this packet, for a Sequenced Data Packet. Zero for every other type, since they
-  // have none — not "unknown", none.
+  // have none: not "unknown", none.
   std::uint64_t sequence{0};
 };
 

@@ -3,8 +3,8 @@
 // This is what the previous ten commits were for. dfr::chaos damages a verified stream,
 // dfr::wire decodes what survives, and dfr::recovery reports what is missing.
 //
-// Not a superset — a false gap costs a real retransmit request for data that arrived. Not a
-// subset — a missed gap is a silently wrong book, which is the failure this project exists to
+// Not a superset: a false gap costs a real retransmit request for data that arrived. Not a
+// subset: a missed gap is a silently wrong book, which is the failure this project exists to
 // prevent. Repair, where the harness also plays retransmit server, is in
 // recovery_repair_test.cpp.
 
@@ -91,7 +91,7 @@ TEST_CASE("the accounting balances: delivered plus missing is the whole span",
           "[integration][oracle]") {
   // The identity a wrong implementation cannot satisfy. Every sequence between the first
   // delivered and the high-water mark is either delivered exactly once or recorded as
-  // missing — never both, and never neither.
+  // missing: never both, and never neither.
   for (std::uint64_t seed = 1; seed <= 60; ++seed) {
     const auto result = run(seed, 300, /*serve=*/false);
     REQUIRE_FALSE(result.record.client_left_live);

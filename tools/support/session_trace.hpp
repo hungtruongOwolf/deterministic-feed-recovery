@@ -3,7 +3,7 @@
 // Same rule as dfr/trace/event.hpp, applied to a different subject: every line carries the *resulting*
 // state, so a drawing can be made from one line without replaying the conversation. A viewer that
 // reconstructed the sequence counters from the arrows would be a second implementation of the counting,
-// written in TypeScript by somebody reading the C++ — and the whole point of this session is that two
+// written in TypeScript by somebody reading the C++, and the whole point of this session is that two
 // independent counts agree, which a viewer doing its own third count could not demonstrate.
 //
 // So both counters are written on every line: what the server assigned, and what a real client cursor
@@ -24,7 +24,7 @@ namespace dfr_tools {
 // The symbols and prices the scripted session uses.
 //
 // Eight orders all reading `AAPL @150.00` looked exactly like what it was: a hardcoded script. The protocol
-// behaviour does not depend on the symbol, so varying it changes nothing that is being tested — and it changes
+// behaviour does not depend on the symbol, so varying it changes nothing that is being tested, and it changes
 // a great deal about whether a reader believes the page is running anything.
 //
 // Derived from the order's index rather than randomised, because the session trace is a committed fixture and
@@ -64,7 +64,7 @@ struct wire_step {
   // The fields worth showing, already formatted. Formatted here because the decoding lives here.
   std::string_view detail{};
   // The sequence this packet carried, for a Sequenced Data Packet. Zero for the rest, because they have
-  // none — not "unknown", none.
+  // none: not "unknown", none.
   std::uint64_t sequence{0};
 
   // ---- the resulting state, so the viewer needs no domain logic ----------

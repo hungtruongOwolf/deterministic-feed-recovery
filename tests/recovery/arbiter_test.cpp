@@ -1,6 +1,6 @@
 // Merging two lines into one stream: first copy wins, exactly once.
 //
-// Line health — liveness, how far behind, divergence — is in arbiter_health_test.cpp.
+// Line health(liveness, how far behind, divergence) is in arbiter_health_test.cpp.
 // This file is only about the merge.
 
 #include <dfr/recovery/arbiter.hpp>

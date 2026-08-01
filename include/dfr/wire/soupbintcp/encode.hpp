@@ -54,7 +54,7 @@ namespace wire::soupbintcp {
 // A packet with no payload: both heartbeats, end of session, logout.
 //
 // These are most of the traffic on an idle session, and they are the packets for which a wrong
-// reading of the length field still works — which is why the round-trip tests deliberately use ones
+// reading of the length field still works, which is why the round-trip tests deliberately use ones
 // that carry a payload.
 [[nodiscard]] constexpr result<std::size_t> encode_bare(mutable_packet_view out,
                                                         packet_type type) noexcept {

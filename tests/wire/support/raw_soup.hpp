@@ -2,7 +2,7 @@
 //
 // The two are checked against each other elsewhere. Here the bytes are laid out literally, because a
 // decoder test written against its own encoder agrees with itself about a misreading of the
-// specification — which is precisely the mistake the length field invites.
+// specification, which is precisely the mistake the length field invites.
 
 #ifndef DFR_TESTS_WIRE_SUPPORT_RAW_SOUP_HPP
 #define DFR_TESTS_WIRE_SUPPORT_RAW_SOUP_HPP

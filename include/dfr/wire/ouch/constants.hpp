@@ -6,7 +6,7 @@
 //
 // A limit this project has to state
 // --------------------------------
-// The IEX-TP layout in this repository was *verified* — 460,578 real packets, zero chain breaks. This
+// The IEX-TP layout in this repository was *verified*: 460,578 real packets, zero chain breaks. This
 // one cannot be: NASDAQ publishes no OUCH captures, and a live session needs an exchange relationship.
 // So every offset here is a transcription, checked against the specification's own offset column and
 // pinned by a static_assert on each message's total length, and it is marked unverified rather than

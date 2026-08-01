@@ -58,7 +58,7 @@ TEST_CASE("a price above the limit maximum cannot be built by accident",
           "[wire][ouch]") {
   CHECK(ouch::price::from_dollars_and_ten_thousandths(200'000, 0).error_code() ==
         dfr::error::invalid_argument);
-  // Six whole places, so a million dollars is out of range — and it is refused before the
+  // Six whole places, so a million dollars is out of range, and it is refused before the
   // multiplication, which would otherwise wrap into a plausible small price.
   CHECK(ouch::price::from_dollars_and_ten_thousandths(1'000'000, 0).error_code() ==
         dfr::error::invalid_argument);
@@ -131,7 +131,7 @@ TEST_CASE("spaces inside a token are content", "[wire][ouch]") {
 TEST_CASE("a token too long is refused, not truncated",
           "[wire][ouch][regression]") {
   // Two orders whose tokens differ only past the fourteenth character would silently become one, and
-  // the second would be ignored as a duplicate — losing an order rather than reporting a mistake.
+  // the second would be ignored as a duplicate: losing an order rather than reporting a mistake.
   CHECK(ouch::order_token::from_text("012345678901234").error_code() ==
         dfr::error::invalid_argument);
   REQUIRE(ouch::order_token::from_text("01234567890123").has_value());

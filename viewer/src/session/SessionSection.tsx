@@ -1,7 +1,7 @@
 // The second half of the page: orders coming in, where the film above is market data going out.
 //
 // Always visible, below the film rather than behind a control. The two are the two directions of one
-// venue — a counterparty that only published would not be one — so they are two sections of one page, not
+// venue(a counterparty that only published would not be one) so they are two sections of one page, not
 // two things to pick between. The page reads top to bottom: what the exchange sends, then what it accepts.
 
 import { useState } from "react";
@@ -29,7 +29,7 @@ export function SessionSection({ trace, settings, onChange, live }: Props) {
         <div className="session__claim-text">
           <strong>Watch the two outer columns.</strong> SoupBinTCP puts a packet's sequence number{" "}
           <em>nowhere in the packet</em>. The exchange assigns it, the client counts it, and they match on every
-          rung — without the number ever crossing between them.
+          rung: without the number ever crossing between them.
         </div>
         <div className={`session__verdict ${summary.agreed ? "is-agreed" : "is-broken"}`}>
           <span className="session__verdict-pair mono">
@@ -115,7 +115,7 @@ export function SessionSection({ trace, settings, onChange, live }: Props) {
       <Disclosure summary="why there is no matching engine here">
         <p>
           Matching is the part a thousand other repositories implement. What is missing from the open-source
-          world is the protocol behaviour <em>around</em> it — which token a given outcome consumes, what a
+          world is the protocol behaviour <em>around</em> it, which token a given outcome consumes, what a
           replace does to a partly filled order, what silence means. So fills are driven by the caller and the
           host's job is to keep the accounting straight and send the right message.
         </p>

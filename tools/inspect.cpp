@@ -1,4 +1,4 @@
-// inspect — read a capture file and report what is in it.
+// inspect: read a capture file and report what is in it.
 //
 // This is the tool that settles the open question in dfr/wire/iextp.hpp: the
 // field offsets there were transcribed from a specification whose live URL now

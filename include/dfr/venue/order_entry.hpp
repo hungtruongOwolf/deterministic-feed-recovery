@@ -2,14 +2,14 @@
 //
 // There is no matching engine here, and that is a scope decision rather than an omission
 // -------------------------------------------------------------------------------------
-// Matching is the part everybody builds — 1,071 C++ order books created in seven months, per
+// Matching is the part everybody builds: 1,071 C++ order books created in seven months, per
 // RESEARCH-DOSSIER.md. What is missing from the open-source world is the *protocol* behaviour around it:
 // which token is consumed by which outcome, what a replace does to a partially executed order, what
 // silence means. So executions arrive through execute(), driven by the caller, and the host's job is to
 // keep the accounting straight and emit the right messages.
 //
 // That also makes the interesting race testable on purpose. A caller can form a replace, let an
-// execution land, and then submit the replace — which is exactly the scenario OUCH §3.4 describes and
+// execution land, and then submit the replace, which is exactly the scenario OUCH §3.4 describes and
 // the reason a Replaced message reports shares the client did not ask for.
 //
 // Emits encoded bytes, not structs
@@ -83,7 +83,7 @@ class order_entry {
     ++stats_.entered;
 
     // §2.1: "If you send an Enter Order Message with a previously used Order Token, the new order will
-    // be ignored." Silence, not a rejection — because a re-send after a connection loss is the
+    // be ignored." Silence, not a rejection, because a re-send after a connection loss is the
     // protocol's own recovery mechanism and must not look like an error.
     if (tokens_.is_used(request.token)) {
       ++stats_.ignored_duplicate_token;
@@ -125,7 +125,7 @@ class order_entry {
 
     // An immediate-or-cancel order with nothing to match against is accepted and immediately dead.
     // §3.3: an Accepted message with Order State "D" means exactly that, and no further messages
-    // follow — which is different from a rejection and must not be reported as one.
+    // follow, which is different from a rejection and must not be reported as one.
     const bool dies_at_once = wire::ouch::is_immediate_or_cancel(request.time_in_force);
     if (dies_at_once) {
       order.shares_canceled = order.shares_liable;
@@ -142,7 +142,7 @@ class order_entry {
   // ---- Cancel Order ------------------------------------------------------
 
   // §2.3: the Shares field is "the new intended order size", and zero cancels everything open. The only
-  // acknowledgement is the resulting Canceled Message — there is no "too late to cancel", because by
+  // acknowledgement is the resulting Canceled Message: there is no "too late to cancel", because by
   // the time a client saw one it would already have the execution.
   template <typename Emit>
   [[nodiscard]] constexpr result<order_outcome> cancel(
@@ -194,7 +194,7 @@ class order_entry {
       return order_outcome::ignored;
     }
 
-    // (3) Live but not cancelable — a cross order in the late period. Checked before the details,
+    // (3) Live but not cancelable: a cross order in the late period. Checked before the details,
     // because the specification's ordering makes this a Reject regardless of what the replace asked
     // for, and it consumes the replacement token.
     if (existing->is_cross() && options_.late_cross_period) {
@@ -237,7 +237,7 @@ class order_entry {
     }
 
     // The executed count carries forward, because the replace's Shares is cumulative for the chain. The
-    // new order's open quantity is therefore what is left after everything already done — which is why
+    // new order's open quantity is therefore what is left after everything already done, which is why
     // a Replaced message can report fewer shares than the replace asked for.
     order_record replacement = *existing;
     replacement.previous_token = existing->token;
@@ -277,7 +277,7 @@ class order_entry {
     }
     // §3.4 lists the permitted side transitions and nothing else. The specification does not say what
     // happens to a transition outside them, so it is ignored rather than answered with an invented
-    // rejection — and the choice is recorded here rather than left implicit.
+    // rejection, and the choice is recorded here rather than left implicit.
     if (!wire::ouch::is_permitted_modify_transition(order->order_side,
                                                     request.order_side)) {
       ++stats_.ignored_unknown_order;

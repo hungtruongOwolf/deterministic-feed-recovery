@@ -6,7 +6,7 @@
 //
 // A ladder rather than an axonometric stack, because the subject is different. The recovery drawing is
 // about three layers of one system, which is a spatial relationship. A session is two parties taking turns,
-// which is a temporal one — and the thing worth seeing is the pair of counters staying level down the page
+// which is a temporal one, and the thing worth seeing is the pair of counters staying level down the page
 // while no arrow ever carries the number.
 
 export interface Box {
@@ -28,7 +28,7 @@ export const CONTENT_WIDTH = SHEET.w - MARGIN.x * 2;
  * The two columns, and the two counter gutters outside them.
  *
  * These sum to exactly `CONTENT_WIDTH`, and the check below enforces it. The first attempt summed to 984
- * inside 944 and pushed the right-hand gutter off the sheet — invisible to a compiler, to a build and to
+ * inside 944 and pushed the right-hand gutter off the sheet: invisible to a compiler, to a build and to
  * me, which is the whole reason this geometry is measured rather than trusted.
  */
 export const COLUMN = {
@@ -93,7 +93,7 @@ export function rungY(step: number): number {
  * The boxes the checker measures: the two party columns, the arrow span, and the two counter gutters.
  *
  * Returned as a flat list rather than a nested structure because every assertion the checker makes is
- * pairwise — no two collide, none escapes the frame — and a tree would have to be walked to ask that.
+ * pairwise(no two collide, none escapes the frame) and a tree would have to be walked to ask that.
  */
 export function boxes(steps: number): readonly Box[] {
   const c = columns();

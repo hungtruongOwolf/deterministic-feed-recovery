@@ -5,7 +5,7 @@ Three levels, because a fuzzer starting from a whole file exercises the pcap rea
 decoder, and one starting from a message never exercises framing. Each decoder gets a corpus at its own layer.
 
 Every Nth rather than the first N, so the sample spans the session. Sizes capped so the corpus stays small
-enough to commit — a fuzzer's corpus is seed material, not a dataset.
+enough to commit: a fuzzer's corpus is seed material, not a dataset.
 """
 import os
 import struct

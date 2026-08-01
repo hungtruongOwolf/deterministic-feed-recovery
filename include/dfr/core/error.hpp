@@ -35,7 +35,7 @@ enum class error : std::uint8_t {
   // ---- not an error, and not a result either ------------------------------
   // A byte stream ended mid-packet. Distinct from truncated_header, which says the
   // data is wrong: this says only that there is not enough of it yet. TCP has this
-  // condition and UDP does not — a datagram is a unit, a stream is not — and
+  // condition and UDP does not(a datagram is a unit, a stream is not) and
   // conflating the two makes a reader discard a packet that had merely not
   // finished arriving.
   need_more_bytes,

@@ -2,7 +2,7 @@
 //
 // Same rule as model/trace.ts and for the same reason: this parses and indexes, it derives nothing. Both
 // sequence counters are read from the file. A viewer that recomputed either would be doing a third count,
-// and the whole point of the session is that two independent counts agree — which a third count could not
+// and the whole point of the session is that two independent counts agree, which a third count could not
 // demonstrate, only muddy.
 
 export type Party = "client" | "server" | "venue";
@@ -15,7 +15,7 @@ export interface WireStep {
   readonly type: string;
   readonly name: string;
   readonly detail: string;
-  /** The sequence this packet carried. Zero for the types that have none — not unknown, none. */
+  /** The sequence this packet carried. Zero for the types that have none: not unknown, none. */
   readonly sequence: number;
   readonly server_next: number;
   /** What the client's own cursor counted to. Must match `server_next`, and never travels. */
@@ -130,7 +130,7 @@ export function meaningOf(step: WireStep): string {
     case "Login Request":
       return "The client identifies itself. Nothing else is legal until this is answered.";
     case "Login Accepted":
-      return "The server names the session and the sequence of the next packet it will number — the next one, not this one. From here both sides count for themselves.";
+      return "The server names the session and the sequence of the next packet it will number: the next one, not this one. From here both sides count for themselves.";
     case "Enter Order":
       return "An order, in an Unsequenced Data Packet: messages to the exchange carry no position, because they are not part of a numbered stream.";
     case "Cancel Order":
@@ -140,7 +140,7 @@ export function meaningOf(step: WireStep): string {
     case "Accepted":
       return "The exchange accepted the order, and numbered the reply. Note that the order token is the client's identifier and the reference number is the exchange's.";
     case "Executed":
-      return "A fill. It is numbered in the same stream as the acknowledgements, because there is one stream out — whoever the message was caused by.";
+      return "A fill. It is numbered in the same stream as the acknowledgements, because there is one stream out: whoever the message was caused by.";
     case "Canceled":
       return "The cancel took effect, and the message says how many shares it removed rather than leaving the client to subtract.";
     case "a fill lands":

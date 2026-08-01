@@ -11,13 +11,13 @@
 // What actually differed
 // --------------------
 // Three things, and only three. The builder type. The heartbeat encoder's arguments. And whether the
-// protocol maintains a **stream offset** — a byte position alongside the message sequence, which IEX-TP
+// protocol maintains a **stream offset**: a byte position alongside the message sequence, which IEX-TP
 // has and MoldUDP64 does not. That third one is not cosmetic: it is IEX-TP's second redundant chain, the
 // thing that catches a corrupted length field which sequence numbers alone cannot see. A shared
 // publisher that maintained it for both would write a field MoldUDP64 has no room for.
 //
-// Everything else — packing until the datagram is full, never splitting a message, advancing the
-// sequence by the message count, emitting a heartbeat after a quiet period — is protocol-independent,
+// Everything else: packing until the datagram is full, never splitting a message, advancing the
+// sequence by the message count, emitting a heartbeat after a quiet period: is protocol-independent,
 // which is why one publisher can now drive both.
 
 #ifndef DFR_VENUE_PUBLISHER_TARGET_HPP
@@ -40,7 +40,7 @@ namespace dfr::inline v1 {
 namespace venue {
 
 // Where a publisher is in the stream. Passed whole rather than as four arguments so a target cannot pick
-// the wrong two — and so the one field a protocol may ignore is visibly ignored.
+// the wrong two, and so the one field a protocol may ignore is visibly ignored.
 struct stream_position {
   std::uint32_t session{0};
   std::uint32_t channel{0};
@@ -126,7 +126,7 @@ struct moldudp64_target {
  private:
   // MoldUDP64's session is ten bytes of text, not an integer. The numeric session a publisher is
   // configured with is written into the last four so the field stays printable and two configured
-  // sessions stay distinguishable — the same convention chaos::moldudp64_target uses when it rewrites
+  // sessions stay distinguishable: the same convention chaos::moldudp64_target uses when it rewrites
   // the field, so a fault injected into a published stream lands where a reader expects it.
   [[nodiscard]] static constexpr wire::moldudp64::session_id session_for(
       std::uint32_t session) noexcept {

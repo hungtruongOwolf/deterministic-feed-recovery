@@ -10,7 +10,7 @@
 // have quietly become a second definition of the format.
 //
 // The bytes are the same bytes. `scripts/check-wasm.sh` runs six shapes of run through both the native tool
-// and this module and diffs them — two compilers, two targets, one seed. If they ever differ, something in
+// and this module and diffs them: two compilers, two targets, one seed. If they ever differ, something in
 // the library depends on its platform and "deterministic" was a word rather than a property.
 
 export interface TraceParameters {
@@ -60,7 +60,7 @@ export function loadEngine(): Promise<Engine> {
 
 async function instantiate(): Promise<Engine> {
   // Built into public/wasm by scripts/build-wasm.sh, so Vite copies it verbatim and the URL is relative to
-  // wherever the page is served from — which on Pages is a subpath, not the root.
+  // wherever the page is served from, which on Pages is a subpath, not the root.
   const url = new URL("wasm/dfr.js", document.baseURI).href;
   const loaded = (await import(/* @vite-ignore */ url)) as { default: Factory };
   const module = await loaded.default({

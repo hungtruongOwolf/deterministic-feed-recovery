@@ -74,7 +74,7 @@ TEST_CASE("a reply arrives only after the latency has elapsed",
 TEST_CASE("the position is captured on request, not on reply",
           "[venue][snapshot][regression]") {
   // The single most important line in the facility. Glimpse builds the book and then transmits
-  // it, so the state a client receives reflects the feed as it was when the request arrived —
+  // it, so the state a client receives reflects the feed as it was when the request arrived,
   // and everything published in between is the client's problem. A facility that captured at
   // reply time would always hand back something at least as new as the client's buffer, so the
   // race could never happen and plan_snapshot's behind_buffer verdict would remain a branch no
@@ -154,7 +154,7 @@ TEST_CASE("staleness pushes the snapshot behind the request position",
 
 TEST_CASE("staleness past the start of the session saturates",
           "[venue][snapshot]") {
-  // Wrapping would report a snapshot near 2^64 — a position no client could interpret, and one
+  // Wrapping would report a snapshot near 2^64: a position no client could interpret, and one
   // that would look like a snapshot far *ahead* of the feed rather than behind it.
   auto options = readable_options();
   options.staleness_messages = 1'000'000;

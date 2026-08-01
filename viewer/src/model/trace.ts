@@ -3,7 +3,7 @@
 // This module parses and indexes. It derives no state, classifies no event and computes no
 // recovery arithmetic, because the trace already carries its own conclusions: every event records
 // the resulting client state and headline numbers. A viewer that recomputed them would be a second
-// implementation of a C++ state machine, written in TypeScript by someone reading the first — and
+// implementation of a C++ state machine, written in TypeScript by someone reading the first, and
 // when the two disagreed the picture would be wrong with nothing to say so.
 //
 // So the rule for this whole app: if a number is not in the file, it is not drawn.
@@ -31,7 +31,7 @@ export interface TraceEvent {
   readonly missing: number;
   readonly holes: number;
   /**
-   * The outstanding holes themselves, as `[first, end)` pairs — bounded at four by the writer.
+   * The outstanding holes themselves, as `[first, end)` pairs: bounded at four by the writer.
    *
    * Present because the viewer needed to *draw* them and the alternative was accumulating them from the
    * gap events, which is reconstructing recovery state in TypeScript. The format grew instead. When
@@ -44,7 +44,7 @@ export interface TraceEvent {
    *
    * The second time the format grew for the viewer, and the rule working rather than an exception to it. A viewer
    * that applied price levels itself would be a second implementation of an order book written in TypeScript by
-   * somebody reading the C++ — and the strongest thing this project asserts is that the book after loss and repair
+   * somebody reading the C++, and the strongest thing this project asserts is that the book after loss and repair
    * equals the book that lost nothing, which a third implementation could only muddy.
    *
    * Prices are signed integers at four implied decimals: 208,700 is $20.8700. Zero means no book on that side.
@@ -113,8 +113,8 @@ export interface RunSummary {
   /**
    * The book every published message builds, with nothing lost.
    *
-   * What the run's own book has to equal. Carried so the page can state the invariant — "this is the book that
-   * would have existed" — rather than showing a bid and an ask a reader has to interpret. Computed by applying the
+   * What the run's own book has to equal. Carried so the page can state the invariant: "this is the book that
+   * would have existed": rather than showing a bid and an ask a reader has to interpret. Computed by applying the
    * published bodies in order, not by a second recovery run: the reference is *what the venue sent*, and a
    * reference that also went through recovery would be comparing recovery to itself.
    */

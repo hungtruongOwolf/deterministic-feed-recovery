@@ -1,6 +1,6 @@
 // The vocabulary of a recorded run.
 //
-// One flat POD per event, and every event carries the *resulting* headline numbers — the client
+// One flat POD per event, and every event carries the *resulting* headline numbers: the client
 // state, the delivered watermark, how much is missing. That redundancy is deliberate and it is the
 // most important decision in this file: a viewer must be able to draw any moment in the run by
 // reading one line, without replaying the stream itself.
@@ -192,7 +192,7 @@ struct event {
   // The outstanding holes themselves, not just how many there are.
   //
   // Added because a viewer wanted to *draw* them, and the alternative was for it to accumulate them from
-  // the gap_opened and gap_filled events — which is reconstructing recovery state in another language, the
+  // the gap_opened and gap_filled events, which is reconstructing recovery state in another language, the
   // one thing the trace format exists to prevent. So the format grew instead, which is the rule working
   // rather than an exception to it.
   //
@@ -206,7 +206,7 @@ struct event {
   //
   // The second time the format has grown for the viewer, and the rule working rather than an exception to it. The
   // strongest thing this project asserts is that the book after loss and repair equals the book that lost nothing,
-  // and until these fields existed that claim lived only in a test file — a visitor could not see it.
+  // and until these fields existed that claim lived only in a test file: a visitor could not see it.
   //
   // A viewer that applied price levels itself would be a second implementation of an order book, written in
   // TypeScript by somebody reading the first, and when the two disagreed the drawing would be wrong with nothing to

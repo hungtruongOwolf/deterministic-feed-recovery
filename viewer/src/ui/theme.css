@@ -13,18 +13,18 @@
   --page-sunk: #e7e0d2;
   --ink: #1b1a17;
   --ink-soft: #6d675c;
-  --ink-faint: #716a5e; /* 4.54:1 on the paper — WCAG AA for body text. It was #9d968a at 2.49:1, which is under even the large-text threshold, and it carries hints, notes and captions. Measured, not chosen. */
+  --ink-faint: #716a5e; /* 4.54:1 on the paper, WCAG AA for body text. It was #9d968a at 2.49:1, which is under even the large-text threshold, and it carries hints, notes and captions. Measured, not chosen. */
   --rule: #cfc7b5; /* 1.43:1, and deliberately below the 3:1 non-text minimum.
      WCAG's non-text rule applies to boundaries a user must *perceive to operate* something. This is the hairline
-     of a drawing sheet — the interior rules of a table, the fold separators — and every one of them separates
+     of a drawing sheet(the interior rules of a table, the fold separators) and every one of them separates
      content that is itself readable at 4.5:1 or better. Nothing here depends on seeing the line.
      The frame and the rails, which do carry meaning, use --rule-strong at 3.01:1.
      Stated rather than left as an oversight, because the next person to measure it should find the reasoning. */
-  --rule-strong: #92876f; /* 3.01:1 — the non-text minimum, since this draws the sheet frame and the rails. Was 2.34:1. */
+  --rule-strong: #92876f; /* 3.01:1, the non-text minimum, since this draws the sheet frame and the rails. Was 2.34:1. */
 
   --fault: #a8452c;         /* something was done to the stream */
   --recovery: #2b59d1;      /* something is being repaired */
-  --unfillable: #7a1717;    /* permanently lost — the only saturated fill in the sheet */
+  --unfillable: #7a1717;    /* permanently lost, the only saturated fill in the sheet */
   --healthy: #3c6b4a;
 
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;

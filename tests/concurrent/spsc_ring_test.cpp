@@ -2,10 +2,10 @@
 //
 // Two kinds of test here and they check different things:
 //
-//   * Single-threaded tests pin the *semantics* — what full means, what empty means, that a refusal writes
+//   * Single-threaded tests pin the *semantics*: what full means, what empty means, that a refusal writes
 //     nothing, that a wrap is invisible. These are deterministic and they are what a reader should read first.
-//   * A two-thread test pins the *ordering*. It cannot prove the memory ordering is right — no test can, on
-//     one machine, in finite time — but it can fail, and under ThreadSanitizer it fails loudly for the right
+//   * A two-thread test pins the *ordering*. It cannot prove the memory ordering is right: no test can, on
+//     one machine, in finite time, but it can fail, and under ThreadSanitizer it fails loudly for the right
 //     reason. That is why the tsan preset exists and why it finally has something to run.
 //
 // The two-thread test checks a property rather than a schedule: every record the consumer sees carries the

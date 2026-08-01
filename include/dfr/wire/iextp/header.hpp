@@ -26,7 +26,7 @@ namespace wire::iextp {
 // ---------------------------------------------------------------------------
 
 // Unlike MoldUDP64, a heartbeat is not signalled by a sentinel count. It is a
-// packet with no messages and no payload, so both fields must be zero — and
+// packet with no messages and no payload, so both fields must be zero, and
 // checking only one of them is a way to mistake a malformed packet for a
 // heartbeat.
 enum class packet_kind : std::uint8_t {

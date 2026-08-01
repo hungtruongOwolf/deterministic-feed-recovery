@@ -68,8 +68,8 @@ TEST_CASE("the only named link type is Ethernet", "[capture][frame]") {
 
 TEST_CASE("a timestamp is a bare integer, not a clock time point",
           "[capture][frame]") {
-  // Deliberate. It comes from the capturing host's clock — a different machine,
-  // with its own offset and drift — so the type system should refuse to compare
+  // Deliberate. It comes from the capturing host's clock: a different machine,
+  // with its own offset and drift, so the type system should refuse to compare
   // it against a local time point without an explicit correction.
   STATIC_REQUIRE(
       std::is_same_v<decltype(cap::frame{}.timestamp_ns), std::uint64_t>);

@@ -1,7 +1,7 @@
 // Replacing and executing: the four outcomes of a replace, and the accounting identity.
 //
-// The token asymmetry between outcomes 2 and 3 of OUCH §2.2 is the part worth reading twice — an
-// invalid-details replace leaves the replacement token reusable and a rejection burns it — and the
+// The token asymmetry between outcomes 2 and 3 of OUCH §2.2 is the part worth reading twice: an
+// invalid-details replace leaves the replacement token reusable and a rejection burns it, and the
 // in-flight execution is the order-entry equivalent of the Glimpse race.
 
 #include <dfr/venue/order_entry.hpp>
@@ -29,7 +29,7 @@ using dfr_test::order_entry::token;
 
 TEST_CASE("a replace carries the executed count forward",
           "[venue][ouch][regression]") {
-  // §2.2's own example. Enter 500, execute 100, replace with 500 — and 400 is left exposed, because the
+  // §2.2's own example. Enter 500, execute 100, replace with 500, and 400 is left exposed, because the
   // replace's Shares is the total liable for the *whole chain, inclusive of prior executions*. NASDAQ's
   // stated reason is that it "inhibits the risk of double-liability".
   //
@@ -298,7 +298,7 @@ TEST_CASE("an execution larger than what is exposed is refused",
 
 TEST_CASE("a modify may only exchange the short variants", "[venue][ouch]") {
   // §3.4 lists the permitted transitions and nothing else. The specification does not say what happens
-  // to a transition outside them, so the host ignores it rather than inventing a rejection — and the
+  // to a transition outside them, so the host ignores it rather than inventing a rejection, and the
   // choice is recorded rather than left implicit.
   auto host = fresh_host();
   sink out;

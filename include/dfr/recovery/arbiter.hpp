@@ -2,7 +2,7 @@
 //
 // First copy wins, against a watermark and nothing else
 // ----------------------------------------------------
-// The arbiter holds one number for the merged stream — the highest sequence delivered —
+// The arbiter holds one number for the merged stream: the highest sequence delivered,
 // and decides each packet against it. It does *not* keep a set of delivered ranges, and
 // that is a decision rather than a shortcut: gap and reorder bookkeeping already exists
 // in gap_tracker, correct and tested, and a second copy inside the arbiter would create
@@ -21,7 +21,7 @@
 // trusted, and silently taking whichever arrived first is how a receiver ends up
 // confidently wrong. It is reported as error::lines_diverged, which is fatal.
 //
-// The check needs a digest because the arbiter holds no payloads — it is not a buffer
+// The check needs a digest because the arbiter holds no payloads: it is not a buffer
 // and must not become one. The caller supplies whatever it already has, and the history
 // is bounded, so a line running more than kDigestHistory packets behind stops being
 // checked for divergence. That limit is documented rather than hidden, because a check
@@ -60,7 +60,7 @@ class arbiter {
 
   // Offers one packet seen on one line.
   //
-  // `digest` is any value that differs when the payload differs — a checksum the caller
+  // `digest` is any value that differs when the payload differs: a checksum the caller
   // already computes, or the payload length as a weak stand-in. It is only read when
   // options.detect_divergence is set, and a caller that has nothing may pass zero
   // consistently, which disables the check for that stream rather than producing false
@@ -129,7 +129,7 @@ class arbiter {
   }
 
   // Declares that everything below `sequence` has been delivered by some route other than
-  // this arbiter — a snapshot, or a replay on top of one.
+  // this arbiter: a snapshot, or a replay on top of one.
   //
   // Separate from offer() rather than done by feeding a synthetic packet, because a
   // synthetic packet would land in a line's statistics and in its liveness, and a snapshot
@@ -163,7 +163,7 @@ class arbiter {
   // How far behind the leader a line is, in messages.
   //
   // Zero for the leader, and for a line that has never been seen it is the whole
-  // stream — which is the honest answer rather than zero, since a silent line has
+  // stream, which is the honest answer rather than zero, since a silent line has
   // delivered nothing.
   [[nodiscard]] constexpr std::uint64_t messages_behind(
       std::size_t line) const noexcept {
@@ -217,7 +217,7 @@ class arbiter {
   // Reports disagreement with anything remembered that overlaps.
   //
   // Only overlapping ranges are compared, and only when the *same* range is claimed
-  // twice is the digest meaningful — two lines splitting the same messages into
+  // twice is the digest meaningful: two lines splitting the same messages into
   // different packets is legal on some venues, so a digest mismatch across differently
   // framed ranges would be a false alarm. Equality of the range is therefore part of
   // the test, not just overlap.

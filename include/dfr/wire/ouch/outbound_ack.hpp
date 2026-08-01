@@ -3,13 +3,13 @@
 // They share thirteen fields and differ in one that matters
 // -------------------------------------------------------
 // Accepted's Shares is "Total number of shares accepted". Replaced's Shares is "Total number of shares
-// outstanding" — and §3.4 gives the example that makes the difference concrete: enter 500, execute 100,
+// outstanding", and §3.4 gives the example that makes the difference concrete: enter 500, execute 100,
 // replace with 500, and the Replaced message reports **400**, because that is what is left exposed.
 //
 // The specification then gives the same scenario with the execution *in flight*: enter 500, accept 500,
 // replace 500, execute 100 on the original, replaced with 400. The client sent the replace before it
 // knew about the execution, and the exchange applied both. That is the order-entry equivalent of the
-// Glimpse race — a request crossing a state change — and a client that assumed its replace would report
+// Glimpse race(a request crossing a state change) and a client that assumed its replace would report
 // the number it asked for would be carrying a hundred shares it did not know about.
 //
 // So the shared fields live in one struct and the differing one is named for its meaning in each. A
@@ -49,7 +49,7 @@ struct acknowledged_order {
   std::uint8_t display{'A'};
 
   // Assigned by the exchange and day-unique. This is the exchange's identifier for the order, as
-  // distinct from the token, which is the client's — and a replace gets a *new* reference number.
+  // distinct from the token, which is the client's, and a replace gets a *new* reference number.
   std::uint64_t reference_number{0};
 
   capacity account_capacity{capacity::other};
@@ -75,7 +75,7 @@ struct replaced {
   order_token replacement_token{};
   // "The Order Token of the order that was replaced."
   order_token previous_token{};
-  // "Total number of shares outstanding" — what is left exposed once the replacement completed, which
+  // "Total number of shares outstanding": what is left exposed once the replacement completed, which
   // is not what the replace asked for if anything executed in the meantime.
   std::uint32_t shares_outstanding{0};
   acknowledged_order order{};
@@ -84,7 +84,7 @@ struct replaced {
 namespace detail {
 
 // Reads the fields common to both, given where each message puts them. The offsets are passed rather
-// than assumed because the two messages agree on them only up to Order State — and relying on that
+// than assumed because the two messages agree on them only up to Order State, and relying on that
 // agreement is how a change to one silently corrupts the other.
 // Deliberately without default member initialisers, unlike every other aggregate in this library.
 //

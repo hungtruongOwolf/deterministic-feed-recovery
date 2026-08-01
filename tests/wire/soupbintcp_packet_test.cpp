@@ -27,7 +27,7 @@ TEST_CASE("the length field counts the type byte and not itself",
           "[wire][soupbintcp][regression]") {
   // The one arithmetic in this protocol that is easy to get wrong. A payload of five bytes gives a
   // declared length of six and a frame of eight. An implementation reading the field as a payload
-  // length would report a four-byte payload and a seven-byte frame — and would then start the next
+  // length would report a four-byte payload and a seven-byte frame, and would then start the next
   // packet one byte early, which corrupts everything after it.
   //
   // Heartbeats work under either reading, which is what lets the mistake survive testing.
@@ -44,7 +44,7 @@ TEST_CASE("the length field counts the type byte and not itself",
 TEST_CASE("only a sequenced data packet advances the sequence",
           "[wire][soupbintcp]") {
   // A debug packet can arrive between two sequenced ones, and counting it would shift every message
-  // after it by one — silently, because nothing on the wire states a position to disagree with.
+  // after it by one: silently, because nothing on the wire states a position to disagree with.
   CHECK(soup::advances_sequence(soup::packet_type::sequenced_data));
   CHECK_FALSE(soup::advances_sequence(soup::packet_type::debug));
   CHECK_FALSE(soup::advances_sequence(soup::packet_type::unsequenced_data));
@@ -81,7 +81,7 @@ TEST_CASE("a stream with no length field yet asks for more bytes",
 TEST_CASE("a packet that has not finished arriving asks for more bytes",
           "[wire][soupbintcp][regression]") {
   // The condition TCP has and UDP does not. A reader that reported this as truncated would discard
-  // data that was merely still in flight, and on a stream that happens often — a message split
+  // data that was merely still in flight, and on a stream that happens often: a message split
   // across two segments is not an error, it is Tuesday.
   dfr_test::soup::raw_stream stream;
   stream.frame('S', "abcdefghij");

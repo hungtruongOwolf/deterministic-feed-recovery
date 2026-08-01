@@ -1,13 +1,13 @@
 // Recording a Glimpse session as JSONL, for a viewer to draw.
 //
 // The third defence is the one a visitor has never seen work. In the film it is a plane the escalation marker falls
-// onto — correct, and it shows the *consequence* of reaching a snapshot rather than the snapshot itself. What a
+// onto: correct, and it shows the *consequence* of reaching a snapshot rather than the snapshot itself. What a
 // snapshot actually is, and the only thing that makes it believable, is that a client with nothing but bytes ends up
 // with the venue's book.
 //
 // So this records both books at every frame: the venue's, which does not change, and the client's, which fills up.
 // The drawing is then a comparison a reader can watch converge, and the last frame carries the sequence the client
-// resumes the live feed from — the one number a snapshot protocol exists to deliver.
+// resumes the live feed from: the one number a snapshot protocol exists to deliver.
 //
 // Same rule as every other trace here: the C++ decides, the viewer draws. The client's book is rebuilt *by a real
 // consumer* reading the frames the service emitted, not by the service reporting what it sent. Those are different
@@ -36,7 +36,7 @@ struct glimpse_step {
   // Owned, because a view into a temporary is how a trace ends up printing freed memory.
   std::string detail{};
 
-  // The client's book after this frame — the one being rebuilt.
+  // The client's book after this frame: the one being rebuilt.
   std::int64_t bid{0};
   std::uint32_t bid_size{0};
   std::int64_t ask{0};
@@ -67,7 +67,7 @@ inline void write_glimpse_header(std::FILE* out, std::string_view symbol, std::u
                "\"status\":\"measured\",\"note\":\"asserted in tests/integration/glimpse_test.cpp\"},"
                "{\"claim\":\"a snapshot carries state, not history\",\"status\":\"measured\","
                "\"note\":\"the levels match and the trade count does not, because a snapshot is "
-               "O(depth) rather than O(messages) — which is why it can be served to a client that "
+               "O(depth) rather than O(messages), which is why it can be served to a client that "
                "cannot catch up by replay\"},"
                "{\"claim\":\"Glimpse field layouts against a real venue\",\"status\":"
                "\"not-measurable\",\"note\":\"no NASDAQ or IEX Glimpse session to check against; the "

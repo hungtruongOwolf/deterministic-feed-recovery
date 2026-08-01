@@ -62,7 +62,7 @@ TEST_CASE("a pcapng file is reported as unsupported, not malformed",
           "[capture][pcap]") {
   // A file beginning 0a 0d 0d 0a is a pcapng Section Header Block. Saying
   // not_supported rather than a framing error is what lets a caller hand the
-  // same bytes to the other reader — which matters because IEX HIST switched
+  // same bytes to the other reader, which matters because IEX HIST switched
   // format mid-2017 and a tool must handle both.
   const std::array<std::uint8_t, 24> pcapng_start{0x0A, 0x0D, 0x0D, 0x0A};
   const auto opened = pcap::reader::over(
@@ -112,7 +112,7 @@ TEST_CASE("the fraction field is scaled by the magic",
           "[capture][pcap][regression]") {
   // 500 microseconds and 500 nanoseconds are the same bytes with different
   // magics. A reader that assumes microseconds is off by a thousand on every
-  // nanosecond file — which is invisible until two captures are compared.
+  // nanosecond file, which is invisible until two captures are compared.
   const auto micros = file_builder{pcap::kMagicLittleMicros}.record(0, 500, "x");
   const auto nanos = file_builder{pcap::kMagicLittleNanos}.record(0, 500, "x");
 
@@ -220,7 +220,7 @@ TEST_CASE("a file cut mid-record is not done", "[capture][pcap][regression]") {
     // Either it drained cleanly on an exact boundary, or it reported why not
     // and left the incomplete record unconsumed. What must never happen is a
     // clean drain that silently lost a record, or a failure that still looks
-    // exhausted — a caller could not then tell a clean end from a capture cut
+    // exhausted: a caller could not then tell a clean end from a capture cut
     // short by a full disk.
     if (outcome.has_value()) {
       CHECK(r.done());

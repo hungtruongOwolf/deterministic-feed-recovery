@@ -53,7 +53,7 @@ TEST_CASE("a session id is space-padded to ten bytes", "[wire][moldudp64]") {
 TEST_CASE("an over-long session name is rejected, not truncated",
           "[wire][moldudp64]") {
   // Truncating would make two distinct sessions compare equal, and a session
-  // change is a fatal error — so this is the one place where being strict is
+  // change is a fatal error, so this is the one place where being strict is
   // cheaper than being forgiving.
   const auto too_long = mold::session_id::from_text("ELEVENCHARS");
   CHECK_FALSE(too_long.has_value());
@@ -180,7 +180,7 @@ TEST_CASE("packet kinds have distinct names", "[wire][moldudp64]") {
 }
 
 // ---------------------------------------------------------------------------
-// message_cursor — the happy path
+// message_cursor: the happy path
 // ---------------------------------------------------------------------------
 
 TEST_CASE("the cursor walks blocks and numbers them", "[wire][moldudp64]") {
@@ -228,7 +228,7 @@ TEST_CASE("a heartbeat cursor is born exhausted", "[wire][moldudp64]") {
 }
 
 TEST_CASE("a zero-length block is legal", "[wire][moldudp64]") {
-  // Legal on the wire, and specifically *not* the end-of-session marker — that
+  // Legal on the wire, and specifically *not* the end-of-session marker: that
   // is signalled by Message Count. A decoder that treats a zero length as the
   // end silently truncates the rest of the datagram.
   const auto packet = raw_packet{}

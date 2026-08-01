@@ -1,7 +1,7 @@
 // The controls: two choices, a pattern number, and three figures.
 //
 // This panel was 399 words. It explained the fault injector, what a seed is, what reproducibility buys, two
-// counterexamples from a 400-seed sweep and the reason one claim is a tendency — all of it true, all of it in
+// counterexamples from a 400-seed sweep and the reason one claim is a tendency: all of it true, all of it in
 // front of somebody who had not yet pressed play.
 //
 // The material moved rather than went: the sweep and its counterexamples are in the README, and the one
@@ -118,7 +118,7 @@ export function Controls({ settings, onChange, busy, live, verdict }: Props) {
         <p>
           One number per act. <strong>Lost</strong> and <strong>twice</strong> are the invariants: swept over
           400 patterns, nothing was ever delivered twice and nothing was ever lost until the last defence
-          answered too late. <strong>Asked back</strong> is a tendency, not a law — two lines usually mean far
+          answered too late. <strong>Asked back</strong> is a tendency, not a law: two lines usually mean far
           fewer messages needing a round trip, and there are counterexamples. The <em>pattern</em> number names
           this run: type it back in a year and the same packets go missing at the same moments, on any machine.
         </p>

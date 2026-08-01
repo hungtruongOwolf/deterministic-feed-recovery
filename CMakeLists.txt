@@ -89,7 +89,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
     -Wimplicit-fallthrough
     -Wextra-semi
     # Determinism: never let the compiler fuse a multiply-add. See
-    # BUILD-GUIDE.md section 11.6, leak 11 — Clang defaults to `on`, which
+    # BUILD-GUIDE.md section 11.6, leak 11: Clang defaults to `on`, which
     # emits fmadd and silently changes results between -O levels.
     -ffp-contract=off
   )

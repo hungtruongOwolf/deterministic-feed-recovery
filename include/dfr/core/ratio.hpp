@@ -2,7 +2,7 @@
 //
 // Not a double, and not a percentage. A double would reintroduce the floating
 // point determinism leaks the generator exists to avoid, and a percentage cannot
-// express the small probabilities a fault injector needs — FoundationDB's
+// express the small probabilities a fault injector needs: FoundationDB's
 // BUGGIFY sites fire at rates that matter down to fractions of a per cent.
 //
 // This is TigerBeetle's stdx.PRNG design: no floating point anywhere in the API.
@@ -14,7 +14,7 @@
 
 namespace dfr::inline v1 {
 
-// small probabilities a fault injector needs — FoundationDB's BUGGIFY sites
+// small probabilities a fault injector needs: FoundationDB's BUGGIFY sites
 // fire at rates that matter down to fractions of a per cent.
 struct ratio {
   std::uint64_t numerator{0};

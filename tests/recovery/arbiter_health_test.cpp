@@ -1,7 +1,7 @@
 // Line health: which line is alive, how far behind it is, and whether the two agree.
 //
 // Operationally this matters more than the merge. Losing one line of a redundant pair
-// is invisible in the data — the stream stays perfect — so unless the receiver reports
+// is invisible in the data(the stream stays perfect) so unless the receiver reports
 // it, the first anyone hears is when the second line fails too.
 
 #include <dfr/recovery/arbiter.hpp>
@@ -192,7 +192,7 @@ TEST_CASE("a differently framed range is not a divergence",
           "[recovery][arbiter]") {
   // Some venues let the two lines split the same messages into different packets, so a
   // digest computed over a different range is legitimately different. Comparing on
-  // overlap alone would make that a false alarm — and a false alarm on a fatal error is
+  // overlap alone would make that a false alarm, and a false alarm on a fatal error is
   // worse than a missed one, because the fix is to switch the check off.
   test_arbiter arbiter{readable_options()};
   offer(arbiter, kLineA, range(10, 20), at_ms(0), 0xDEAD);

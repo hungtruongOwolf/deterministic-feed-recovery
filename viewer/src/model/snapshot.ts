@@ -1,7 +1,7 @@
 // The Glimpse trace's shape, and nothing else.
 //
-// Same rule as every other model here: this parses and indexes. Both books come from the file — the venue's in the
-// header, the client's on every frame — and the `matches` flag is the C++'s own comparison of the two. A viewer that
+// Same rule as every other model here: this parses and indexes. Both books come from the file: the venue's in the
+// header, the client's on every frame, and the `matches` flag is the C++'s own comparison of the two. A viewer that
 // compared them itself would be a third opinion on a question that has exactly two parties.
 
 export type FrameKind = "A" | "g" | "S" | "G" | "Z" | string;
@@ -90,11 +90,11 @@ export function parseSnapshot(text: string): SnapshotTrace {
 export function meaningOf(frame: SnapshotFrame): string {
   switch (frame.type) {
     case "A":
-      return "The service accepts the connection. A snapshot is its own numbered stream — nothing to do with the live feed's numbering, which is a tempting thing to conflate because both are sequence numbers on the same kind of packet.";
+      return "The service accepts the connection. A snapshot is its own numbered stream: nothing to do with the live feed's numbering, which is a tempting thing to conflate because both are sequence numbers on the same kind of packet.";
     case "g":
       return "Begin, before any state. A client that connected to the wrong service finds out here rather than after applying somebody else's book.";
     case "S":
-      return "One price level. The service walks its book and sends one of these per level — O(depth), not O(messages), which is the whole reason a snapshot can be served to a client that cannot catch up by replay.";
+      return "One price level. The service walks its book and sends one of these per level: O(depth), not O(messages), which is the whole reason a snapshot can be served to a client that cannot catch up by replay.";
     case "G":
       return "End Of Snapshot, carrying the sequence the state is valid as of. It is the *next* message, not the last one included: off by one either way looks like a working snapshot on a quiet feed and corrupts a book on a busy one.";
     case "Z":

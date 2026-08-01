@@ -37,7 +37,7 @@ export function Sheet({ children, title, subtitle, figures }: Props) {
   const cell = BLOCK.w / (figures.length + 2);
 
   return (
-    <svg className="sheet" viewBox={`0 0 ${SHEET.w} ${SHEET.h}`} role="img" aria-label={`${title} — ${subtitle}`}>
+    <svg className="sheet" viewBox={`0 0 ${SHEET.w} ${SHEET.h}`} role="img" aria-label={`${title}: ${subtitle}`}>
       <rect className="sheet__ground" x={0} y={0} width={SHEET.w} height={SHEET.h} />
       <rect className="sheet__frame" x={MARGIN} y={MARGIN} width={SHEET.w - MARGIN * 2} height={SHEET.h - MARGIN * 2} />
       {ticks}

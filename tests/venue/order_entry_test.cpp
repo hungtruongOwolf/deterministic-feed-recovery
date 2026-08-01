@@ -1,7 +1,7 @@
 // Entering and cancelling: the token rules, and what silence means.
 //
 // Every message the host emits is decoded before it is checked, so the encoder and the decoder verify
-// each other — the arrangement venue::iextp_publisher uses, and the reason a host handing back structs
+// each other: the arrangement venue::iextp_publisher uses, and the reason a host handing back structs
 // would only ever agree with itself.
 //
 // Replacing and executing are in order_replace_test.cpp: those are about the chain's arithmetic, while
@@ -56,7 +56,7 @@ TEST_CASE("a duplicate token is met with silence, not a rejection",
           "[venue][ouch][regression]") {
   // §2.1: "If you send an Enter Order Message with a previously used Order Token, the new order will be
   // ignored." Silence, because re-sending after a connection loss is the protocol's own recovery
-  // mechanism — §2 permits repeating any inbound message — and answering with a rejection would make a
+  // mechanism(§2 permits repeating any inbound message) and answering with a rejection would make a
   // successful failover look like a failure.
   auto host = fresh_host();
   sink out;
@@ -162,7 +162,7 @@ TEST_CASE("a blank firm becomes the account default", "[venue][ouch]") {
 
 TEST_CASE("a cancel reduces to the intended size", "[venue][ouch][regression]") {
   // §2.3: the Shares field is "the new intended order size", not the amount to cancel. So 100 on a
-  // 500-share order removes 400 — an implementation reading it the other way would remove 100 and leave
+  // 500-share order removes 400: an implementation reading it the other way would remove 100 and leave
   // the client four hundred shares more exposed than it asked for.
   auto host = fresh_host();
   sink out;

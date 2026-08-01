@@ -2,7 +2,7 @@
 //
 // Split from oracle_feed.hpp, which publishes it. A real seam rather than a line count: a reader checking what the
 // venue *sent* never needs the recovery wiring, and a reader checking what the client *delivered* never needs the
-// message generator. The vocabulary they share — the feed, a packet, a result — stays in oracle_feed.hpp.
+// message generator. The vocabulary they share(the feed, a packet, a result) stays in oracle_feed.hpp.
 
 #ifndef DFR_TESTS_INTEGRATION_SUPPORT_ORACLE_REPLAY_HPP
 #define DFR_TESTS_INTEGRATION_SUPPORT_ORACLE_REPLAY_HPP
@@ -41,7 +41,7 @@ inline void replay_recovered_into(const feed& source, std::uint64_t seed, std::u
 // The subject: the same packets through the injector and the recovery client.
 //
 // Retransmits are answered from the published stream, which is a harness with the whole day in memory rather
-// than a facility that forgets — that path is covered in venue_recovery_test.cpp. What is under test here is
+// than a facility that forgets: that path is covered in venue_recovery_test.cpp. What is under test here is
 // what the *client* delivered, so the server is deliberately not the variable.
 inline replay_result replay_recovered(const feed& source, std::uint64_t seed, std::uint32_t faults,
                                       bool glimpse = false,
@@ -57,7 +57,7 @@ inline replay_result replay_recovered(const feed& source, std::uint64_t seed, st
     options.max_faults = faults;
     // The same restriction the sequence oracle uses: the kinds whose consequence a harness can reason about
     // without reimplementing the injector. A bit flip rewrites a body, and this test's whole premise is that
-    // recovery does not — so including it would be testing the injector, not the client.
+    // recovery does not, so including it would be testing the injector, not the client.
     options.permitted = detail::book_safe_faults();
     REQUIRE(chaos::schedule::generate(rng, options, source.packets.size()).get(plan) ==
             dfr::error::ok);
@@ -203,7 +203,7 @@ inline replay_result replay_recovered(const feed& source, std::uint64_t seed, st
 // One implementation, two consumers: the in-process book, and a sink that carries messages elsewhere.
 //
 // `replay_recovered` is the in-process case and is left as it was, because it is what four existing tests call. This
-// runs the same pipeline and hands every delivered sequence out — same injector, same client, same ordering rules.
+// runs the same pipeline and hands every delivered sequence out: same injector, same client, same ordering rules.
 template <typename Sink>
 inline void replay_recovered_into(const feed& source, std::uint64_t seed, std::uint32_t faults,
                                   Sink&& sink) {

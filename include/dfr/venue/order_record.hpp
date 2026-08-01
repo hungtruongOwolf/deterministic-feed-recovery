@@ -3,8 +3,8 @@
 // The accounting identity
 // ---------------------
 // `shares_liable == shares_executed + shares_open + shares_canceled`, at every moment, for every order
-// in a replace chain. It is the order-side equivalent of the recovery accounting identity — every
-// message delivered exactly once or recorded missing — and it is what makes a wrong reading of the
+// in a replace chain. It is the order-side equivalent of the recovery accounting identity: every
+// message delivered exactly once or recorded missing, and it is what makes a wrong reading of the
 // Shares field detectable instead of merely expensive.
 //
 // Shares liable is cumulative across the chain, inclusive of prior executions, because that is what a
@@ -39,7 +39,7 @@ struct order_record {
   ouch::side order_side{ouch::side::buy};
 
   // Owned, not a view. The inbound message's `stock` points into the caller's receive buffer, which the
-  // next message overwrites — a venue holding that view would report whatever arrived most recently.
+  // next message overwrites: a venue holding that view would report whatever arrived most recently.
   std::array<char, 8> stock_bytes{};
   std::uint8_t stock_length{0};
 
@@ -83,7 +83,7 @@ struct order_record {
 
   // A cross order in the late period cannot be canceled, which is the condition OUCH §2.2 gives for a
   // replace being rejected outright rather than turned into a cancel. Modelled here because without it
-  // the Reject path — and the token consumption that goes with it — is unreachable.
+  // the Reject path(and the token consumption that goes with it) is unreachable.
   [[nodiscard]] constexpr bool is_cross() const noexcept { return cross_type != 'N'; }
 };
 

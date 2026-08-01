@@ -5,7 +5,7 @@
 // obvious until it bites:
 //
 //   An assertion inside a `noexcept` function cannot be tested that way. The
-//   handler's contract is "must not return", and throwing satisfies it — but
+//   handler's contract is "must not return", and throwing satisfies it, but
 //   throwing out of a noexcept function calls std::terminate, so the whole test
 //   binary aborts instead of the exception being caught.
 //

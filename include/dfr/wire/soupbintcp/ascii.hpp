@@ -5,7 +5,7 @@
 // Login Accepted carries a Session that is *left*-justified and padded on the right with spaces, and
 // a Sequence Number that is *right*-justified and padded on the left. Both in thirty bytes, adjacent.
 // An implementation that trims from one end only reads one of them correctly and produces plausible
-// nonsense from the other — a session id with leading spaces compares unequal to itself, and a
+// nonsense from the other: a session id with leading spaces compares unequal to itself, and a
 // sequence number read left-justified is off by a factor of ten per pad byte.
 //
 // So the two are separate functions with the padding in their names, and neither has a default.
@@ -13,7 +13,7 @@
 // The twenty-digit overflow is reachable
 // -------------------------------------
 // A twenty-character numeric field can express 99,999,999,999,999,999,999, and a 64-bit unsigned
-// integer stops at 18,446,744,073,709,551,615 — also twenty digits. So a legal-looking field can
+// integer stops at 18,446,744,073,709,551,615: also twenty digits. So a legal-looking field can
 // overflow, and the check is not defensive padding: it is the difference between reporting a
 // malformed field and reporting a sequence number that has wrapped to something small and
 // believable.
@@ -40,7 +40,7 @@ inline constexpr std::uint8_t kPad = ' ';
 // A left-justified text field: content, then spaces. Returns the content without them.
 //
 // Trailing spaces only. A field whose content genuinely begins with a space is not something this
-// can distinguish from padding, and the specification does not permit one — but trimming both ends
+// can distinguish from padding, and the specification does not permit one, but trimming both ends
 // would silently accept the other convention's field and hide the mistake.
 // Not `constexpr`, and GCC is the reason it says so out loud.
 //
@@ -50,7 +50,7 @@ inline constexpr std::uint8_t kPad = ' ';
 // function could not honour, and anybody who took it up would have got a hard error rather than a slow function.
 //
 // Dropping it is the truthful fix. Keeping it would need the bytes to be `char` underneath, which would mean
-// `packet_view` giving up `std::byte` — and `std::byte` is what stops a byte being arithmetic by accident.
+// `packet_view` giving up `std::byte`, and `std::byte` is what stops a byte being arithmetic by accident.
 [[nodiscard]] inline result<std::string_view> text_left_justified(
     packet_view field) noexcept {
   std::size_t length = field.size();
@@ -63,8 +63,8 @@ inline constexpr std::uint8_t kPad = ' ';
 // A right-justified numeric field: spaces, then digits.
 //
 // Empty after trimming is `invalid_argument` rather than zero. A field of twenty spaces is a caller
-// that has not filled it in, and reading it as sequence zero — which in a Login Request means
-// "start me at the next message" — would turn an unset field into a meaningful instruction.
+// that has not filled it in, and reading it as sequence zero, which in a Login Request means
+// "start me at the next message": would turn an unset field into a meaningful instruction.
 [[nodiscard]] constexpr result<std::uint64_t> number_right_justified(
     packet_view field) noexcept {
   std::size_t at = 0;
@@ -79,7 +79,7 @@ inline constexpr std::uint8_t kPad = ' ';
   for (; at < field.size(); ++at) {
     const std::uint8_t byte = field.u8_at(at);
     if (byte < '0' || byte > '9') DFR_UNLIKELY {
-      // Includes a trailing space, which would mean the field was left-justified — the other
+      // Includes a trailing space, which would mean the field was left-justified: the other
       // convention, and a mistake worth naming rather than tolerating.
       return error::invalid_argument;
     }

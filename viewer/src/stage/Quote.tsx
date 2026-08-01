@@ -1,7 +1,7 @@
 // The top of the order book, drawn beside the run.
 //
-// This is what the whole message layer was for. Everything else on the sheet is *bookkeeping* — which sequence
-// numbers arrived, which holes are open — and a trading system does not care about sequence numbers. It cares
+// This is what the whole message layer was for. Everything else on the sheet is *bookkeeping*, which sequence
+// numbers arrived, which holes are open, and a trading system does not care about sequence numbers. It cares
 // whether the book is right. Until the trace carried one, the strongest claim the project makes lived only in a
 // test file and a visitor could not see it.
 //
@@ -22,7 +22,7 @@ interface Props {
 }
 
 function money(raw: number): string {
-  return raw === 0 ? "—" : (raw / SCALE).toFixed(4);
+  return raw === 0 ? "none" : (raw / SCALE).toFixed(4);
 }
 
 export function Quote({ event, x, y }: Props) {

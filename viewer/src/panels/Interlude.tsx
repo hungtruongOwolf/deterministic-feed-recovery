@@ -2,7 +2,7 @@
 //
 // The three acts used to be labelled by buttons sitting above the drawing, which meant the label for act two
 // was visible during act one and said nothing about the transition. Here the sentence appears where the
-// transition happens, while the act is already playing underneath it — so "now take the second line away"
+// transition happens, while the act is already playing underneath it, so "now take the second line away"
 // arrives at the moment the second line goes away, and then gets out of the way.
 
 import type { Act } from "../model/film";

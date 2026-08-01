@@ -64,7 +64,7 @@ struct packet {
 
   // The length counts the type byte but not itself, so the frame is two bytes longer than it claims.
   // This is the one arithmetic in the protocol that is easy to get wrong, and it is wrong only for
-  // packets that carry a payload — heartbeats work either way, which is what lets the mistake
+  // packets that carry a payload: heartbeats work either way, which is what lets the mistake
   // survive testing.
   const std::size_t frame = kLengthSize + static_cast<std::size_t>(declared);
   if (stream.size() < frame) {

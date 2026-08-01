@@ -4,7 +4,7 @@ add_executable(dfr_inspect inspect.cpp)
 target_link_libraries(dfr_inspect PRIVATE dfr::dfr dfr_dev_flags)
 set_target_properties(dfr_inspect PROPERTIES OUTPUT_NAME inspect)
 
-# Runs the full pipeline — inject, decode, recover — over a real capture and checks it
+# Runs the full pipeline (inject, decode, recover) over a real capture and checks it
 # accounts for itself. The unit oracle in tests/integration does the same over synthetic
 # packets; this answers whether it holds on a day of actual exchange traffic.
 add_executable(dfr_verify verify.cpp)

@@ -53,7 +53,7 @@ inline constexpr std::size_t kMaxFaults = 256;
 // Zero means everything is permitted, which is what makes shrinking move toward
 // a more permissive configuration rather than a narrower one. This is swarm
 // testing at the granularity of a fault kind, the same idea as FoundationDB's
-// BUGGIFY activating a random subset of sites per run — each run stays survivable
+// BUGGIFY activating a random subset of sites per run: each run stays survivable
 // while the ensemble covers the cross product.
 class op_mask {
  public:
@@ -72,7 +72,7 @@ class op_mask {
   }
 
   // Only the named kinds are permitted. Spelled as a factory rather than a
-  // constructor so the common case — everything on — stays the default.
+  // constructor so the common case(everything on) stays the default.
   [[nodiscard]] static constexpr op_mask only(
       std::initializer_list<fault_op> ops) noexcept {
     op_mask out;
@@ -118,7 +118,7 @@ struct schedule_options {
   //
   // A receiver has to establish its position before a gap means anything. Without
   // this, a fault on packet zero is reported as the receiver joining
-  // mid-stream — a true statement that tells you nothing about recovery.
+  // mid-stream: a true statement that tells you nothing about recovery.
   std::uint64_t warmup_packets{4};
 };
 
@@ -130,7 +130,7 @@ class schedule {
   //
   // Every draw is bounded and the loop is bounded, so generation always
   // terminates and consumes a number of draws that depends only on the seed and
-  // the options — never on the stream's contents.
+  // the options: never on the stream's contents.
   [[nodiscard]] static result<schedule> generate(
       prng& rng, const schedule_options& options,
       std::uint64_t stream_length) noexcept {
@@ -147,7 +147,7 @@ class schedule {
 
     // Collect the permitted kinds once. Drawing a kind and rejecting it would
     // make the number of draws depend on the mask, so disabling one kind would
-    // shift every later draw — the exact property this design exists to avoid.
+    // shift every later draw: the exact property this design exists to avoid.
     std::array<fault_op, kFaultOpCount> allowed{};
     std::size_t allowed_count = 0;
     for (std::size_t i = 1; i < kFaultOpCount; ++i) {  // skip fault_op::none
@@ -165,7 +165,7 @@ class schedule {
     // short capture should get an empty schedule rather than a failure.
     //
     // The threshold accounts for min_burst, not just the warmup, because
-    // min_burst is honoured rather than clamped away — see the placement bound
+    // min_burst is honoured rather than clamped away: see the placement bound
     // below.
     schedule out;
     const std::uint64_t needed =

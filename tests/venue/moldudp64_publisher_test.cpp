@@ -77,7 +77,7 @@ verdict decode_all(const sink& emitted) {
       return out;
     }
     // The block walk must account for exactly the bytes present, which is the check that catches a count
-    // disagreeing with its contents — the defect penberg/helix has and dfr::chaos injects on purpose.
+    // disagreeing with its contents: the defect penberg/helix has and dfr::chaos injects on purpose.
     mold::message_cursor cursor;
     if (const auto err = mold::message_cursor::over(packet).get(cursor);
         err != dfr::error::ok) {
@@ -112,7 +112,7 @@ verdict decode_all(const sink& emitted) {
 TEST_CASE("a published MoldUDP64 stream chains by message count",
           "[venue][moldudp64]") {
   // The one chain this protocol has. MoldUDP64's sequence counts *messages*, so a publisher that advanced
-  // it per packet would produce a stream whose numbering is short by the packing factor — and a receiver
+  // it per packet would produce a stream whose numbering is short by the packing factor, and a receiver
   // would report a gap on every packet after the first.
   test_publisher publisher{readable_options()};
   sink emitted;
@@ -156,7 +156,7 @@ TEST_CASE("the stream survives heartbeats interleaved",
 TEST_CASE("MoldUDP64 maintains no stream offset",
           "[venue][moldudp64][regression]") {
   // The substance of the difference between the two protocols. IEX-TP carries a byte position beside the
-  // sequence — its second redundant chain — and MoldUDP64 has no field for one. A shared publisher that
+  // sequence(its second redundant chain) and MoldUDP64 has no field for one. A shared publisher that
   // maintained it for both would be computing a number with nowhere to put it, and the flag that prevents
   // that is checked here rather than trusted.
   STATIC_REQUIRE(!venue::moldudp64_target::kTracksStreamOffset);
@@ -177,7 +177,7 @@ TEST_CASE("MoldUDP64 maintains no stream offset",
 TEST_CASE("the session is ten bytes of text, not an integer",
           "[venue][moldudp64]") {
   // MoldUDP64's session field is alphanumeric. The configured numeric session is written into the last four
-  // bytes so the field stays printable and two configured sessions stay distinguishable — the same
+  // bytes so the field stays printable and two configured sessions stay distinguishable: the same
   // convention chaos::moldudp64_target uses when it rewrites the field, so a fault injected into a
   // published stream lands where a reader expects it.
   test_publisher publisher{readable_options()};

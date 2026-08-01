@@ -5,7 +5,7 @@
 // packets later, that sequences 40 through 44 never arrived, and has to recognise the
 // retransmit when it comes.
 //
-// The events that throw state away — session changes and snapshots — are in
+// The events that throw state away(session changes and snapshots) are in
 // gap_tracker_reset_test.cpp, because they are about forgetting rather than tracking.
 
 #include <dfr/recovery/gap_tracker.hpp>
@@ -31,7 +31,7 @@ using dfr_test::recovery::range;
 TEST_CASE("the first packet establishes the channel rather than reporting a gap",
           "[recovery][gap_tracker]") {
   // A receiver joining a live feed mid-session has missed everything before it, and
-  // must not report that as a hole it could recover — the publisher's retention
+  // must not report that as a hole it could recover: the publisher's retention
   // window does not go back to the start of the day.
   rec::gap_tracker tracker;
   CHECK_FALSE(tracker.started(kChannel));
@@ -63,7 +63,7 @@ TEST_CASE("a contiguous stream stays in order and misses nothing",
 TEST_CASE("a heartbeat is not a special case", "[recovery][gap_tracker]") {
   // Count 0, carrying the sequence number of the next message. It must not advance
   // the expectation past itself, which falls out of first + 0 == first rather than
-  // needing a branch — and it must still be able to open a gap, because a heartbeat
+  // needing a branch, and it must still be able to open a gap, because a heartbeat
   // whose sequence number has jumped is exactly how a receiver learns it missed the
   // end of a quiet period.
   rec::gap_tracker tracker;
@@ -189,7 +189,7 @@ TEST_CASE("a retransmit landing inside a hole splits it",
 TEST_CASE("a packet straddling the expectation both fills and extends",
           "[recovery][gap_tracker]") {
   // A retransmit that also carries fresh messages. The tail beyond the expectation
-  // is new and contiguous, so the expectation advances and no new gap opens — a
+  // is new and contiguous, so the expectation advances and no new gap opens: a
   // tracker that only handled "behind" or "ahead" would either drop the tail or
   // report a gap that does not exist.
   rec::gap_tracker tracker;

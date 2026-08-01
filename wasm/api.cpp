@@ -8,15 +8,15 @@
 //
 // This library is unusually well suited to running in a browser, and not by accident. It is header-only, it
 // reads no clock, it opens no sockets, it allocates nothing after start-up, and every run is a function of
-// its seed. Those were determinism constraints, adopted so a failing run could be replayed from a number —
+// its seed. Those were determinism constraints, adopted so a failing run could be replayed from a number,
 // and they are exactly the constraints that make code portable to a sandbox with no operating system.
 //
 // So the browser runs the same code the tests run. Not a reimplementation of it in TypeScript.
 //
 // One writer, two hosts
 // ---------------------
-// The output goes through dfr_tools::write_header/write_event/write_summary — the same functions
-// tools/trace.cpp uses — into Emscripten's in-memory filesystem, which is then read back as a string. A
+// The output goes through dfr_tools::write_header/write_event/write_summary, the same functions
+// tools/trace.cpp uses: into Emscripten's in-memory filesystem, which is then read back as a string. A
 // second formatter for the browser would have been a second format, and the two would have drifted. As it
 // stands a trace produced in a browser is byte-identical to one produced in a terminal, and
 // scripts/check-wasm.sh asserts exactly that.

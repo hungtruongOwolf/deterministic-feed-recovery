@@ -2,7 +2,7 @@
 //
 // Kept in a canonical form that the class never leaves: sorted by `first`,
 // non-overlapping, and with no two ranges adjacent. Canonical form is not tidiness
-// — it is what makes "one lost burst is one retransmit request" true, and what lets
+//: it is what makes "one lost burst is one retransmit request" true, and what lets
 // oldest() answer in constant time. A receiver that sent one request per lost packet
 // would multiply its own recovery traffic by the burst length, which is precisely
 // the storm NAK suppression exists to prevent.
@@ -11,7 +11,7 @@
 // -----------------------------------
 // Filling the *middle* of a gap splits one range into two, so a fill can need more
 // capacity than it frees. When there is no room, it is refused and reported rather
-// than resolved by merging the two halves — merging would claim the messages
+// than resolved by merging the two halves: merging would claim the messages
 // between them had arrived, which is the one lie this library exists to catch. A
 // caller out of capacity has genuinely lost track of what it is missing and needs to
 // hear so.

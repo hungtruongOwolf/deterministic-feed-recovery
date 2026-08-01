@@ -1,7 +1,7 @@
 // A client against a retransmit facility that has a real retention window.
 //
 // The oracle tests drive the client with a harness that always has the answer. This drives it
-// against a facility that forgets, and therefore against a facility that can refuse — a path
+// against a facility that forgets, and therefore against a facility that can refuse: a path
 // that existed in the client as a unit-tested branch and had never been reached the way it is
 // reached in production. Snapshots are in venue_snapshot_test.cpp.
 
@@ -35,7 +35,7 @@ using dfr_test::venue_rig::rig_publisher_options;
 
 TEST_CASE("a client recovers through a real retransmit facility",
           "[integration][venue]") {
-  // Same claim as the oracle — every injected fault repaired, every message once — but the
+  // Same claim as the oracle(every injected fault repaired, every message once) but the
   // server is now a facility with a bounded window rather than a harness with the whole day in
   // memory.
   rig_publisher publisher{rig_publisher_options()};

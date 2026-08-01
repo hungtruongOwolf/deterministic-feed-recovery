@@ -16,13 +16,13 @@
 #                        abort in WebAssembly kills the module for the life of the page. The boundary in
 #                        api.cpp clamps its inputs instead, which is what those preconditions ask for.
 #   -sSTACK_SIZE=4MB     trace::recorder<4096> is 640 KB of flat array and the client is another 53 KB, both
-#                        stack locals by design — "an object this size is a member, not a stack local" is a
+#                        stack locals by design: "an object this size is a member, not a stack local" is a
 #                        rule the library states and this respects. WebAssembly defaults to a 64 KB stack,
 #                        which native never does, so the first run scribbled off the end of memory. Native
 #                        gives 8 MB; 4 MB is the same decision made explicitly.
 #   -sINITIAL_MEMORY     enough for the largest run so the heap does not grow four times on first click.
 #   ENVIRONMENT=...,node the browser is the target and node is not, but a module that cannot be loaded
-#                        outside a browser cannot be checked against the native build — and that check is
+#                        outside a browser cannot be checked against the native build, and that check is
 #                        the only evidence the page runs this library rather than a port of it. A few
 #                        kilobytes of loader is a cheap price for a verifiable artifact.
 # The output is committed so that Pages can deploy without an Emscripten toolchain. It is not

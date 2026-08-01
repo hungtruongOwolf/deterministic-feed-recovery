@@ -1,4 +1,4 @@
-// packet_view — a non-owning window onto received bytes.
+// packet_view: a non-owning window onto received bytes.
 //
 // This header exists because of a specific, real defect. penberg/helix
 // validates a MoldUDP64 header, then loops `MessageCount` times performing
@@ -10,7 +10,7 @@
 // every byte of the hot path. It is Aeron's flyweight model:
 //
 //   1. Slicing is *checked* and returns a result. Every narrowing of the window
-//      — header off the front, one block out of the middle — goes through
+//     (header off the front, one block out of the middle) goes through
 //      subview(), which cannot produce a view that escapes its parent.
 //   2. Reading a field inside an already-validated view is *asserted*. The
 //      precondition is that the caller obtained the view from a successful

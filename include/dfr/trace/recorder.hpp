@@ -1,15 +1,15 @@
 // Recording a run, in a fixed amount of memory, and stopping rather than forgetting.
 //
 // When the recorder fills it stops and counts what it could not keep. It does *not* overwrite the
-// oldest events — the same decision as recovery::replay_buffer and for the same reason, applied to
+// oldest events: the same decision as recovery::replay_buffer and for the same reason, applied to
 // diagnostics instead of data: the beginning of a trace is where the cause is. A ring would keep
 // the consequences and discard the explanation, which is the shape of every unhelpful log file.
 //
 // The recorder is not wired into the library
 // -----------------------------------------
 // No component takes a recorder, and none reports into one. Every event below can be built from
-// what the components already return — ingest_report, client_decision, snapshot_plan, the stats
-// structs — so the caller records, exactly as it already acts. That keeps the hot path free of a
+// what the components already return: ingest_report, client_decision, snapshot_plan, the stats
+// structs, so the caller records, exactly as it already acts. That keeps the hot path free of a
 // branch it does not need, keeps the library free of a diagnostics dependency, and means a trace
 // can never disagree with the values a caller saw, because it is made of them.
 
@@ -94,7 +94,7 @@ class recorder {
 // one place and the fields that describe *this event* at the call site.
 //
 // Exists because the resulting-state fields are the same for every event recorded at the same
-// moment, and repeating them at twenty call sites is how one of them ends up stale — which would
+// moment, and repeating them at twenty call sites is how one of them ends up stale, which would
 // make the viewer draw a moment that never existed.
 struct context {
   std::uint64_t packet_index{0};
@@ -109,7 +109,7 @@ struct context {
   std::array<sequence_range, event::kDrawableGaps> gaps{};
   std::uint8_t gaps_drawn{0};
 
-  // The top of book, as the caller's book reports it. Zero when there is no book — a feed of opaque bytes still
+  // The top of book, as the caller's book reports it. Zero when there is no book: a feed of opaque bytes still
   // traces perfectly, and a drawing showing an empty book is showing the truth about that run.
   std::int64_t best_bid{0};
   std::uint32_t best_bid_size{0};

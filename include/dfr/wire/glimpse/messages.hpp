@@ -2,25 +2,25 @@
 //
 // What was missing
 // ----------------
-// `venue::snapshot_facility` already models the interesting *behaviour* — it captures its position at request
+// `venue::snapshot_facility` already models the interesting *behaviour*, it captures its position at request
 // time, so it can lose the race against a live feed, which is the defect the whole `glimpse` run exists to
 // demonstrate. What it did not do is speak a protocol. A snapshot arrived as a `snapshot_reply` struct: a
 // session and a sequence number, handed over in memory.
 //
 // That left the one question a snapshot protocol actually has to answer untested: **how does the client learn
 // where the snapshot ends and the live feed begins?** In a struct, it is a field. On a wire it is a message that
-// has to arrive, be recognised, and be trusted — and a client that mistook a snapshot message for a live one
+// has to arrive, be recognised, and be trusted, and a client that mistook a snapshot message for a live one
 // would apply state twice.
 //
 // How Glimpse works, and the one thing it is easy to get wrong
 // -----------------------------------------------------------
 // Glimpse is a SoupBinTCP session, not a datagram feed. The client logs in, and the server sends the current
-// state as ordinary Sequenced Data Packets — the same message types the live feed carries, so a receiver needs
+// state as ordinary Sequenced Data Packets: the same message types the live feed carries, so a receiver needs
 // no second decoder. The snapshot ends with an **End Of Snapshot** message carrying the sequence number the
 // state is valid as of, and then the session ends.
 //
 // The easy mistake is treating that number as "the last message included". It is the sequence of the *next*
-// message — the first one the client must take from the live feed — which is the same convention SoupBinTCP's
+// message(the first one the client must take from the live feed) which is the same convention SoupBinTCP's
 // own Login Accepted uses and the same one `snapshot_reply::next_sequence` uses. Off by one here means either
 // replaying one message twice or dropping one forever, and both look like a working snapshot on a quiet feed.
 

@@ -104,8 +104,8 @@ inline run_summary run_recovering(const run_options& options,
 // The run that loses the Glimpse race, arranged deliberately.
 //
 // The choreography is exact and it is a fact about the failure rather than about this code: the
-// snapshot must land *above* what the client has already delivered — otherwise it is merely stale
-// and discarding it is safe — and *below* the oldest message the client managed to buffer. That
+// snapshot must land *above* what the client has already delivered: otherwise it is merely stale
+// and discarding it is safe, and *below* the oldest message the client managed to buffer. That
 // interval only exists when packets are lost after the client enters recovery, so packets are
 // dropped both before escalation and after it.
 inline run_summary run_glimpse(const run_options& options,

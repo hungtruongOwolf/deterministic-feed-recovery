@@ -1,12 +1,12 @@
 // The three runs, joined into one continuous film.
 //
-// Every earlier design offered the three as a *choice* — a dropdown, then three buttons — and a choice is
+// Every earlier design offered the three as a *choice*(a dropdown, then three buttons) and a choice is
 // read as three alternatives being compared. They are not alternatives. They are the same system watched
 // three times while a defence is taken away each time, and the only honest way to show that is to make them
 // one thing that plays through without asking anybody anything.
 //
 // So there is no selector in this app. There is a position in a film. Act two follows act one the way the
-// second half of a sentence follows the first, and between them is an interlude that says what changed —
+// second half of a sentence follows the first, and between them is an interlude that says what changed,
 // which is the sentence the old chapter buttons were trying to be, in the place where it actually lands.
 //
 // Nothing here computes recovery state. An act is a trace plus a span of film indices; a moment is a beat
@@ -33,7 +33,7 @@ export interface ActSpec {
   readonly staleness: number;
   readonly ordinal: string;
   readonly title: string;
-  /** What is different from the act before — the reason this act exists. */
+  /** What is different from the act before: the reason this act exists. */
   readonly change: string;
   /** How far down the stack of defences this act is forced to reach, in words. */
   readonly reaches: string;
@@ -59,7 +59,7 @@ export const ACTS: readonly ActSpec[] = [
     ordinal: "II",
     title: "Now take the second line away",
     change:
-      "Same venue, same kind of faults — one fewer defence. Every hole that the other line used to cover now costs a round trip to the venue and back.",
+      "Same venue, same kind of faults: one fewer defence. Every hole that the other line used to cover now costs a round trip to the venue and back.",
     reaches: "falls to the second defence",
   },
   {
@@ -79,7 +79,7 @@ export const ACTS: readonly ActSpec[] = [
  * What a reader may change: the data, never the argument.
  *
  * The seed and the fault count are theirs. Which defence each act removes is not, because that is the
- * experiment — three parts in order, each with one fewer layer — and a control that could break it would
+ * experiment(three parts in order, each with one fewer layer) and a control that could break it would
  * turn the page back into three unrelated runs.
  */
 export interface Settings {
@@ -175,7 +175,7 @@ export function actAt(film: Film, at: number): Act {
  * How long to hold each moment, relative to the others.
  *
  * Two thirds of a real feed is heartbeats, so two thirds of an evenly paced film is watching nothing happen.
- * Nothing is skipped — the quiet stretches still play, and the position axis still counts every step — but
+ * Nothing is skipped(the quiet stretches still play, and the position axis still counts every step) but
  * they go past quickly, and the moments that carry the argument are held long enough to read.
  */
 export function dwellFor(film: Film, at: number): number {
@@ -247,7 +247,7 @@ export function prologue(film: Film): { readonly title: string; readonly body: s
       "A market-data client has three defences against a lost packet, and they are layers, not options: a second line, " +
       "then asking the venue to resend, then a snapshot of the whole book. This runs the same system three times and " +
       `removes one defence each time, so you can watch it fall a layer deeper. ${messages.toLocaleString()} messages ` +
-      `are delivered across the three acts and ${lost} are lost for good — all of them in the last act, and the client ` +
+      `are delivered across the three acts and ${lost} are lost for good: all of them in the last act, and the client ` +
       "says so rather than publishing a book it knows to be wrong.",
   };
 }

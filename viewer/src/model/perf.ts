@@ -6,7 +6,7 @@
 // could get a latency number wrong, and a wrong performance figure is the most embarrassing kind of wrong a
 // portfolio can be.
 //
-// The one thing this file does derive is the *ratio* between two measured figures — the cost of assertions —
+// The one thing this file does derive is the *ratio* between two measured figures: the cost of assertions,
 // and it is derived rather than stored because it is a comparison between two files, which neither file can
 // make on its own. It is a division of two numbers that were both measured; nothing is estimated.
 

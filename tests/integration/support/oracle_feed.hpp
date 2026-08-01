@@ -2,19 +2,19 @@
 //
 // What this harness is for, and what it is careful not to claim
 // ------------------------------------------------------------
-// The existing oracle checks a statement about bookkeeping — every sequence delivered exactly once. This one
+// The existing oracle checks a statement about bookkeeping: every sequence delivered exactly once. This one
 // checks a statement about content: **the book after recovery equals the book that never lost anything.** That
 // is a harder invariant. It fails if recovery delivers the right messages in the wrong order, or applies a
-// repair twice, or drops a size-zero deletion — none of which a sequence count can see.
+// repair twice, or drops a size-zero deletion: none of which a sequence count can see.
 //
 // The body of each message is looked up by sequence number rather than carried through the recovery path, and
 // that shortcut decides what the test can claim, so it is stated rather than buried. Recovery's responsibility
 // is *which* sequences reach the consumer, *how many times*, and *in what order*; it never rewrites a body. So
 // the lookup is equivalent to carrying it, and the test still fails if recovery:
 //
-//   * delivers a sequence twice — the trade count doubles;
-//   * delivers out of order — an aggregated book is last-write-wins, so the sizes diverge;
-//   * drops one — a level it should have deleted stays, or one it should have created never appears.
+//   * delivers a sequence twice: the trade count doubles;
+//   * delivers out of order: an aggregated book is last-write-wins, so the sizes diverge;
+//   * drops one: a level it should have deleted stays, or one it should have created never appears.
 //
 // What it cannot catch is a recovery path that corrupted a body it forwarded. Nothing here rewrites a body and
 // the wire tests cover the decode, but saying so beats implying a stronger claim.
@@ -24,7 +24,7 @@
 //
 // The finding that changed this harness
 // -------------------------------------
-// The first version applied messages in the order the client *delivered* them, and the books did not match —
+// The first version applied messages in the order the client *delivered* them, and the books did not match:
 // same 600 messages, same 137 updates per symbol, different book. That is not a defect in recovery. It is the
 // consequence of a design decision recovery makes on purpose: **while a hole is open the client keeps delivering
 // later messages**, because stalling on a gap turns one loss into an outage. The repair therefore arrives *after*
@@ -32,7 +32,7 @@
 //
 // For an aggregated book that is fatal if consumed naively: price levels are last-write-wins, so applying an
 // older update after a newer one leaves the wrong size at that price, forever. So a correct consumer of a
-// gap-filling feed must **apply in sequence order, not in arrival order** — which the client makes possible by
+// gap-filling feed must **apply in sequence order, not in arrival order**, which the client makes possible by
 // numbering everything it hands over, and which nothing warns you about.
 //
 // This harness therefore buffers out-of-order deliveries and applies them in sequence order, and
@@ -115,7 +115,7 @@ struct replay_result {
    *
    * A counter rather than a REQUIRE inside apply, because apply runs on a consumer thread in
    * threaded_book_test.cpp and **Catch2's assertion machinery is not thread-safe**. It aborted inside
-   * `OutputRedirect::activate` — a failure in the measuring apparatus that looked like a failure in the library,
+   * `OutputRedirect::activate`, a failure in the measuring apparatus that looked like a failure in the library,
    * and looked platform-specific because I had run the suite once. Every caller asserts this is zero from the
    * main thread instead.
    */
@@ -178,7 +178,7 @@ inline rec::client_options feed_client_options() {
 //
 // No Catch2 macros in here, and that is a requirement rather than a style choice: threaded_book_test.cpp calls this
 // from a consumer thread, and a REQUIRE on a second thread reaches into Catch2's result capture and output redirect
-// concurrently with the main thread. It aborts — `Assertion !m_redirectActive && "redirect is already active"` —
+// concurrently with the main thread. It aborts: `Assertion !m_redirectActive && "redirect is already active"`,
 // with no failing expression, which reads as a library defect and is not one. A decode failure is counted here and
 // asserted by the caller on the main thread.
 inline void apply(std::map<std::string, oracle_book>& books, dfr::packet_view body,
@@ -212,7 +212,7 @@ inline void apply(std::map<std::string, oracle_book>& books, dfr::packet_view bo
 
 // The fault kinds this test can reason about.
 //
-// A bit flip rewrites a message body, and the premise here is that recovery does not touch bodies — so
+// A bit flip rewrites a message body, and the premise here is that recovery does not touch bodies, so
 // including it would be testing the injector rather than the client. Sequence and session rewrites are excluded
 // for the same reason the sequence oracle excludes them: they make the stream a different stream.
 inline chaos::op_mask book_safe_faults() {

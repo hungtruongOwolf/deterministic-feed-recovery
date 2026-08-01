@@ -32,7 +32,7 @@ using dfr_test::recovery::range;
 TEST_CASE("a session change discards the holes and counts them as lost",
           "[recovery][gap_tracker]") {
   // Outstanding holes belong to the old session. Requesting them from the new one
-  // would be asking for sequence numbers that mean something else there — and the
+  // would be asking for sequence numbers that mean something else there, and the
   // publisher would answer.
   rec::gap_tracker tracker;
   feed(tracker, 1, 10);
@@ -97,7 +97,7 @@ TEST_CASE("a snapshot can start a channel that has seen no packets",
   //
   // This is why snapshot_at() takes a session. Without one it could not record which
   // session it had established state for, so the first live packet compared against a
-  // default of zero and came back session_reset — fatal — and the receiver would have
+  // default of zero and came back session_reset(fatal) and the receiver would have
   // discarded the snapshot it had just successfully applied.
   rec::gap_tracker tracker;
   CHECK(tracker.snapshot_at(kChannel, kSession, 700) == 0);
@@ -154,7 +154,7 @@ TEST_CASE("channels do not share sequence state", "[recovery][gap_tracker]") {
 TEST_CASE("too many holes is reported, and the expectation does not advance",
           "[recovery][gap_tracker][regression]") {
   // Advancing past a packet whose hole could not be recorded would mean the tracker
-  // accepted the packet and forgot the hole in the same step — the next packet would
+  // accepted the packet and forgot the hole in the same step: the next packet would
   // then look in-order while a whole range had vanished from the accounting. Refusing
   // and standing still keeps the picture honest.
   rec::gap_tracker tracker;

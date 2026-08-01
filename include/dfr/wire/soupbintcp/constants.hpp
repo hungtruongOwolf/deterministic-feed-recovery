@@ -5,7 +5,7 @@
 //
 // Packet Length counts the type byte, and not itself
 // -------------------------------------------------
-// "The length of the packet, in bytes, not including the Packet Length field itself" — so a
+// "The length of the packet, in bytes, not including the Packet Length field itself", so a
 // heartbeat, which has no payload, has Packet Length 1. An implementation that reads it as a
 // *payload* length is off by one on every packet, and it works perfectly until it meets real data,
 // because the overwhelming majority of packets on an idle session are heartbeats with no payload at
@@ -15,7 +15,7 @@
 // -------------------------------------------------
 // A Sequenced Data Packet carries no number. Login Accepted states the number of the *next*
 // sequenced packet, and the client counts from there. If a client loses count it cannot recover it
-// from the stream at all — there is nothing in the bytes to resynchronise against — so its only
+// from the stream at all(there is nothing in the bytes to resynchronise against) so its only
 // repair is to log out and log back in naming the sequence it wants.
 //
 // That is the exact opposite of MoldUDP64 and IEX-TP, where every datagram states its own position,
@@ -41,7 +41,7 @@ inline constexpr std::size_t kTypeOffset = 2;
 inline constexpr std::size_t kTypeSize = 1;
 
 // Everything before the payload. Not the same as the value in the length field, which counts the
-// type byte but not itself — the two are deliberately given different names so a reader cannot use
+// type byte but not itself: the two are deliberately given different names so a reader cannot use
 // one where the other belongs.
 inline constexpr std::size_t kFrameOverhead = kLengthSize + kTypeSize;
 
@@ -59,7 +59,7 @@ inline constexpr std::size_t kMaxPacketBytes = 8'192;
 // ---------------------------------------------------------------------------
 
 enum class packet_type : std::uint8_t {
-  // Server → client. Free text, and it may arrive at any time — including between two Sequenced
+  // Server → client. Free text, and it may arrive at any time: including between two Sequenced
   // Data Packets, which is why it must never advance the implicit sequence.
   debug = '+',
 

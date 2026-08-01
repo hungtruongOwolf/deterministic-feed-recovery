@@ -1,4 +1,4 @@
-// session — run an order-entry session, print what crossed the wire, and optionally record it.
+// session: run an order-entry session, print what crossed the wire, and optionally record it.
 //
 // venue::order_session is the seam between a SoupBinTCP stream and an OUCH host, and until this tool
 // existed the only way to look at it was to read a unit test. A seam benefits from being watched rather
@@ -351,7 +351,7 @@ int main(int argc, char** argv) {
     std::printf("  client counted up to     %llu\n",
                 static_cast<unsigned long long>(cursor.next_sequence()));
     std::printf("  %s\n", agreed ? "they agree, having never exchanged the number"
-                                 : "THEY DISAGREE — the session and the cursor read the stream "
+                                 : "THEY DISAGREE, the session and the cursor read the stream "
                                    "differently");
   }
 

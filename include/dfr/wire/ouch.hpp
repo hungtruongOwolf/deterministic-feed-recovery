@@ -4,7 +4,7 @@
 // Data, so `dfr/wire/soupbintcp.hpp` frames what this decodes.
 //
 // The layout here is transcribed from the specification and, unlike the IEX-TP layout in this
-// repository, **has not been verified against real traffic** — NASDAQ publishes no OUCH captures and a
+// repository, **has not been verified against real traffic**: NASDAQ publishes no OUCH captures and a
 // live session needs an exchange relationship. Each message's total length is pinned by a
 // static_assert so a mistranscribed offset is an arithmetic disagreement rather than a silent misread.
 

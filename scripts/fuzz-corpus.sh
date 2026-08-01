@@ -5,7 +5,7 @@
 # mutation from a packet that actually parses, which is where the interesting failures are: a valid packet with
 # one wrong length field, not random noise that every decoder rejects at the first byte.
 #
-# Committed, small, and derived — a few hundred packets rather than a trading day, chosen by walking the file and
+# Committed, small, and derived: a few hundred packets rather than a trading day, chosen by walking the file and
 # taking every Nth so the sample spans the session rather than its first second.
 set -euo pipefail
 

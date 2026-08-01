@@ -2,7 +2,7 @@
 //
 // Every random decision in this library comes from an explicitly passed prng.
 // There is no global generator, and there is no way to obtain a random *value*
-// without one — the only nondeterministic thing available is a seed, and it can
+// without one: the only nondeterministic thing available is a seed, and it can
 // only be fetched at start-up. FoundationDB achieves the same discipline with
 // two differently named globals, deterministicRandom() and
 // nondeterministicRandom(), so that misuse is greppable; making the
@@ -12,8 +12,8 @@
 // Three deliberate choices, each closing a determinism leak by construction
 // rather than by discipline (BUILD-GUIDE.md section 11.6):
 //
-//   1. Our own engine, not std::mt19937_64. The *engine* is portable — the
-//      standard specifies its algorithm — so that was not the reason. The
+//   1. Our own engine, not std::mt19937_64. The *engine* is portable: the
+//      standard specifies its algorithm, so that was not the reason. The
 //      reasons are state size and speed: mt19937_64 carries 2,504 bytes of
 //      state, which has to be copied every time a simulation is checkpointed
 //      for a determinism self-check, while xoshiro256++ carries 32 and is
@@ -26,8 +26,8 @@
 //      then replay differently on another machine, which destroys the entire
 //      premise.
 //
-//   3. No floating point anywhere in the API. Leaks #11 and #12 — FP
-//      contraction and libm version drift — cannot affect what this class
+//   3. No floating point anywhere in the API. Leaks #11 and #12: FP
+//      contraction and libm version drift: cannot affect what this class
 //      produces if it never computes with a double. Probabilities are integer
 //      ratios, which is TigerBeetle's stdx.PRNG design.
 
@@ -119,7 +119,7 @@ class prng {
   // FoundationDB does (`gen64() % range`) and it is biased: for a bound that
   // does not divide 2^64, the low residues are very slightly more likely. The
   // bias is invisible in ordinary use and matters here for one specific reason
-  // — a fault injector's job is to explore the tails of a distribution, and a
+  //: a fault injector's job is to explore the tails of a distribution, and a
   // generator that under-samples part of its range under-samples exactly the
   // schedules we are hunting for.
   //
@@ -175,7 +175,7 @@ class prng {
   //
   // Integer arithmetic throughout. `chance(kNever)` and `chance(kAlways)`
   // consume nothing from the stream, so a fault site configured off does not
-  // perturb the sequence a recorded seed replays — the property that lets a
+  // perturb the sequence a recorded seed replays: the property that lets a
   // fault schedule be reduced without invalidating everything after it.
   [[nodiscard]] constexpr bool chance(ratio p) noexcept {
     DFR_ASSERT(p.denominator > 0, "a ratio with a zero denominator is undefined");
@@ -198,7 +198,7 @@ class prng {
   }
 
   // Fisher-Yates, in place. Used to permute a fault schedule, and to permute
-  // the order in which equally-due events are delivered — which is how a
+  // the order in which equally-due events are delivered, which is how a
   // simulator explores orderings a real network could produce.
   template <typename T, std::size_t Extent>
   constexpr void shuffle(std::span<T, Extent> items) noexcept {
@@ -246,7 +246,7 @@ class prng {
 // exactly one, in main().
 //
 // Context: process start-up only. Calling this from inside a simulation defeats
-// the entire design, which is why it returns a seed rather than a value —
+// the entire design, which is why it returns a seed rather than a value:
 // there is no way to use it as a stream.
 [[nodiscard]] DFR_NOINLINE inline std::uint64_t nondeterministic_seed() {
   // Two draws combined, because std::random_device::result_type is only

@@ -1,7 +1,7 @@
 // Shared setup for the gap_tracker tests.
 //
-// Two files drive one tracker — the sequencing outcomes, and the events that throw
-// state away — and they need the same feeder and the same view of what is missing.
+// Two files drive one tracker: the sequencing outcomes, and the events that throw
+// state away, and they need the same feeder and the same view of what is missing.
 // Here rather than copied, per docs/STYLE.md §1.10.
 //
 // `inline` on the free functions, because more than one translation unit includes

@@ -46,7 +46,7 @@ namespace wire::moldudp64 {
 // is written on finish() rather than declared up front.
 //
 // That ordering is the point. A builder that took the count as a constructor
-// argument could produce a packet whose count disagrees with its contents — the
+// argument could produce a packet whose count disagrees with its contents: the
 // exact defect dfr::chaos exists to inject deliberately, so the honest builder
 // must be incapable of it by accident.
 class packet_builder {
@@ -153,7 +153,7 @@ class packet_builder {
 // A request has the same 20-byte shape as a data header, sent to a different
 // unicast address: Sequence Number is the first message wanted and Message
 // Count is how many. The count must be clamped, because the facility rejects an
-// over-large request outright rather than truncating it — so a client that asks
+// over-large request outright rather than truncating it, so a client that asks
 // for a million messages gets nothing at all and then reports a timeout it
 // caused itself.
 // ---------------------------------------------------------------------------

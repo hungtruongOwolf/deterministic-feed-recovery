@@ -1,6 +1,6 @@
 // The pipeline the verify tool drives: a client, a retransmit server, and a tally.
 //
-// Split from verify.cpp so that file is argument parsing, the run, and the report — the
+// Split from verify.cpp so that file is argument parsing, the run, and the report: the
 // three things a reader opens it for. docs/STYLE.md §1.10: one file, one concept, and the
 // rule applies to tools.
 //
@@ -128,7 +128,7 @@ inline void offer_if_intact(verify_client& client, tally& record, dfr::packet_vi
 //
 // Indexes only the packets that actually carry messages, and that is not an optimisation.
 // Two thirds of a real IEX capture is heartbeats, and a heartbeat repeats the sequence
-// number of the next message — so several packets share a first sequence, and a map keyed on
+// number of the next message, so several packets share a first sequence, and a map keyed on
 // it silently keeps whichever arrived first. When that was a heartbeat, the data packet
 // became unfindable and every retransmit request was answered with nothing. The tool then
 // blamed the client for a gap it had asked about five times.

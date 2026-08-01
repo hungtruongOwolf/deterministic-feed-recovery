@@ -1,4 +1,4 @@
-// MoldUDP64 — NASDAQ's sequenced multicast transport.
+// MoldUDP64: NASDAQ's sequenced multicast transport.
 //
 // Layout, from the Nasdaq MoldUDP64 Protocol Specification V1.00:
 //
@@ -16,7 +16,7 @@
 //   messages at sequence 100 means messages 100, 101 and 102, and the next
 //   packet must begin at 103. A client that increments by one per packet falls
 //   behind by (message_count - 1) on every packet and then reports a gap that
-//   does not exist — or worse, silently accepts one that does.
+//   does not exist, or worse, silently accepts one that does.
 //
 // Two special packets, both signalled through Message Count:
 //

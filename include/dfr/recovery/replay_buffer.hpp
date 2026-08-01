@@ -4,7 +4,7 @@
 // Linear, not a ring, and that is the most important decision in the file
 // -----------------------------------------------------------------------
 // A ring buffer is the obvious choice and the wrong one. When a ring fills it
-// overwrites its own oldest entries — silently, by construction — and the oldest
+// overwrites its own oldest entries(silently, by construction) and the oldest
 // entries are exactly the ones that sit between the snapshot's position and the live
 // feed. Losing them is what makes the Glimpse race undetectable: the client applies the
 // snapshot, replays what it still has, and produces a book that is plausible, complete
@@ -26,7 +26,7 @@
 // ------------------------------------------
 // A hole in the replay buffer means the replay produces a wrong book, so a
 // non-contiguous append is refused. That is achievable because what gets buffered is the
-// *merged* stream — after the arbiter has combined the redundant lines — rather than one
+// *merged* stream(after the arbiter has combined the redundant lines) rather than one
 // line's raw arrivals.
 
 #ifndef DFR_RECOVERY_REPLAY_BUFFER_HPP
@@ -78,7 +78,7 @@ class replay_buffer {
   // Appends the next message in sequence.
   //
   // A message already held is accepted and ignored, because a duplicate arriving during
-  // recovery is routine — the second copy from a redundant line, or a retransmit that
+  // recovery is routine: the second copy from a redundant line, or a retransmit that
   // crossed with the live feed. A message that would leave a hole is refused: the
   // replay has to be contiguous or the book it produces is wrong.
   [[nodiscard]] constexpr result<void> append(std::uint64_t sequence,
@@ -119,7 +119,7 @@ class replay_buffer {
   //
   // Compacting the arena rather than tracking a moving base: this happens once per
   // recovery attempt, not per message, so the simpler shape is worth more than the
-  // saved memmove — and a moving base is how an off-by-one turns into reading someone
+  // saved memmove, and a moving base is how an off-by-one turns into reading someone
   // else's message.
   [[nodiscard]] constexpr std::size_t drop_below(std::uint64_t sequence) noexcept {
     if (count_ == 0 || sequence <= first_sequence_) {

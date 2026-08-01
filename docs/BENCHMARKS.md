@@ -1,6 +1,6 @@
 # Benchmarks
 
-What the recovery path costs, and — more carefully — what these numbers do not say.
+What the recovery path costs, and(more carefully) what these numbers do not say.
 
 This document exists because the project had a build preset called `bench` for months that turned assertions
 off and **measured nothing**. For a library whose reason to exist is a hot path that runs when something has
@@ -25,7 +25,7 @@ builds run in rotation, minimum per figure. Read from the committed `bench/resul
 
 **Why the minimum, and why rotation.** Noise on a benchmark is one-sided: a scheduler preemption, a thermal
 ramp or a neighbouring process can only make an operation appear slower. Running one configuration to
-completion before the next lets a thermal ramp land entirely on one of them — which is exactly how an earlier
+completion before the next lets a thermal ramp land entirely on one of them, which is exactly how an earlier
 table came out with `fast` assertions slower than `paranoid` and `paranoid` faster than `off`. That was not a
 result, it was the afternoon. Rotating spreads the machine's mood across all three and the minimum discards
 what is left.
@@ -49,7 +49,7 @@ second on one core**, with no I/O in the loop.
 
 The obvious comparison is the `dev` and `bench` presets, and it is wrong: `dev` is `Debug` and `bench` is
 `Release`, so it prices **two variables at once** and reports the sum as the cost of one. It gave a 55× ratio
-on the header decode — a real number about a configuration nobody would ship.
+on the header decode: a real number about a configuration nobody would ship.
 
 Holding `-O3 -flto` fixed and moving only `DFR_ASSERTIONS` gives a more interesting and much less flattering
 answer than the one I expected:
@@ -57,13 +57,13 @@ answer than the one I expected:
 - **On the tightest operation, paranoid assertions cost 3×.** Decoding a 40-byte header is almost entirely
   bounds checks once the checks are on, so this is the shape to expect and the number is real.
 - **On the realistic hot path, they cost nothing measurable.** Ingesting a packet end to end, and ingesting
-  with loss and polling, differ by about 2% between assertions-off and assertions-paranoid — and the ordering
+  with loss and polling, differ by about 2% between assertions-off and assertions-paranoid, and the ordering
   *flips* between rounds, which is the signature of a difference smaller than the noise. Claiming a 2%
   improvement here would be claiming the weather.
 
 The engineering conclusion is the useful part, and it is not the one the 55× number pointed at: **the paranoid
-assertions can stay on in production on this path.** The work that dominates an ingest — arbitration, gap
-arithmetic, watermark bookkeeping — is work the assertions do not touch, so the paranoia is free where it
+assertions can stay on in production on this path.** The work that dominates an ingest: arbitration, gap
+arithmetic, watermark bookkeeping: is work the assertions do not touch, so the paranoia is free where it
 matters and expensive only where the operation is nothing but checks. That is worth knowing, and no design
 document could have told me.
 
@@ -82,7 +82,7 @@ state look like. If you need a true per-operation tail you need hardware timesta
 
 **Not tick-to-trade. Not NIC-to-NIC. Not any wire latency at all.** Every figure here is CPU time inside one
 process with no network in the loop. Measuring wire latency needs NIC hardware timestamping and PMU counters,
-and the machines this project runs on — a laptop and cloud VMs — have neither. So no figure is given rather
+and the machines this project runs on(a laptop and cloud VMs) have neither. So no figure is given rather
 than a figure with nothing behind it. This is the same rule the run traces follow, and it is in the JSON
 output so a page drawing these cannot present one as the other.
 
@@ -99,7 +99,7 @@ of it something a visitor caused. A benchmark you cannot reproduce is a claim, s
 opens with a figure the reader produces by pressing something: the page already recompiles the three acts into
 WebAssembly and runs them on every settings change, and timing that call costs one `performance.now()` on each side.
 
-It reports **minima, per message**, for the same reason the tables above do — and the reason was measured rather than
+It reports **minima, per message**, for the same reason the tables above do, and the reason was measured rather than
 assumed. Back-to-back runs of the same three acts came out at 242,778 and then 570,982 messages a second, a 2.4×
 spread with the *first* run the slowest: a cold WebAssembly instance and an unwarmed JIT are both being paid for.
 Reporting the latest run would make the opening figure the worst one and lurch on every keystroke. Per message rather
@@ -110,7 +110,7 @@ leaving a reader to compute it and mistrust both. The gap is not an embarrassmen
 exist:
 
 - WebAssembly, single-threaded, in a browser sandbox;
-- every event serialised to JSONL as it runs, which is most of what is being timed — the trace format is the
+- every event serialised to JSONL as it runs, which is most of what is being timed: the trace format is the
   architecture, not overhead to be excused;
 - and a browser cannot resolve a two-nanosecond operation at all.
 
@@ -136,14 +136,14 @@ what it does *not* yet do is prefer the literal even when the constant exists.
 
 **Fixed, and the fix removed a dependency rather than silencing a warning.** GCC is right about
 `hardware_destructive_interference_size`: its value is part of the GCC ABI, so two translation units built with
-different GCC versions can disagree about how wide a padded member is — a layout mismatch in a lock-free
+different GCC versions can disagree about how wide a padded member is: a layout mismatch in a lock-free
 structure, not a performance question. A constant whose value depends on which compiler saw the header is not a
 property of the machine, so `core/attributes.hpp` no longer uses it and states a literal per architecture: 128 on
 arm64, 64 elsewhere. That is what the comment beside it had always argued for and what rigtorp's MPMCQueue does.
 
 The two `-Wuseless-cast` findings were also real. `DFR_MAYBE` cast a bool to bool; it now uses a conditional,
 which converts and casts nothing. `rng::index` casts `uint64_t` to `size_t`, which is a no-op on LP64 and
-necessary on a 32-bit target — GCC is right on the first and wrong on the second, so a `narrowed<To>` helper makes
+necessary on a 32-bit target: GCC is right on the first and wrong on the second, so a `narrowed<To>` helper makes
 the choice at compile time instead of leaving it to be argued about.
 
 **And there is now a GCC job**, because the local machine has no real GCC (Apple Clang answers to `g++`) and a
@@ -159,13 +159,13 @@ answer and kept it. A `keep()` barrier on the loop's *result* does not help: the
 dependency, so each iteration's input comes from the last iteration's output.
 
 **A poll that measured a constructor.** The next version built a fresh client each iteration and reported
-~594 ns for "one poll" — mostly the cost of zero-initialising a 53 KB object. The lesson is the unit: what is
+~594 ns for "one poll": mostly the cost of zero-initialising a 53 KB object. The lesson is the unit: what is
 timed has to be what the label says, and "one poll" and "construct a client and then poll" differ by an order
 of magnitude.
 
 **And one before those:** the gap-set benchmark built an eight-hole set inside the timed region and divided by
-one, reporting ~950 ns for a single `open`. The unit is now a hole's whole life — eight opened then eight
-filled, divided by sixteen — which is also what happens on a real feed.
+one, reporting ~950 ns for a single `open`. The unit is now a hole's whole life: eight opened then eight
+filled, divided by sixteen, which is also what happens on a real feed.
 
 A benchmark that can be constant-folded, or whose unit is wrong, produces a number with a decimal point and
 no meaning. The three above are why every measurement here names its unit in the output.

@@ -4,8 +4,8 @@
 // both in front of them, and separating them would mean holding one file's line numbers in your head while
 // reading the other.
 //
-// Everything little-endian. IEX-TP is little-endian throughout — unusually, since most exchange protocols are
-// big-endian — and the capture confirms it: a big-endian read of the WWE price gives 0x0403030000000000, which
+// Everything little-endian. IEX-TP is little-endian throughout: unusually, since most exchange protocols are
+// big-endian, and the capture confirms it: a big-endian read of the WWE price gives 0x0403030000000000, which
 // is 289 trillion dollars.
 
 #ifndef DFR_WIRE_DEEP_MESSAGES_HPP
@@ -59,7 +59,7 @@ struct header {
 // A symbol as it sits on the wire: eight bytes, space padded on the right.
 //
 // Returned as a view into the caller's bytes rather than copied. The trailing spaces are trimmed because a
-// symbol is compared against "WWE" by every caller and "WWE     " by none — but the *padding* is what the wire
+// symbol is compared against "WWE" by every caller and "WWE     " by none, but the *padding* is what the wire
 // carries, so a writer must pad and a reader must trim, and doing the trim here means no caller forgets.
 // Not `constexpr`, and GCC is the reason it says so out loud.
 //
@@ -69,7 +69,7 @@ struct header {
 // function could not honour, and anybody who took it up would have got a hard error rather than a slow function.
 //
 // Dropping it is the truthful fix. Keeping it would need the bytes to be `char` underneath, which would mean
-// `packet_view` giving up `std::byte` — and `std::byte` is what stops a byte being arithmetic by accident.
+// `packet_view` giving up `std::byte`, and `std::byte` is what stops a byte being arithmetic by accident.
 [[nodiscard]] inline std::string_view trimmed_symbol(packet_view field) noexcept {
   std::size_t length = field.size();
   while (length > 0 && field.u8_at(length - 1) == ' ') {
@@ -88,7 +88,7 @@ struct price_level_update {
   header head{};
   bool buy{false};
   std::string_view symbol{};
-  /** Aggregate size at this price. **Zero means the level is gone** — see book/order_book.hpp. */
+  /** Aggregate size at this price. **Zero means the level is gone**: see book/order_book.hpp. */
   std::uint32_t size{0};
   price level{};
 
@@ -131,7 +131,7 @@ struct system_event {
 
 // The types this build frames but does not take apart: operational halt, short sale price test, security event,
 // auction information. Their lengths are known, so the stream still frames perfectly and a caller still learns
-// the symbol and the instant — which is all a book needs from them.
+// the symbol and the instant, which is all a book needs from them.
 struct other_message {
   header head{};
   std::string_view symbol{};

@@ -8,11 +8,11 @@
 // state; this takes each one and offers it to a consumer on another core. It is fifty lines, and its whole value is
 // that the two halves of the system now actually meet.
 //
-// Sequence order, not arrival order — enforced here so no caller has to remember
+// Sequence order, not arrival order: enforced here so no caller has to remember
 // -----------------------------------------------------------------------------
 // The hardest defect this project found is that a consumer of a gap-filling feed must apply messages in **sequence
 // order**. While a hole is open the client keeps delivering later messages, deliberately, because stalling on a gap
-// turns one loss into an outage — so a repair arrives after higher sequence numbers, and an aggregated book is
+// turns one loss into an outage, so a repair arrives after higher sequence numbers, and an aggregated book is
 // last-write-wins. Applying the older update second leaves the wrong size at that price permanently.
 //
 // A consumer thread cannot reorder what it is handed without buffering, and asking every consumer to buffer is
@@ -20,7 +20,7 @@
 // boundary is already in order, and the far side can be a loop with no memory. That is the right side of the seam
 // for it, because the producer already knows the sequence numbers and the consumer would have to be told.
 //
-// The cost is that a repair holds up the messages behind it — which is correct rather than unfortunate. Handing a
+// The cost is that a repair holds up the messages behind it, which is correct rather than unfortunate. Handing a
 // consumer a book it must not act on yet would be worse than handing it nothing.
 
 #ifndef DFR_CONCURRENT_PUBLISHER_HPP
@@ -56,7 +56,7 @@ struct publisher_stats {
  * Puts delivered messages across a thread boundary, in sequence order.
  *
  * `Pending` bounds how far out of order the producer will hold. A gap wider than this cannot be bridged and the
- * messages above it are refused rather than reordered — bounded like everything else here, because an unbounded
+ * messages above it are refused rather than reordered: bounded like everything else here, because an unbounded
  * buffer turns a slow retransmit into memory growth nobody chose.
  */
 template <std::size_t Capacity = 4096, std::size_t Pending = 256>
@@ -75,7 +75,7 @@ class publisher {
   /**
    * Offers one delivered message.
    *
-   * Returns false when the ring refused it or the body does not fit — both of which the caller must see, because
+   * Returns false when the ring refused it or the body does not fit: both of which the caller must see, because
    * both mean the consumer's book is about to be incomplete and only the caller can decide what to do about it.
    */
   [[nodiscard]] bool offer(std::uint64_t sequence, std::uint8_t line, bool recovered,
@@ -106,7 +106,7 @@ class publisher {
     //
     // `>=`, not `>`. The slot is `sequence % Pending`, so a delivery exactly `Pending` ahead lands on the same slot
     // as the one `next_` is waiting for and overwrites it. That is an off-by-one I wrote and CI caught on x86-64
-    // while it passed on this arm64 machine — the timing there never produced a reorder distance of exactly the
+    // while it passed on this arm64 machine: the timing there never produced a reorder distance of exactly the
     // window. The paranoid assertion in drain_pending() is what turned it into an abort rather than a wrong book,
     // which is the entire reason that assertion is there.
     const auto slot = sequence - next_;
@@ -116,13 +116,13 @@ class publisher {
     }
     // Refuse rather than overwrite when the slot is taken by a different sequence.
     //
-    // The window is indexed `sequence % Pending` and its validity is relative to `next_`, which can *stall* — a full
+    // The window is indexed `sequence % Pending` and its validity is relative to `next_`, which can *stall*: a full
     // ring makes a publish fail and leaves entries held. Reasoning about which interleavings can then alias a slot is
     // exactly the kind of argument that is convincing and wrong: CI aborted twice on x86-64 while every case I
     // constructed here passed.
     //
     // So the check is unconditional and local. A slot may be written when it is free, or when it already holds this
-    // same sequence — a duplicate the client let through. Anything else is refused and counted, which loses a message
+    // same sequence: a duplicate the client let through. Anything else is refused and counted, which loses a message
     // the caller is told about instead of publishing one under the wrong number.
     const auto slot_index = sequence % Pending;
     if (have_[slot_index] && held_[slot_index].sequence != sequence) DFR_UNLIKELY {

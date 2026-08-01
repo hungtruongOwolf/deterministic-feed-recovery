@@ -6,7 +6,7 @@
 //
 // What lives here is the half that owns the **outbound sequence number**, which is the session's one piece of
 // bookkeeping nobody else can do. SoupBinTCP puts that number nowhere in the packet, so a client derives it by
-// counting — and the whole of `order_session_test.cpp` turns on the two arriving at the same answer.
+// counting, and the whole of `order_session_test.cpp` turns on the two arriving at the same answer.
 
 #ifndef DFR_VENUE_ORDER_SESSION_WRITER_HPP
 #define DFR_VENUE_ORDER_SESSION_WRITER_HPP
@@ -29,7 +29,7 @@ namespace venue {
 // Builds the frames a session sends, and counts what it numbered.
 //
 // Holds the sequence rather than taking it as a parameter: an outbound stream has exactly one counter, and passing
-// it in would let two callers disagree about it — which is the defect this whole component exists to make
+// it in would let two callers disagree about it, which is the defect this whole component exists to make
 // impossible.
 class order_session_writer {
  public:
@@ -45,7 +45,7 @@ class order_session_writer {
   explicit constexpr order_session_writer(std::uint64_t first_sequence) noexcept
       : sequence_(first_sequence) {}
 
-  /** The sequence the *next* Sequenced Data Packet will carry — the convention Login Accepted uses. */
+  /** The sequence the *next* Sequenced Data Packet will carry: the convention Login Accepted uses. */
   [[nodiscard]] constexpr std::uint64_t next_sequence() const noexcept { return sequence_; }
   [[nodiscard]] constexpr std::uint64_t packets_out() const noexcept { return packets_; }
   [[nodiscard]] constexpr std::uint64_t acknowledgements_out() const noexcept { return acks_; }

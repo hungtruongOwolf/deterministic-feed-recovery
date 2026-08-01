@@ -10,7 +10,7 @@
 // `glimpse` refuses to serve retransmits at all, which drives the client to a snapshot, then loses
 // packets while the snapshot is being built so that a stale reply lands in the gap between what the
 // client delivered and the oldest thing it managed to buffer. That interval is the only place the
-// race exists, and it does not occur on a contiguous stream — see docs/DESIGN.md and the
+// race exists, and it does not occur on a contiguous stream: see docs/DESIGN.md and the
 // integration tests.
 
 #ifndef DFR_TOOLS_SUPPORT_TRACED_RUN_HPP
@@ -48,7 +48,7 @@ inline constexpr std::uint32_t kTraceSession = 0xBEEF;
 using trace_clock = dfr::manual_clock;
 using trace_time = trace_clock::time_point;
 // Traces run to a few hundred events. The record grew when it learned to carry the outstanding holes,
-// so the count comes down to match — 16,384 of the wider record would be a megabyte-scale stack member
+// so the count comes down to match: 16,384 of the wider record would be a megabyte-scale stack member
 // for headroom nothing uses.
 using trace_recorder = trc::recorder<4'096>;
 using trace_client = rec::client<trace_clock, rec::replay_buffer<16'384, 2048>>;
@@ -86,7 +86,7 @@ struct run_summary {
   //
   // Added because the two answer different questions and the difference turned out to be interesting. A
   // second line that fills the middle of a hole splits one gap into two, so it can produce *more* requests
-  // while asking for *fewer messages* — seed 114 at 300 messages does exactly that: two requests covering 24
+  // while asking for *fewer messages*: seed 114 at 300 messages does exactly that: two requests covering 24
   // messages on two lines, one request covering 27 on one. The count is not monotone in the number of
   // defences and this is, which makes it the honest quantity to report.
   std::uint64_t retransmit_messages{0};
@@ -99,7 +99,7 @@ struct run_summary {
   // it has to equal, and carrying it means the page can state the invariant rather than show a quote a reader has
   // to interpret.
   //
-  // Computed by applying the published bodies in order — not by a second recovery run, because the reference is
+  // Computed by applying the published bodies in order: not by a second recovery run, because the reference is
   // "what the venue sent", and a reference that also went through recovery would be comparing recovery to itself.
   std::int64_t reference_bid{0};
   std::int64_t reference_ask{0};
@@ -139,7 +139,7 @@ inline ven::publisher_options trace_publisher_options() {
 
 // The faults whose consequence is unambiguous: the packet does not arrive, arrives too damaged to
 // frame, or arrives twice or late. flip_bit and the two rewrites are excluded for the reason the
-// oracle excludes them — a flipped bit can silently redefine which messages a packet claims to
+// oracle excludes them: a flipped bit can silently redefine which messages a packet claims to
 // carry.
 inline chaos::op_mask traceable_faults() {
   chaos::op_mask mask;

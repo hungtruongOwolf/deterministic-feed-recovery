@@ -5,7 +5,7 @@
 //
 //   **The 802.1Q VLAN tag.** IEX HIST captures carry one (VLAN 1013 in the 2017
 //   files). A reader that assumes the EtherType sits at offset 12 finds 0x8100
-//   there, does not recognise it as IPv4, and parses nothing at all — while
+//   there, does not recognise it as IPv4, and parses nothing at all, while
 //   reporting no error, because from its point of view the file simply contains
 //   no IP traffic. That failure is silent and total, and it is the single most
 //   likely reason a first attempt at parsing a real capture yields zero packets.
@@ -37,7 +37,7 @@ inline constexpr std::size_t kEthernetHeaderSize = 14;  // dst, src, ethertype
 
 // An 802.1Q tag is four bytes: a two-byte TPID followed by a two-byte TCI.
 // Recorded for reference, but it is deliberately NOT the number the walk below
-// consumes — see kVlanTciAndTypeSize.
+// consumes: see kVlanTciAndTypeSize.
 inline constexpr std::size_t kVlanTagSize = 4;
 
 // What the walk actually steps over per tag.
@@ -79,7 +79,7 @@ struct udp_datagram {
   std::uint16_t destination_port{0};
 
   // Zero when the frame carried no VLAN tag. Kept rather than discarded because
-  // a capture that unexpectedly has, or lacks, a tag is worth knowing about —
+  // a capture that unexpectedly has, or lacks, a tag is worth knowing about,
   // and because a multi-VLAN capture may need filtering by it.
   std::uint16_t vlan_id{0};
   int vlan_tags{0};
@@ -189,7 +189,7 @@ struct udp_datagram {
 
   // The IP total length bounds the payload independently of the frame length.
   // Trusting the frame instead would include Ethernet padding, which a switch
-  // adds to any frame below 60 bytes — and that padding would then be decoded as
+  // adds to any frame below 60 bytes, and that padding would then be decoded as
   // trailing protocol bytes.
   const std::uint16_t ip_total_length = ip.be16_at(2);
   if (ip_total_length < ip_header_size) DFR_UNLIKELY {

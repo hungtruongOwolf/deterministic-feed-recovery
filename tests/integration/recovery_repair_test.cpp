@@ -2,7 +2,7 @@
 //
 // The strongest statement the library can make about itself. Faults injected into a verified
 // stream are detected, requested and repaired, leaving the merged output complete with every
-// message delivered exactly once — and "exactly once" matters as much as completeness, because
+// message delivered exactly once, and "exactly once" matters as much as completeness, because
 // a client that delivered a message twice when a retransmit crossed a late copy would corrupt
 // a book just as thoroughly as one that dropped it.
 

@@ -4,7 +4,7 @@
 // checking whether a *measurement* is honest never needs the JSON writer, and the JSON writer has no opinion about
 // what is being measured.
 //
-// The allocation counter lives here too, because it is the same subject — reporting a property of the run rather
+// The allocation counter lives here too, because it is the same subject: reporting a property of the run rather
 // than timing an operation. Replacing the global `operator new` is the only way to check "no allocation after
 // initialisation" that cannot be fooled: it catches an allocation anywhere below, including one a container makes
 // on a path nobody thought about.

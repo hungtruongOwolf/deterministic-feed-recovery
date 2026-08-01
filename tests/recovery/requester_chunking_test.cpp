@@ -254,7 +254,7 @@ TEST_CASE("a reply that would split past capacity is refused",
 TEST_CASE("a hole too wide to describe in chunks is reported",
           "[recovery][requester]") {
   // Sixteen chunks of 60,000 is 960,000 messages. Beyond that the receiver is not
-  // recovering, it is rebuilding — and it should be told so rather than quietly asking
+  // recovering, it is rebuilding, and it should be told so rather than quietly asking
   // for a prefix and forgetting the rest.
   test_requester requester{readable_policy()};
   const auto refused = requester.on_gap(range(0, 60'000 * 20), at_ms(0));

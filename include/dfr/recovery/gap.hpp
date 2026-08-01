@@ -6,7 +6,7 @@
 // Counting packets instead is a mistake that survives testing on a feed where every
 // packet happens to carry one message, and IEX's heartbeats carry zero.
 //
-// Ranges are half-open, [first, end). The alternative — inclusive [first, last] —
+// Ranges are half-open, [first, end). The alternative: inclusive [first, last],
 // matches how a specification reads, but makes the empty range unrepresentable
 // except by convention, and every merge and split then needs a ±1 that is one
 // keystroke from being wrong. Half-open costs one accessor, last(), used only when
@@ -52,7 +52,7 @@ struct sequence_range {
   }
 
   // Whether this range holds every sequence number `other` does. An empty range is
-  // covered by anything, including another empty range — the vacuous case, and the
+  // covered by anything, including another empty range: the vacuous case, and the
   // one that makes fill() terminate cleanly.
   [[nodiscard]] constexpr bool covers(sequence_range other) const noexcept {
     if (other.empty()) {
@@ -86,7 +86,7 @@ struct sequence_range {
 
 // The union of two ranges that touch. Asserted rather than checked, because
 // unioning two ranges with a hole between them would silently claim the hole had
-// arrived — the exact failure this library exists to catch.
+// arrived: the exact failure this library exists to catch.
 [[nodiscard]] constexpr sequence_range merge(sequence_range a,
                                              sequence_range b) noexcept {
   if (a.empty()) {

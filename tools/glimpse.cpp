@@ -1,8 +1,8 @@
-// glimpse — serve a snapshot, consume it from the bytes, and record what a client rebuilt.
+// glimpse: serve a snapshot, consume it from the bytes, and record what a client rebuilt.
 //
 // The third defence was the one nobody could watch. In the film it is a plane the escalation marker falls onto, which
-// shows the *consequence* of reaching a snapshot and not the snapshot itself. What a snapshot is — and the only thing
-// that makes one believable — is that a client with nothing but frames ends up holding the venue's book.
+// shows the *consequence* of reaching a snapshot and not the snapshot itself. What a snapshot is, and the only thing
+// that makes one believable: is that a client with nothing but frames ends up holding the venue's book.
 //
 // Usage:  glimpse [--levels N] [--resume N] [--trace FILE] [--quiet]
 
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
     }
     std::printf("\n  the client's book %s the venue's, built from frames alone\n",
                 run.matched ? "equals" : "DOES NOT equal");
-    std::printf("  resume the live feed at %llu — the *next* message, not the last included\n\n",
+    std::printf("  resume the live feed at %llu, the *next* message, not the last included\n\n",
                 static_cast<unsigned long long>(run.resume_from));
   }
   return run.matched ? 0 : 1;

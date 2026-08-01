@@ -1,6 +1,6 @@
 // The pipeline the oracle drives, and the ground truth it checks against.
 //
-// Two test files use it — detection and repair — so it lives here rather than being copied,
+// Two test files use it(detection and repair) so it lives here rather than being copied,
 // per docs/STYLE.md §1.10.
 //
 // The harness predicts nothing. It records which packets it managed to decode and hand over,
@@ -77,8 +77,8 @@ inline void offer_if_intact(oracle_client& client, ledger& record,
 
 // The retransmit server: hands back the *undamaged* source packets covering a range.
 //
-// Undamaged on purpose. A retransmit facility is a different path from the multicast feed —
-// TCP for MoldUDP64, TCP for Glimpse — so modelling it as lossy as well would be testing
+// Undamaged on purpose. A retransmit facility is a different path from the multicast feed:
+// TCP for MoldUDP64, TCP for Glimpse, so modelling it as lossy as well would be testing
 // two things at once and would make a failure ambiguous.
 inline void serve_retransmit(oracle_client& client, ledger& record,
                       const std::vector<source_packet>& stream,
@@ -185,7 +185,7 @@ inline run_result run(std::uint64_t seed, std::size_t packets, bool serve) {
   out.missing_at_end = client.total_missing();
   // The tracker's expectation, not the delivered watermark. A heartbeat announces the
   // sequence of the next message without delivering anything, so the stream can announce a
-  // position above what has been delivered — and a hole between the two is a real hole, for
+  // position above what has been delivered, and a hole between the two is a real hole, for
   // messages that never arrived. Checking only the delivered prefix would leave exactly that
   // hole outside the span and call the client wrong for reporting it.
   out.high = client.tracking().expected_sequence(rec::channel_id::at(0));

@@ -9,7 +9,7 @@
 //
 // The zero-cost part is copied from seastar: its manual_clock supplies the
 // std::chrono type aliases and `timer<Clock>` calls Clock::now() statically, so
-// simulated time costs nothing at all — no virtual call, unlike quill's
+// simulated time costs nothing at all: no virtual call, unlike quill's
 // UserClockSource::now() or FoundationDB's INetwork::now(), which both pay one
 // per query.
 //
@@ -67,7 +67,7 @@ concept clock_source = requires(const C& clock) {
 };
 
 // ---------------------------------------------------------------------------
-// manual_clock — time as data
+// manual_clock: time as data
 // ---------------------------------------------------------------------------
 
 // A clock that only moves when told to. The simulator advances it to the
@@ -128,7 +128,7 @@ class manual_clock {
 static_assert(clock_source<manual_clock>);
 
 // ---------------------------------------------------------------------------
-// real_clock — the production clock
+// real_clock: the production clock
 // ---------------------------------------------------------------------------
 
 // std::chrono::steady_clock, wrapped so that it presents the same interface as

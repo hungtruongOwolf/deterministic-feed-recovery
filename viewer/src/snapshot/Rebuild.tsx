@@ -1,15 +1,15 @@
 // Two books, and one of them filling up.
 //
 // The third defence was the one nobody could watch. In the film it is a plane the escalation marker falls onto, which
-// shows the *consequence* of reaching a snapshot and not the snapshot itself. What a snapshot is — and the only thing
-// that makes one believable — is that a client holding nothing but bytes ends up with the venue's book.
+// shows the *consequence* of reaching a snapshot and not the snapshot itself. What a snapshot is, and the only thing
+// that makes one believable: is that a client holding nothing but bytes ends up with the venue's book.
 //
 // So: the venue's book on the left, fixed. The client's on the right, empty at first, one level at a time, until the
 // two are identical and the drawing says so. Then the resume sequence arrives, which is the one number a snapshot
 // protocol exists to deliver.
 //
 // A list rather than a moving picture, deliberately. The film moves because a lost packet is an *event* and motion is
-// the only way to show something failing to arrive. A rebuild is monotone — it only ever gains — so the whole of it
+// the only way to show something failing to arrive. A rebuild is monotone(it only ever gains) so the whole of it
 // fits on one sheet and a reader can see the convergence at a glance instead of waiting for it.
 
 import type { SnapshotFrame, SnapshotTrace } from "../model/snapshot";
@@ -18,7 +18,7 @@ import { meaningOf } from "../model/snapshot";
 const SCALE = 10_000;
 
 function money(raw: number): string {
-  return raw === 0 ? "—" : (raw / SCALE).toFixed(4);
+  return raw === 0 ? "none" : (raw / SCALE).toFixed(4);
 }
 
 interface Props {
@@ -89,7 +89,7 @@ export function Rebuild({ trace, hover, onHover }: Props) {
 
       <p className="rebuild__caption">
         {hover === undefined
-          ? `Hover a frame to see the book as it stood after it. Resume the live feed at ${header.resume_from.toLocaleString()} — the next message, not the last one included.`
+          ? `Hover a frame to see the book as it stood after it. Resume the live feed at ${header.resume_from.toLocaleString()}: the next message, not the last one included.`
           : meaningOf(frames[hover]!)}
       </p>
     </div>

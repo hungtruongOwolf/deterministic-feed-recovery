@@ -1,6 +1,6 @@
 // Selectors: pure functions from a trace and a scrub position to what should be on screen.
 //
-// Every one of these reads fields the file already carries. None reconstructs state — see the note
+// Every one of these reads fields the file already carries. None reconstructs state: see the note
 // at the top of trace.ts for why that rule matters more than it looks.
 
 import type { Trace, TraceEvent } from "./trace";
@@ -27,7 +27,7 @@ export interface Moment {
 /**
  * The headline numbers at a moment, read from the latest event rather than accumulated.
  *
- * Before the first event there is nothing to read, so the moment is the run's starting state —
+ * Before the first event there is nothing to read, so the moment is the run's starting state:
  * stated here once rather than guessed at by each panel.
  */
 export function momentAt(trace: Trace, index: number): Moment {

@@ -1,7 +1,7 @@
 // Shared setup for the requester tests.
 //
 // The requester never reads a clock, so every test drives time explicitly. A
-// manual_clock is still the natural source of the time points — it makes the units
+// manual_clock is still the natural source of the time points: it makes the units
 // obvious and keeps the tests reading like a timeline.
 
 #ifndef DFR_TESTS_RECOVERY_SUPPORT_REQUESTER_FIXTURE_HPP

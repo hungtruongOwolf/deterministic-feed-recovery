@@ -2,7 +2,7 @@
 //
 // The whole drawing exists to make one thing visible: the two gutters hold two numbers that are always
 // equal, and no arrow between them ever carries the number. SoupBinTCP puts the sequence of a Sequenced
-// Data Packet nowhere in the packet, so a client derives it by counting — and agreement is the only
+// Data Packet nowhere in the packet, so a client derives it by counting, and agreement is the only
 // evidence either side is right.
 //
 // Static rather than animated, and deliberately. The recovery drawing moves because loss is an *event* and

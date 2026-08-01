@@ -1,6 +1,6 @@
 // Shared setup for the injector tests.
 //
-// Two test files drive one injector — delivery faults and damage faults — and
+// Two test files drive one injector(delivery faults and damage faults) and
 // they need the same stream and the same collector. Here rather than copied, per
 // docs/STYLE.md §1.10: shared fixtures live in a support/ header.
 //

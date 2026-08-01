@@ -1,7 +1,7 @@
 // The defects, first on the page after the evidence bar.
 //
 // This panel is the one place the word-count budget is deliberately relaxed, and the distinction is worth
-// stating rather than quietly exempting: the prose the budget exists to suppress was prose *about the page* —
+// stating rather than quietly exempting: the prose the budget exists to suppress was prose *about the page*,
 // explaining a control, justifying a design, describing a method. This prose *is* the substance. An engineer
 // with five minutes came to find out whether the person who wrote this notices things, and the only evidence of
 // that is a hard defect explained correctly.

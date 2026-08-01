@@ -2,7 +2,7 @@
 //
 // This is tests/integration/recovery_oracle_test.cpp pointed at real data. The unit oracle
 // runs in CI over synthetic packets, which is the right place for it: fast, self-contained,
-// and it fails on the commit that broke something. This tool answers the harder question —
+// and it fails on the commit that broke something. This tool answers the harder question:
 // does the same hold on a day of actual exchange traffic, with its real message-size
 // distribution, its heartbeats, its quiet periods and its bursts?
 //
@@ -10,9 +10,9 @@
 //
 // The properties are the same two:
 //
-//   detection — the messages the client reports missing are exactly the ones that never
+//   detection: the messages the client reports missing are exactly the ones that never
 //               reached it, no more and no fewer;
-//   repair    — with a retransmit server, nothing is missing at the end and every message
+//   repair   : with a retransmit server, nothing is missing at the end and every message
 //               was delivered exactly once.
 //
 // Exit code is zero only if both hold. A tool that printed a discrepancy and exited zero

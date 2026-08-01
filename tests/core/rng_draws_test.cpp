@@ -164,7 +164,7 @@ TEST_CASE("draws() is a determinism fingerprint", "[core][rng]") {
   // FoundationDB's "unseed" check in one integer: run a seed, record how many
   // words were consumed, run it again, compare. A mismatch proves something
   // took a different path through the code, which is the signature of a
-  // determinism leak — and it shows up long before the outputs visibly diverge.
+  // determinism leak, and it shows up long before the outputs visibly diverge.
   const auto workload = [](std::uint64_t seed) {
     dfr::prng rng{seed};
     std::uint64_t sink = 0;

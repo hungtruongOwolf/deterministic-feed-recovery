@@ -8,7 +8,7 @@
 // The token is what makes the protocol's failover model work. §2: "All Inbound Messages may be
 // repeated benignly. This gives the client the ability to re-send any Inbound message if it is
 // uncertain whether NASDAQ received it in the case of a connection loss or an application error."
-// Re-sending is safe *only* because a duplicate token is recognised and ignored — so the token is the
+// Re-sending is safe *only* because a duplicate token is recognised and ignored, so the token is the
 // idempotency key for order entry, and comparing two of them wrongly either loses an order or
 // duplicates one.
 //
@@ -81,7 +81,7 @@ class order_token {
     return packet_view{bytes_.data(), bytes_.size()};
   }
 
-  // The content without its trailing padding, for a report. Not for comparison — comparison is over
+  // The content without its trailing padding, for a report. Not for comparison: comparison is over
   // all fourteen bytes, which is both cheaper and exactly what the wire means.
   // Not `constexpr`, and GCC is the reason it says so out loud.
 //
@@ -91,7 +91,7 @@ class order_token {
   // function could not honour, and anybody who took it up would have got a hard error rather than a slow function.
 //
   // Dropping it is the truthful fix. Keeping it would need the bytes to be `char` underneath, which would mean
-  // `packet_view` giving up `std::byte` — and `std::byte` is what stops a byte being arithmetic by accident.
+  // `packet_view` giving up `std::byte`, and `std::byte` is what stops a byte being arithmetic by accident.
   [[nodiscard]] std::string_view text() const noexcept DFR_LIFETIME_BOUND {
     std::size_t length = kTokenSize;
     while (length > 0 && bytes_[length - 1] == std::byte{' '}) {

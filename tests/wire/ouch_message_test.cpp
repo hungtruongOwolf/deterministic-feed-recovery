@@ -97,7 +97,7 @@ TEST_CASE("replace shares are cumulative across the whole chain",
 TEST_CASE("cancel shares are the new intended size, not the amount to cancel",
           "[wire][ouch][regression]") {
   // §2.3: "This is the new intended order size... Entering a zero here will cancel any remaining open
-  // shares." So a cancel with 100 on a 500-share order is a reduction to 100 — reading it as "cancel
+  // shares." So a cancel with 100 on a 500-share order is a reduction to 100: reading it as "cancel
   // 100 shares" cancels four hundred too few.
   ouch::cancel_order reduce;
   reduce.token = token("ORD1");
@@ -192,7 +192,7 @@ TEST_CASE("a replaced message carries both tokens and the shares left exposed",
           "[wire][ouch][regression]") {
   // §3.4's in-flight example: enter 500, accept 500, replace 500, execute 100 on the *original*, and
   // the Replaced message reports 400. The client sent the replace before it knew about the execution,
-  // and the exchange applied both — the order-entry equivalent of the Glimpse race.
+  // and the exchange applied both: the order-entry equivalent of the Glimpse race.
   ouch::replaced ack;
   ack.replacement_token = token("ORD2");
   ack.previous_token = token("ORD1");
@@ -291,7 +291,7 @@ TEST_CASE("an unknown reason code is named, not rejected",
   // The specification says clients "should anticipate additions to this list and thus support all
   // capital letters of the English alphabet", and NASDAQ has added to both reason lists repeatedly. A
   // client validating against a fixed set would start rejecting messages the day the exchange shipped
-  // a new code — and would do it exactly when something unusual was happening to its orders.
+  // a new code, and would do it exactly when something unusual was happening to its orders.
   const ouch::reason_code invented{'~'};
   CHECK(ouch::name_of_cancel_reason(invented) == "unknown");
   CHECK(ouch::name_of_reject_reason(invented) == "unknown");

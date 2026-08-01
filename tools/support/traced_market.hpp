@@ -1,14 +1,14 @@
 // A feed that means something, so a trace can carry a book.
 //
 // The traces the viewer draws used to carry `"msg-" + i` as every message body. That was enough to prove a
-// statement about bookkeeping — every sequence delivered exactly once — and it made the strongest statement the
+// statement about bookkeeping(every sequence delivered exactly once) and it made the strongest statement the
 // project can make unshowable: **the book after loss and repair equals the book that lost nothing.** That
 // invariant lives in `book_oracle_test.cpp` and a visitor cannot see it, because the drawing has no book in it.
 //
 // So the trace tool publishes real DEEP messages, and the trace carries the resulting top of book at every step.
 // Same rule as always: the C++ decides, the viewer draws, nothing is recomputed in TypeScript. A viewer that
 // applied price levels itself would be a second implementation of an order book written by somebody reading the
-// first — which is the rule this file exists to keep rather than break.
+// first, which is the rule this file exists to keep rather than break.
 //
 // Why a deterministic ladder rather than random quotes
 // ---------------------------------------------------
@@ -17,7 +17,7 @@
 // every regenerated trace a diff and hide the behavioural changes the committed traces exist to reveal.
 //
 // The shape is chosen to exercise a book rather than to look like a market: levels created, levels superseded,
-// levels *deleted* — the size-zero update that an implementation most often gets backwards — and trades, which are
+// levels *deleted*(the size-zero update that an implementation most often gets backwards) and trades, which are
 // the one thing a duplicate delivery shows up in.
 
 #ifndef DFR_TOOLS_SUPPORT_TRACED_MARKET_HPP
@@ -42,7 +42,7 @@ namespace deep = dfr::wire::deep;
 inline constexpr std::string_view kTracedSymbol = "ZTEST";
 
 // Sixteen levels a side is more depth than the drawing can show and less than a real feed publishes. Chosen so the
-// book is never full — a refused level would be a property of this constant rather than of the run.
+// book is never full: a refused level would be a property of this constant rather than of the run.
 using traced_book = book::order_book<16>;
 
 inline deep::price at_dollars(std::int64_t dollars, std::int64_t ten_thousandths) {
@@ -89,7 +89,7 @@ inline std::string traced_message(std::size_t index) {
 
 // Applies one message to a book, and says whether anything changed.
 //
-// Returns false for a message that is not a quote — a trade, or bytes that do not decode — so a caller counting
+// Returns false for a message that is not a quote(a trade, or bytes that do not decode) so a caller counting
 // book updates does not count them. A trade does not move an aggregated book: the size reduction arrives as its
 // own price level update, and a book that also decremented here would double-count every fill.
 inline bool apply_to_book(traced_book& into, dfr::packet_view body) {

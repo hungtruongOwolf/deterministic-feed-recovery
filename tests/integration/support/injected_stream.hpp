@@ -56,7 +56,7 @@ inline std::vector<source_packet> clean_stream(std::size_t packets) {
     //
     // Every fourth packet is a heartbeat, carrying no messages at all. Not decoration: two
     // thirds of a real IEX capture is heartbeats, and a stream without them let a defect
-    // through that only appeared when the tool was pointed at real data — a heartbeat
+    // through that only appeared when the tool was pointed at real data: a heartbeat
     // advances the tracker's expectation without advancing the arbiter's watermark, and a
     // retransmit filling the resulting hole was then counted twice.
     const std::uint64_t count = (i % 4 == 3) ? 0 : (i % 3) + 1;
@@ -92,10 +92,10 @@ inline std::vector<source_packet> clean_stream(std::size_t packets) {
 // twice or late.
 //
 // Excluded deliberately, each with its own targeted test instead:
-//   flip_bit        — a flipped bit can land in a header field and silently redefine which
+//   flip_bit       : a flipped bit can land in a header field and silently redefine which
 //                     messages the packet claims to carry, so "what should have happened"
 //                     is not derivable from the fault alone.
-//   rewrite_sequence, rewrite_session — these redefine the stream's position or identity,
+//   rewrite_sequence, rewrite_session: these redefine the stream's position or identity,
 //                     so an accounting identity across them is a category error rather
 //                     than a property.
 inline chaos::op_mask derivable_faults() {

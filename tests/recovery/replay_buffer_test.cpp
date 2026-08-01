@@ -180,7 +180,7 @@ TEST_CASE("a refused append leaves the buffer exactly as it was",
 TEST_CASE("a full buffer refuses instead of overwriting its oldest entry",
           "[recovery][replay_buffer]") {
   // The decision the whole file rests on. A ring buffer would drop message 0 here,
-  // silently, and message 0 is exactly the one the snapshot is compared against — losing
+  // silently, and message 0 is exactly the one the snapshot is compared against: losing
   // it is what makes the Glimpse race undetectable.
   small_buffer buffer;
   for (std::uint64_t i = 0; i < 8; ++i) {

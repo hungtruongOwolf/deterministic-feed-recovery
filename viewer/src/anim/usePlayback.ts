@@ -29,7 +29,7 @@ export const BEATS_PER_SECOND = 2.4;
  * How long to hold each beat, relative to the others.
  *
  * Uniform pacing was fine for one run of 250 beats and is wrong for a film of 623: five minutes of even
- * ticking, most of it heartbeats. A film paces itself — the quiet stretches go past quickly and the moments
+ * ticking, most of it heartbeats. A film paces itself: the quiet stretches go past quickly and the moments
  * that matter are held long enough to read. Nothing is skipped, so the position axis still means what it
  * says; only the speed along it varies.
  *

@@ -62,8 +62,8 @@ TEST_CASE("a right-justified number drops its leading padding",
 
 TEST_CASE("a right-justified field rejects the other convention",
           "[wire][soupbintcp][regression]") {
-  // "42" followed by spaces is the left-justified layout. Read as a number it would either be 42 —
-  // by ignoring the padding — or something enormous, depending on how the digits were consumed.
+  // "42" followed by spaces is the left-justified layout. Read as a number it would either be 42:
+  // by ignoring the padding, or something enormous, depending on how the digits were consumed.
   // Neither is right, and the difference is a factor of ten per pad byte.
   CHECK(number("42                  ").error_code() == dfr::error::invalid_argument);
 }
@@ -82,7 +82,7 @@ TEST_CASE("a non-digit is rejected", "[wire][soupbintcp]") {
 TEST_CASE("a twenty-digit overflow is reported, not wrapped",
           "[wire][soupbintcp][regression]") {
   // Reachable, not theoretical: twenty digits can express 99,999,999,999,999,999,999 and a 64-bit
-  // unsigned integer stops at 18,446,744,073,709,551,615 — also twenty digits. A wrapped value would
+  // unsigned integer stops at 18,446,744,073,709,551,615: also twenty digits. A wrapped value would
   // be a small, believable sequence number, which is the worst possible way for this to fail.
   std::uint64_t value = 0;
   REQUIRE(number("18446744073709551615").get(value) == dfr::error::ok);

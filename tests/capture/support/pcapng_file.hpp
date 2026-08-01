@@ -1,8 +1,8 @@
 // A hand-assembled pcapng file, for tests only.
 //
 // Writes blocks in either byte order and lets each length field be overridden, so
-// the malformed envelopes a reader must refuse — a trailing length that disagrees,
-// a length below the framing size, one that is not a multiple of four — can all be
+// the malformed envelopes a reader must refuse: a trailing length that disagrees,
+// a length below the framing size, one that is not a multiple of four: can all be
 // produced. The library's own code has no way to emit those.
 
 #ifndef DFR_TESTS_CAPTURE_SUPPORT_PCAPNG_FILE_HPP

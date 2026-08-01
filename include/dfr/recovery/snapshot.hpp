@@ -17,7 +17,7 @@
 // ------------------------------------------------------------
 // A snapshot takes time to build and to send. If it comes back reflecting state as of a
 // sequence number *earlier* than the oldest message the client managed to buffer, then
-// the messages in between exist in neither place. The gap is permanent — no retransmit
+// the messages in between exist in neither place. The gap is permanent: no retransmit
 // can help, because the client does not know it has one.
 //
 // That is the failure mode worth building a library around. A client that does not check
@@ -119,7 +119,7 @@ struct snapshot_plan {
 // Classifies a snapshot against what the client is holding.
 //
 // `snapshot_next_sequence` is the sequence of the first message *after* the snapshot's
-// state — what Glimpse's end-of-snapshot marker carries. Off-by-one here inverts the
+// state: what Glimpse's end-of-snapshot marker carries. Off-by-one here inverts the
 // whole result, so it is named for what it is rather than "snapshot sequence".
 //
 // `already_delivered` is the watermark of what has gone downstream, or zero on a cold

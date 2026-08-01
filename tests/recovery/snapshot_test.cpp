@@ -3,7 +3,7 @@
 // The function under test is pure and constexpr, so most of this file could be
 // static_asserts. It is written as runtime checks anyway, because when one of these fails
 // the expansion Catch2 prints is the fastest route to understanding *which* case was
-// misclassified — and the last test pins the constexpr-ness separately.
+// misclassified, and the last test pins the constexpr-ness separately.
 
 #include <dfr/recovery/snapshot.hpp>
 
@@ -62,7 +62,7 @@ TEST_CASE("a snapshot one message short of the buffer is still behind it",
   // The boundary that decides whether the check is worth anything. The snapshot
   // establishes state through 8; the buffer starts at 10; message 9 is missing. An
   // inclusive-versus-exclusive slip here would classify this as usable and lose exactly
-  // one message — the hardest possible amount to notice.
+  // one message: the hardest possible amount to notice.
   const auto plan = rec::plan_snapshot(9, range(10, 20));
   CHECK(plan.verdict == rec::snapshot_verdict::behind_buffer);
   CHECK(plan.unfillable == range(9, 10));
@@ -156,7 +156,7 @@ TEST_CASE("an empty buffer is not itself a problem", "[recovery][snapshot]") {
 TEST_CASE("a snapshot the stream has already passed is stale",
           "[recovery][snapshot]") {
   // Applying it would replace current state with older state. Harmless, and the right
-  // response is to throw the snapshot away rather than the stream — which is why it is
+  // response is to throw the snapshot away rather than the stream, which is why it is
   // not fatal.
   const auto plan = rec::plan_snapshot(50, range(100, 110), 200);
 
@@ -170,7 +170,7 @@ TEST_CASE("a snapshot the stream has already passed is stale",
 TEST_CASE("staleness is checked before the buffer is considered",
           "[recovery][snapshot]") {
   // If the stream has already progressed past the snapshot, what the buffer holds is
-  // beside the point — and reporting behind_buffer here would escalate a harmless
+  // beside the point, and reporting behind_buffer here would escalate a harmless
   // discard into a fatal restart.
   const auto plan = rec::plan_snapshot(50, range(100, 110), 60);
   CHECK(plan.verdict == rec::snapshot_verdict::stale);
@@ -204,7 +204,7 @@ TEST_CASE("a cold start is never stale", "[recovery][snapshot]") {
 TEST_CASE("every snapshot position is classified, and only one way",
           "[recovery][snapshot]") {
   // A sweep across every relationship the three inputs can have. The point is not the
-  // individual answers — those are pinned above — but that no combination falls through
+  // individual answers(those are pinned above) but that no combination falls through
   // unclassified or is classified as both dangerous and fine.
   const auto buffered = range(100, 110);
   for (std::uint64_t at = 1; at <= 200; ++at) {

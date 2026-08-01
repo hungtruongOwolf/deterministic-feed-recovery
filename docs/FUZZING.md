@@ -1,7 +1,7 @@
 # Fuzzing
 
 Every decoder in this library takes bytes off a network, and a network hands you whatever it likes. The unit
-tests feed those decoders bytes chosen by a person, which finds the cases a person thought of — and the premise
+tests feed those decoders bytes chosen by a person, which finds the cases a person thought of, and the premise
 of the whole project is that the interesting failures are the ones nobody thought of.
 
 ## Running it
@@ -13,7 +13,7 @@ cmake --build build/fuzz -j8
 ```
 
 Six targets: `iextp`, `moldudp64`, `soupbintcp`, `ouch`, `deep`, `capture`. Address and undefined sanitizers are
-always on — a fuzzer without them checks that a decoder does not segfault, which is the least interesting of its
+always on: a fuzzer without them checks that a decoder does not segfault, which is the least interesting of its
 three jobs.
 
 ## Two drivers, and why both
@@ -27,11 +27,11 @@ are plain `LLVMFuzzerTestOneInput` functions and there are two ways to drive the
 
 The second is not a poor imitation of the first. Coverage-guided fuzzing finds more, at inputs nobody can
 reconstruct without the corpus file. The portable driver finds less, and every finding is **a seed plus a round
-number** — the same property the rest of the project rests on, which means a failure is handed over as two
+number**: the same property the rest of the project rests on, which means a failure is handed over as two
 numbers instead of an attachment.
 
 Its mutations are deliberately crude: bit flips, byte overwrites, truncations, growth, and a table of
-*interesting lengths* — 0, 1, 0x7F, 0xFF, 0x7FFF, 0xFFFF, 0xFFFFFFFF — written into the input where a length
+*interesting lengths*(0, 1, 0x7F, 0xFF, 0x7FFF, 0xFFFF, 0xFFFFFFFF) written into the input where a length
 field might be. A decoder's hostile input is almost never structurally novel. It is a valid packet with a wrong
 length, which is what these produce directly instead of waiting to stumble on.
 
@@ -46,7 +46,7 @@ single message never exercises framing:
 - individual DEEP messages, for the message decoders.
 
 285 files, 1.1 MB, committed. Every mutation therefore starts from a packet that **actually parses**, which is
-where the interesting failures are — not random noise that every decoder rejects at the first byte.
+where the interesting failures are: not random noise that every decoder rejects at the first byte.
 
 Two of the corpora are deliberately the wrong protocol: the OUCH and SoupBinTCP targets are seeded with DEEP
 messages, because well-formed bytes from *another* protocol are exactly the shape of input a dispatcher hands
@@ -60,7 +60,7 @@ everywhere. In increasing order of interest:
 1. **No crash, no undefined behaviour.** What a fuzzer is usually bought for, and the weakest thing it says.
 2. **A success must be self-consistent.** If a decoder reports a frame of N bytes, N is within the input. If it
    hands back a view, the view lies inside the input. *A decoder returning a length it did not have is how a
-   caller reads somebody else's memory legitimately* — pointer arithmetic correct, length a lie, sanitizer
+   caller reads somebody else's memory legitimately*: pointer arithmetic correct, length a lie, sanitizer
    silent.
 3. **Framing must be total.** Walking a stream either consumes it or stops; it never loops without advancing.
    An unbounded loop on hostile input is a denial of service no memory checker reports.
@@ -70,7 +70,7 @@ asserting semantics would mostly assert the fuzzer's own idea of the protocol.
 
 ## What it found
 
-**Nothing, across 6 million mutations** — six targets, four seeds each, 250,000 rounds per seed, with ASan and
+**Nothing, across 6 million mutations**: six targets, four seeds each, 250,000 rounds per seed, with ASan and
 UBSan on.
 
 That sentence is worth nothing on its own, so it was checked. The length check in the DEEP header decoder was
@@ -89,7 +89,7 @@ all, and it is why "no crashes" was never the claim.
 ## What this does not cover
 
 - **The recovery state machine.** These targets fuzz decoders. A fuzzer over `recovery::client` would need to
-  generate coherent sequences of *calls*, not bytes — a different and larger piece of work, and the deterministic
+  generate coherent sequences of *calls*, not bytes: a different and larger piece of work, and the deterministic
   simulation tests are what covers it today.
 - **Anything past the decode.** A message that decodes correctly and means something absurd is the unit tests'
   problem, and the book oracle's.

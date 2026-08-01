@@ -79,7 +79,7 @@ class order_session {
     return entry_;
   }
 
-  // The sequence the *next* outbound Sequenced Data Packet will carry — the same convention Login
+  // The sequence the *next* outbound Sequenced Data Packet will carry: the same convention Login
   // Accepted uses, so the number a client is told and the number this holds are the same number.
   [[nodiscard]] constexpr std::uint64_t next_sequence() const noexcept {
     return writer_.next_sequence();
@@ -174,7 +174,7 @@ class order_session {
 
   // ---- the matching engine's side ---------------------------------------
 
-  // Fills part or all of a live order. Driven by the caller because there is no matching engine here —
+  // Fills part or all of a live order. Driven by the caller because there is no matching engine here:
   // see order_entry.hpp for why that is a scope decision and not an omission.
   template <typename Emit>
   [[nodiscard]] constexpr result<order_outcome> execute(const wire::ouch::order_token& token,
@@ -252,14 +252,14 @@ class order_session {
       return reject(wire::soupbintcp::reject_reason::not_authorized, now, emit);
     }
 
-    // An empty requested session means "whatever is current", per §3.2 — the absence is the meaning, so
+    // An empty requested session means "whatever is current", per §3.2: the absence is the meaning, so
     // it matches rather than failing to.
     if (!request.requested_session.empty() && request.requested_session != options_.session_id) {
       return reject(wire::soupbintcp::reject_reason::session_not_available, now, emit);
     }
 
-    // §3.2: requesting 1 means "from the beginning of the session", and anything else — including 0,
-    // which means "from the next message you send" — starts where the server already is. This server
+    // §3.2: requesting 1 means "from the beginning of the session", and anything else, including 0,
+    // which means "from the next message you send": starts where the server already is. This server
     // retains nothing, so a replay request is answered with the truth about where it is rather than with
     // a rejection: the client learns the position from the Login Accepted it is about to read.
     if (request.requested_sequence == 1 && options_.first_sequence == 1) {
@@ -295,7 +295,7 @@ class order_session {
 
     // One routing table rather than four copies of the same five lines. Each branch decodes into its own type and
     // hands it to its own method, so the shape is identical every time and the only thing that varies is a pair of
-    // names — which is exactly what a template parameter is for.
+    // names, which is exactly what a template parameter is for.
     switch (static_cast<wire::ouch::inbound_type>(frame.payload.u8_at(0))) {
       case wire::ouch::inbound_type::enter_order:
         return route<wire::ouch::enter_order>(frame.payload, now, emit, numbered,
@@ -317,7 +317,7 @@ class order_session {
     return malformed(now, emit);
   }
 
-  // Decode, then act, then report — the shape every inbound message shares.
+  // Decode, then act, then report: the shape every inbound message shares.
   template <typename Request, typename Emit, typename Sink, typename Decode, typename Act>
   [[nodiscard]] constexpr error route(packet_view body, time_point now, Emit&& emit, Sink&& sink,
                                       Decode&& decode, Act&& act) noexcept {
@@ -350,7 +350,7 @@ class order_session {
     return [this, &emit](packet_view message) noexcept { writer_.sequenced(message, emit); };
   }
 
-  // A rejection is a reply and an ending, and §3.3 says the server closes afterwards — so a client retries by
+  // A rejection is a reply and an ending, and §3.3 says the server closes afterwards, so a client retries by
   // reconnecting rather than by waiting.
   template <typename Emit>
   [[nodiscard]] constexpr error reject(wire::soupbintcp::reject_reason reason, time_point now,

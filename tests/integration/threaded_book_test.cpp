@@ -2,7 +2,7 @@
 //
 // The concurrency analogue of the book oracle, and the assertion that makes the thread boundary load-bearing rather
 // than decorative. `spsc_ring` was benchmarked and tested under ThreadSanitizer while **nothing in the architecture
-// used it** — which is a worse state than not having one, because it looks like a claim.
+// used it**, which is a worse state than not having one, because it looks like a claim.
 //
 // What is under test is the whole shape a real feed handler has: recovery on the thread that owns the protocol
 // state, a consumer on another core building the book from what crosses. The invariant:
@@ -11,15 +11,15 @@
 //
 // Nothing on the consumer thread may touch Catch2
 // -----------------------------------------------
-// This test aborted intermittently — inside `Catch::OutputRedirect::activate`, with no failing expression and a
+// This test aborted intermittently: inside `Catch::OutputRedirect::activate`, with no failing expression and a
 // SIGABRT that read as a library defect. It was not one: `detail::apply` used REQUIRE, this calls it from the
 // consumer thread, and Catch2's result capture is single-threaded. It reproduced on the second run once I looked
 // for it, so "the suite passed" had meant "the suite passed once". The consumer now counts and the main thread
 // asserts, and `--repeat until-fail` in CI is what turns a rare abort into a build failure.
 //
 // That is stronger than the ring's own property test. The property test feeds the ring synthetic records in order
-// and checks none are lost or reordered. This feeds it a *damaged* feed's deliveries — out of order, with repairs
-// arriving after later messages — under real contention, and checks the far side arrives at the right book. A ring
+// and checks none are lost or reordered. This feeds it a *damaged* feed's deliveries: out of order, with repairs
+// arriving after later messages: under real contention, and checks the far side arrives at the right book. A ring
 // that lost a record under load, or a publisher that let an older update overtake a newer one, fails here and
 // passes there.
 
@@ -44,19 +44,19 @@ namespace conc = dfr::concurrent;
 using feed_publisher = conc::publisher<4096, 256>;
 
 struct threaded_result {
-  // Per symbol, because `detail::apply` routes by symbol and the feed uses one — keeping the map means the two
+  // Per symbol, because `detail::apply` routes by symbol and the feed uses one, keeping the map means the two
   // files share one apply function rather than having a second, simpler one that could disagree with it.
   std::map<std::string, oracle_book> state_by_symbol;
   oracle_book state;
   std::uint64_t consumed{0};
-  /** Copied out of the consumer's own counters before it exits — see replay_result::malformed. */
+  /** Copied out of the consumer's own counters before it exits: see replay_result::malformed. */
   std::uint64_t malformed{0};
   conc::publisher_stats produced{};
 };
 
 // Runs the recovery replay, but hands every delivered message to a consumer thread instead of applying it here.
 //
-// The consumer is a loop with no memory: pop, decode, apply. That it *can* be is the point — the publisher put the
+// The consumer is a loop with no memory: pop, decode, apply. That it *can* be is the point: the publisher put the
 // messages in order before they crossed, so the far side needs no buffer and no knowledge of sequence numbers.
 threaded_result across_a_boundary(const feed& source, std::uint64_t seed, std::uint32_t faults) {
   threaded_result out;
@@ -118,7 +118,7 @@ TEST_CASE("the publisher orders before the boundary, so the consumer needs no me
   const std::array<std::byte, 4> body{};
   const dfr::packet_view view{body.data(), body.size()};
 
-  // Offered 3, 2, 1 — the shape a gap-filling client produces. Nothing may cross until 1 arrives, and then all
+  // Offered 3, 2, 1: the shape a gap-filling client produces. Nothing may cross until 1 arrives, and then all
   // three must cross in order.
   CHECK(producer.offer(3, 0, false, view));
   CHECK(producer.offer(2, 0, false, view));
@@ -157,7 +157,7 @@ TEST_CASE("a gap wider than the window is refused, not buffered without limit",
   // The window is eight, so sequences 2..8 can be held while 1 is missing and 9 cannot: a delivery exactly `Pending`
   // ahead of `next_` would land on the slot `next_` is waiting for and overwrite it.
   //
-  // That boundary was `>` rather than `>=` when this was written, and CI caught it on x86-64 while it passed here —
+  // That boundary was `>` rather than `>=` when this was written, and CI caught it on x86-64 while it passed here:
   // arm64's timing never produced a reorder distance of exactly the window. So the exact boundary is asserted, not
   // just a distance comfortably past it.
   CHECK(narrow.offer(8, 0, false, view));
@@ -172,7 +172,7 @@ TEST_CASE("a ring smaller than the reorder window stalls without corrupting anyt
   // and entries stay held with `next_` stalled. Everything after that has to be refused and counted rather than
   // written over a slot the window still needs.
   //
-  // This is where CI's abort came from — twice, on x86-64, while every interleaving constructed by hand here passed.
+  // This is where CI's abort came from: twice, on x86-64, while every interleaving constructed by hand here passed.
   // The fix was to stop arguing about which interleavings can alias a slot and make the check unconditional.
   conc::publisher<4, 8> tight{1};
   const std::array<std::byte, 4> body{};

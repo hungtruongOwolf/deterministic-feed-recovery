@@ -2,8 +2,8 @@
 //
 // Shared rather than copied, per docs/STYLE.md section 1.10. Its purpose is to
 // produce packets the library's own encoder is deliberately incapable of
-// producing — a payload length that disagrees with the blocks, an unknown
-// transport version — so that the decoder's refusals can be tested at all.
+// producing: a payload length that disagrees with the blocks, an unknown
+// transport version, so that the decoder's refusals can be tested at all.
 
 #ifndef DFR_TESTS_WIRE_SUPPORT_RAW_IEXTP_HPP
 #define DFR_TESTS_WIRE_SUPPORT_RAW_IEXTP_HPP

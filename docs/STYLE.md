@@ -42,7 +42,7 @@ A 3% file and a 33% file are both exemplary. What differs is *what* is commented
 comment in header and source. Public contract goes in the header; the *why* goes next to the
 code that needed a decision.
 
-**1.2 No Doxygen tags.** Prose, in house shape. The census is genuinely split — quill and
+**1.2 No Doxygen tags.** Prose, in house shape. The census is genuinely split: quill and
 simdjson run full Doxygen (261 `@param` in quill); **Abseil, folly, googletest and Google's own
 style guide use none** (`grep -ci doxygen` on the rendered Google C++ guide = 0). fmt keeps
 Doxygen only as a parser and writes plain `///` prose. For a solo library, tags are slots that
@@ -60,7 +60,7 @@ void step(Clock::time_point now);
 
 **1.4 Prefer an assertion to a comment.** A comment goes stale silently; an assertion cannot.
 
-**1.5 Assert the negative space too.** Adopt TigerBeetle's `maybe()` — a two-line helper
+**1.5 Assert the negative space too.** Adopt TigerBeetle's `maybe()`: a two-line helper
 asserting that a condition is *permitted*, used where you would otherwise write a hedging
 comment about a reachable state.
 
@@ -70,7 +70,7 @@ in the codebase, so it is where to spend effort.
 
 **1.7 Wire formats: violate "why not what" deliberately.** Byte offsets and field layouts get
 explicit `what` comments, and every wire struct gets `static_assert` on `sizeof` **and**
-`offsetof` for each field. Neither Aeron, libtrading nor SBE-generated code does this — doing it
+`offsetof` for each field. Neither Aeron, libtrading nor SBE-generated code does this: doing it
 is cheap and visibly better than the references.
 
 **1.8 State the guarantee you do *not* provide.** In the first person if that is what it takes.
@@ -85,7 +85,7 @@ is cheap and visibly better than the references.
 **One header, one concept. Target 200 lines; treat 300 as a smell and 400 as a
 defect.**
 
-Not an arbitrary limit — the reason is the same one TIGER_STYLE gives for its
+Not an arbitrary limit: the reason is the same one TIGER_STYLE gives for its
 70-line function rule: *"There's a sharp discontinuity between a function fitting
 on a screen, and having to scroll."* The same discontinuity applies to finding
 the thing you came for in a file. A 600-line header means the reader scrolls past
@@ -122,7 +122,7 @@ where omission is a mistake.**
 Found the hard way on 2026-07-30. `moldudp64::header::session` was the only member of its struct without a
 default, and five call sites used a designated initialiser that skipped it. That is an error under Linux
 Clang, which implements `-Wmissing-field-initializers` for C++20 designated initialisers, and silent under
-Apple Clang, which does not — so the code was `-Werror` clean on the development machine and broken on CI's
+Apple Clang, which does not, so the code was `-Werror` clean on the development machine and broken on CI's
 first run.
 
 The fix belongs at the declaration, not the call sites: patching five call sites leaves the sixth to be
@@ -134,8 +134,8 @@ Where omission *means* something, say so once:
 - a `std::source_location where{}` that has not been captured;
 - a `wide_product{0, 0}` before it is computed.
 
-Where omission is a bug, leave the defaults off and write down why. `ouch::detail::ack_offsets` — the
-field-offset table shared by two decoders — has none deliberately: a zero offset would silently read the
+Where omission is a bug, leave the defaults off and write down why. `ouch::detail::ack_offsets`, the
+field-offset table shared by two decoders: has none deliberately: a zero offset would silently read the
 wrong bytes rather than fail, so the warning is the protection. The file says so, to stop a later reader
 applying this rule mechanically and removing it.
 
@@ -154,7 +154,7 @@ The discipline, with measured targets:
    mandates a minimum of two per function; TigerBeetle measurably achieves **1.82** and
    **1 per 14.6 lines**; SQLite runs **1 per 23 lines** (6,754 asserts, their figure). Land in
    that band. Do not pad trivial accessors to hit a number.
-2. **Split compound assertions.** `assert(a); assert(b);` beats `assert(a && b)` — more precise
+2. **Split compound assertions.** `assert(a); assert(b);` beats `assert(a && b)`: more precise
    information on failure.
 3. **`if (a) assert(b);`** for implications.
 4. **Assert every property on two different code paths.** TIGER_STYLE: assert validity right
@@ -175,7 +175,7 @@ The discipline, with measured targets:
    > presence of bugs, not their absence.
 
 **C++26 contracts (`pre`/`post`/`contract_assert`) are not usable here.** `__cpp_contracts =
-202502L` ships in **GCC 16 only** — no Clang, no MSVC, no Apple Clang. Use plain assertions.
+202502L` ships in **GCC 16 only**: no Clang, no MSVC, no Apple Clang. Use plain assertions.
 
 ---
 
@@ -239,43 +239,43 @@ Moves **1, 4, 5, 6, 9, 10** are the ones a competing candidate's repo almost nev
 
 ---
 
-## 5. Anti-pattern checklist — run before publishing
+## 5. Anti-pattern checklist: run before publishing
 
-- [ ] Title has no adjective and no performance claim — **0 of 22** exemplars have one
-- [ ] Zero `*_SUMMARY.md` / `*_REPORT.md` / `*_COMPLETE.md` / `*_ANALYSIS.md` — 0 of 22; the
+- [ ] Title has no adjective and no performance claim: **0 of 22** exemplars have one
+- [ ] Zero `*_SUMMARY.md` / `*_REPORT.md` / `*_COMPLETE.md` / `*_ANALYSIS.md`: 0 of 22; the
       negative baselines carry 46, 50 and **1,154**
 - [ ] Zero occurrences of: blazing, blazingly, ultra, insanely, world-class, cutting-edge,
-      state-of-the-art, revolutionary — **1** occurrence across all 22 READMEs
-- [ ] No emoji in section headers — 2 of 22, neither in the rigor tier
-- [ ] ≤3 badges, each carrying information — hiccups has 1
-- [ ] No feature list with ✅/⚡ — systems tier writes `## Design Principles` instead
-- [ ] No Roadmap / Status / Coming Soon section — **0 of 22**
+      state-of-the-art, revolutionary: **1** occurrence across all 22 READMEs
+- [ ] No emoji in section headers: 2 of 22, neither in the rigor tier
+- [ ] ≤3 badges, each carrying information: hiccups has 1
+- [ ] No feature list with ✅/⚡: systems tier writes `## Design Principles` instead
+- [ ] No Roadmap / Status / Coming Soon section: **0 of 22**
 - [ ] Every number carries CPU model, kernel, compiler + version, exact flags, run count
 - [ ] Every benchmark table has a date
 - [ ] At least one published result where we lose or tie
 - [ ] A "When not to use this" section naming a specific better tool
 - [ ] The headline property is hedged, not asserted
-- [ ] No chart a monospace table would do better — **0 charts** across rigtorp's posts and
+- [ ] No chart a monospace table would do better: **0 charts** across rigtorp's posts and
       ripgrep's 25 benchmarks
-- [ ] At most one mermaid diagram, and only a message-sequence one — tigerbeetle has exactly 1
+- [ ] At most one mermaid diagram, and only a message-sequence one: tigerbeetle has exactly 1
       in the whole repo
 - [ ] No diagram without prose saying the same thing
-- [ ] No `CODE_OF_CONDUCT.md` — 4 of 21, all corporate-backed
-- [ ] No Doxygen site — 0 of 3 solo exemplars; hiccups is 7 files total
-- [ ] No ADR directory — 0 of 7 systems repos; use FoundationDB's `design/` + template instead
+- [ ] No `CODE_OF_CONDUCT.md`: 4 of 21, all corporate-backed
+- [ ] No Doxygen site: 0 of 3 solo exemplars; hiccups is 7 files total
+- [ ] No ADR directory: 0 of 7 systems repos; use FoundationDB's `design/` + template instead
 
-### The LLM tells, concretely — grep for these
+### The LLM tells, concretely: grep for these
 
 1. **Uniform docblock density.** Every function commented, all comments the same length. Real
    codebases are spiky. If comment-to-function ratio is near 1.0 with low variance, that is the
    tell.
 2. **Narration instead of justification.** `// Loop over the messages and process each one.`
    Test: delete it. If nothing is lost, it was narration.
-3. **Tag scaffolding with no content.** `@param seq The sequence number.` — filled because the
+3. **Tag scaffolding with no content.** `@param seq The sequence number.`: filled because the
    template had a slot. This is why §1.2 bans tags: no slots, no filler.
 4. **Confident breadth, no numbers.** Compare against real performance comments in
    `atomic_queue.h`: *"At least +1.5% faster throughput benchmark relative to RemapXor."* and
-   *"FIFO and total order on Intel regardless, as of 2019."* — a number, a comparison, or a date.
+   *"FIFO and total order on Intel regardless, as of 2019."*: a number, a comparison, or a date.
 5. **Generic `memory_order` justification.** §1.6 is unfakeable; that is the point.
 6. **No negative space.** Nothing says what does not work or was not checked. **Loudest signal.**
 7. **Uniformly upbeat register, no hedging.** SQLite's commits distinguish `Fix for [bug]` from
@@ -295,7 +295,7 @@ reviewed this in detail."*
 `.gitlint`, `.cz.toml`, `.czrc` across tigerbeetle, simdjson, abseil, redis, quill, fmt and
 sqlite: **zero commit-lint tooling in any of them.**
 
-House rule: imperative subject under ~72 chars, blank line, then *why* — what was ruled out, and
+House rule: imperative subject under ~72 chars, blank line, then *why*, what was ruled out, and
 what the reader should know that the diff does not show. Hedge when the fix is a guess, the way
 SQLite does.
 

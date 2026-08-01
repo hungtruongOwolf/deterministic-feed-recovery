@@ -1,7 +1,7 @@
 // An OUCH price: a 32-bit integer in ten-thousandths of a dollar, with market orders encoded in it.
 //
 // From OUCH 4.2 §1.2: "prices are in fixed point format with 6 whole number places followed by 4
-// decimal digits". So $12.34 is 123,400 and there is no floating point anywhere near the wire — which
+// decimal digits". So $12.34 is 123,400 and there is no floating point anywhere near the wire, which
 // is the entire reason this is a type rather than a `std::uint32_t`.
 //
 // Market orders live at the top of the same field
@@ -32,13 +32,13 @@ namespace wire::ouch {
 // Ten-thousandths of a dollar per unit, so the scale is 10^4 and a whole dollar is 10,000.
 inline constexpr std::uint32_t kPriceScale = 10'000;
 
-// $199,999.9900 — the highest price that still means a limit.
+// $199,999.9900: the highest price that still means a limit.
 inline constexpr std::uint32_t kMaxLimitRaw = 1'999'999'900;
 
-// $200,000.00 — the lowest value that means market. The threshold, not the sentinel.
+// $200,000.00: the lowest value that means market. The threshold, not the sentinel.
 inline constexpr std::uint32_t kMarketThresholdRaw = 2'000'000'000;
 
-// $214,748.3647 — what the specification names as *the* market price, and what we write.
+// $214,748.3647: what the specification names as *the* market price, and what we write.
 inline constexpr std::uint32_t kMarketRaw = 0x7FFF'FFFFu;
 
 class price {
@@ -92,7 +92,7 @@ class price {
   }
 
   // Whether this is a price the exchange will accept as a limit. A value between the limit maximum and
-  // the market threshold is neither — the specification leaves that band undefined, so it is reported
+  // the market threshold is neither: the specification leaves that band undefined, so it is reported
   // rather than guessed at.
   [[nodiscard]] constexpr bool is_valid_limit() const noexcept {
     return raw_ <= kMaxLimitRaw;

@@ -1,7 +1,7 @@
 // The outstanding-gap set: canonical form, and what happens at capacity.
 //
 // Every test here is really one of two questions. Does the set still describe
-// exactly what is missing — no more, no less? And when it cannot, does it say so
+// exactly what is missing: no more, no less? And when it cannot, does it say so
 // rather than rounding?
 
 #include <dfr/recovery/gap_set.hpp>
@@ -178,7 +178,7 @@ TEST_CASE("a fill spanning several holes closes all of them",
 TEST_CASE("a fill nobody was missing removes nothing and is not an error",
           "[recovery][gap_set]") {
   // A duplicate retransmit, or the late half of an A/B pair. Routine, and reported
-  // as zero rather than as a failure — the count is the return precisely so this
+  // as zero rather than as a failure: the count is the return precisely so this
   // case is distinguishable from a fill that did work.
   rec::gap_set set;
   must_open(set, range(10, 20));
@@ -273,7 +273,7 @@ TEST_CASE("a fill that would split past capacity is refused, not merged",
           "[recovery][gap_set][regression]") {
   // Reachable because a mid-range fill splits one range into two. Merging the two
   // halves instead would claim the messages between them had arrived, which is the
-  // one lie the library exists to catch — so it is refused, and the set is left
+  // one lie the library exists to catch, so it is refused, and the set is left
   // untouched and still accurate.
   rec::gap_set set;
   for (std::uint64_t i = 0; i < rec::kMaxOutstandingGaps; ++i) {
@@ -333,8 +333,8 @@ TEST_CASE("discarding below the start of the oldest hole changes nothing",
 
 TEST_CASE("intersect names the part of an arrival that was missing",
           "[recovery][gap_set]") {
-  // The question the arbiter cannot answer. A retransmit — or the other line's copy
-  // arriving late — lands below the merged stream's watermark and looks like a duplicate
+  // The question the arbiter cannot answer. A retransmit, or the other line's copy
+  // arriving late: lands below the merged stream's watermark and looks like a duplicate
   // while being exactly what recovery was waiting for.
   rec::gap_set set;
   must_open(set, range(10, 20));

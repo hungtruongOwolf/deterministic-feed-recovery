@@ -1,7 +1,7 @@
 // Shared setup for the order-entry session tests: a place to put bytes in, and a place to read them out.
 //
-// Separate from order_entry_fixture.hpp because these are session concerns — framing a client's stream
-// and decoding the server's — and a test about token rules needs none of it, per docs/STYLE.md §1.10.
+// Separate from order_entry_fixture.hpp because these are session concerns: framing a client's stream
+// and decoding the server's, and a test about token rules needs none of it, per docs/STYLE.md §1.10.
 //
 // Nothing here inspects a byte it wrote itself. Frames go out through the encoder and come back through
 // the decoder, so a session that is wrong in the same way as this file would still fail.

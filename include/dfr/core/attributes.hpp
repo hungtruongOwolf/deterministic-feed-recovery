@@ -174,7 +174,7 @@ namespace dfr::inline v1 {
 // header used to take it, widened on Apple arm64 because libc++ reports 64
 // while the M-series L2 line is 128.
 //
-// It is no longer used at all, and GCC is the reason — it warns on any use of
+// It is no longer used at all, and GCC is the reason: it warns on any use of
 // the constant (-Winterference-size), because **its value is part of the ABI**:
 // two translation units built with different GCC versions can disagree about
 // how wide a padded member is, and in a lock-free structure that is a layout

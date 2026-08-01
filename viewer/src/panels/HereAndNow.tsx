@@ -16,7 +16,7 @@ export function HereAndNow({ rate, nativePerSecond }: Props) {
   if (rate === undefined) {
     return (
       <p className="here here--absent">
-        The live figure needs WebAssembly, which did not load — the tables below were measured natively and are
+        The live figure needs WebAssembly, which did not load: the tables below were measured natively and are
         unaffected.
       </p>
     );
@@ -43,13 +43,13 @@ export function HereAndNow({ rate, nativePerSecond }: Props) {
         summary={
           factor === undefined
             ? "why this is slower than the tables below"
-            : `about ${factor}× slower than the tables below — why`
+            : `about ${factor}× slower than the tables below, why`
         }
       >
         <p>
           This path goes through WebAssembly and writes every event out as JSONL as it runs, and the trace format
           is most of what is being timed. A browser also cannot resolve a two-nanosecond operation. So the gap is
-          the reason the native tables exist rather than something to hide — but those figures came from my laptop,
+          the reason the native tables exist rather than something to hide, but those figures came from my laptop,
           and this one came from yours. It is the fastest run rather than the latest, for the same reason the
           native tables report minima: benchmark noise only ever adds time, and the first run pays for a cold
           instance.

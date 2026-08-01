@@ -53,7 +53,7 @@ TEST_CASE("a minimal file yields its packet", "[capture][pcapng]") {
 
 TEST_CASE("both byte orders read identically", "[capture][pcapng]") {
   // The SHB's byte-order magic settles the order for the whole section, and its
-  // own Block Total Length is written in that order — which is why the format
+  // own Block Total Length is written in that order, which is why the format
   // gives the SHB a palindromic type.
   const auto little = minimal("payload", /*little=*/true);
   const auto big = minimal("payload", /*little=*/false);
@@ -94,7 +94,7 @@ TEST_CASE("the timestamp resolution comes from the interface",
           "[capture][pcapng][regression]") {
   // The same tick count means different times depending on the interface's
   // if_tsresol. A reader that assumes microseconds is wrong by a thousand on the
-  // nanosecond files, and the answer is per interface rather than per file — one
+  // nanosecond files, and the answer is per interface rather than per file: one
   // layer further from the data than classic pcap's magic.
   const auto micros = minimal("x", true, /*tsresol=*/6);
   const auto nanos = minimal("x", true, /*tsresol=*/9);

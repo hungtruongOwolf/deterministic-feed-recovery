@@ -1,7 +1,7 @@
 // The vocabulary of redundant lines: what an offered packet turned out to be, and
 // what each line has done for us lately.
 //
-// A "line" is one physical copy of the same logical feed — CME's A and B channels,
+// A "line" is one physical copy of the same logical feed: CME's A and B channels,
 // B3's MBO_EQT_Incremental_FeedA and FeedB. The publisher sends identical bytes down
 // both, so arbitration is deduplication and *not* consensus. That distinction is worth
 // making explicitly because the vocabulary of consensus is tempting and wrong here:

@@ -38,7 +38,7 @@ using rig_snapshot = ven::snapshot_facility<dfr_test::venue_rig::rig_clock>;
 // The facility is advanced for *every* published packet, including the one the client never
 // receives: the venue published it, and a snapshot facility knows where the feed is rather than
 // where any particular client has got to. Driving both from the same index is what made an
-// earlier version of this test classify every snapshot as stale — the venue was never actually
+// earlier version of this test classify every snapshot as stale: the venue was never actually
 // ahead of the client, which is the only situation in which the race can exist.
 void drive_to_snapshot(rig_client& client, rig_ledger& record,
                        const std::vector<published>& stream,
@@ -133,7 +133,7 @@ TEST_CASE("a snapshot taken in time completes recovery",
   ++record.snapshot_requests;
   REQUIRE(snapshots.request(at_us(now)).has_value());
 
-  // While the snapshot is built the client keeps buffering — and here it manages to catch
+  // While the snapshot is built the client keeps buffering, and here it manages to catch
   // packets that straddle the position the snapshot froze at.
   buffer_range(client, record, stream, 25, 29, now);
   const auto buffered = client.held().buffered();
@@ -173,8 +173,8 @@ TEST_CASE("a snapshot from a lagging replica loses the Glimpse race",
   // The failure this project was chosen for, driven through a whole client for the first time.
   //
   // The mechanism is exact, and it is the reason the test has to be built this way: the snapshot
-  // must land *above* what the client has already delivered — otherwise it is merely stale and
-  // discarding it is safe — and *below* the oldest message the client managed to buffer. That
+  // must land *above* what the client has already delivered: otherwise it is merely stale and
+  // discarding it is safe, and *below* the oldest message the client managed to buffer. That
   // interval only exists when packets were lost after the client entered recovery, so this test
   // loses packets 20 through 24 and starts buffering at 25.
   //

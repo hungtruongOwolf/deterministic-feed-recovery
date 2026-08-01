@@ -1,8 +1,8 @@
 // Generating a schedule from a seed: determinism, the mask, and placement.
 //
-// This is where the load-bearing property lives — generation must consume a draw
+// This is where the load-bearing property lives: generation must consume a draw
 // count that depends only on the seed, not on the stream length and not on which
-// fault kinds are permitted — so it gets its own file rather than sharing one with
+// fault kinds are permitted, so it gets its own file rather than sharing one with
 // the hand-editing API.
 
 #include <dfr/chaos/schedule.hpp>
@@ -127,7 +127,7 @@ TEST_CASE("faults respect the warmup and the stream end",
           "[chaos][schedule][regression]") {
   // The warmup exists because a receiver has to establish its position before a
   // gap means anything. A fault on packet zero is reported as joining
-  // mid-stream — true, and useless for testing recovery.
+  // mid-stream: true, and useless for testing recovery.
   chaos::schedule_options options;
   options.max_faults = 64;
   options.warmup_packets = 10;

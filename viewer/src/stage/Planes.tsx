@@ -1,6 +1,6 @@
 // The three defences, drawn as the three stacked planes they are.
 //
-// This replaces a legend that listed them. A list says "there are three"; a stack says how they relate — each
+// This replaces a legend that listed them. A list says "there are three"; a stack says how they relate: each
 // one sits *under* the one that failed, and a run escalates by falling to the next plane down. The column at
 // the receiver's edge is that fall, and the marker on it says which layer the run is at right now.
 //

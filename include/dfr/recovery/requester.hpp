@@ -5,7 +5,7 @@
 // The requester never reads a clock. It is a template on Clock only so that a
 // manual_clock time point cannot be passed where a real_clock one belongs; every time
 // value arrives as an argument to on_gap() or poll(). That is the structural version
-// of TIGER_STYLE's *"don't do things directly in reaction to external events — your
+// of TIGER_STYLE's *"don't do things directly in reaction to external events: your
 // program should run at its own pace"*: a component that cannot read the time cannot
 // be made non-deterministic by the time it is run at.
 //
@@ -72,7 +72,7 @@ class requester {
   // Registers a hole to be recovered. Sends nothing: the first attempt is not due
   // until settle_delay has passed, because most gaps on a multicast feed are transient
   // reordering and asking immediately generates recovery traffic for data already in
-  // flight — from every receiver on the group at once.
+  // flight: from every receiver on the group at once.
   [[nodiscard]] constexpr result<void> on_gap(sequence_range hole,
                                               time_point now) noexcept {
     std::uint64_t remaining = hole.count();

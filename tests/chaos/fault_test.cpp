@@ -1,6 +1,6 @@
 // The fault record: what one fault means on its own.
 //
-// No schedule and no seed here — only the vocabulary type and the questions a
+// No schedule and no seed here: only the vocabulary type and the questions a
 // caller asks of it: which packets does it cover, does it change bytes, and is its
 // consequence expected to be fatal. Split from the schedule tests because a reader
 // changing the fault enum never needs the placement arithmetic.

@@ -3,7 +3,7 @@
 // The second of the drawing's two spaces, and the one that carries the stakes. A count of six missing
 // messages is a fact you have to trust; six blank cells punched out of a solid block is a thing you see. It
 // also makes the difference between "not yet" and "never" visible, which is the distinction the whole
-// project turns on — an empty cell ahead of the frontier is ordinary, an empty cell behind it is a hole.
+// project turns on: an empty cell ahead of the frontier is ordinary, an empty cell behind it is a hole.
 //
 // Every cell's state is read from the event: filled below `delivered_through` unless it falls inside one of
 // the `gaps` the trace carries. Nothing is accumulated here.
@@ -72,7 +72,7 @@ export function BookGrid({ event, messages }: Props) {
       <g className="book__legend">
         {[
           { cls: "have", label: "delivered" },
-          { cls: "hole", label: "missing — a hole" },
+          { cls: "hole", label: "missing, a hole" },
           { cls: "ahead", label: "not sent yet" },
         ].map((entry, i) => (
           <g key={entry.cls} transform={`translate(${BOOK.x + 14 + i * 124}, ${BOOK.y + BOOK.h - 40})`}>

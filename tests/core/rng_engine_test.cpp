@@ -19,7 +19,7 @@ namespace {
 // than by this code.
 //
 // This is the test that matters most in the file. Every other property here
-// would still hold if the engine were subtly wrong — a wrong rotation constant
+// would still hold if the engine were subtly wrong: a wrong rotation constant
 // still produces a deterministic, well-distributed stream. Only a
 // known-answer test against an outside implementation catches that, and only a
 // known-answer test makes a recorded seed portable to another machine.
@@ -95,7 +95,7 @@ TEST_CASE("different seeds diverge immediately", "[core][rng]") {
 }
 
 // ---------------------------------------------------------------------------
-// 128-bit multiply — the primitive a wrong fallback would silently corrupt
+// 128-bit multiply: the primitive a wrong fallback would silently corrupt
 // ---------------------------------------------------------------------------
 
 TEST_CASE("the portable multiply agrees with the intrinsic one",
@@ -157,7 +157,7 @@ TEST_CASE("below(1) consumes nothing from the stream", "[core][rng]") {
 
   // A bound of one needs no randomness, and taking some would mean that
   // narrowing a range to a single element during shrinking shifts every draw
-  // after it — which would make a reduced counterexample stop reproducing.
+  // after it, which would make a reduced counterexample stop reproducing.
   CHECK(rng.save() == before);
   CHECK(rng.draws() == 0);
 }

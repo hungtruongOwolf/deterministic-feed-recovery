@@ -3,7 +3,7 @@
 #
 # Three builds rather than reusing the dev/release/bench presets, on purpose. Those presets differ in *both*
 # optimisation level and assertion level, so comparing them prices two variables at once and reports the sum
-# as though it were the cost of the assertions — which gave a 55x ratio that was a real number about nothing
+# as though it were the cost of the assertions, which gave a 55x ratio that was a real number about nothing
 # anybody would ship. See docs/BENCHMARKS.md.
 set -euo pipefail
 
@@ -13,7 +13,7 @@ samples="${1:-400}"
 repeats="${2:-3}"
 
 # Each configuration is built first, then all of them are run in rotation, `repeats` times over. Running one
-# configuration to completion before starting the next lets a thermal ramp land entirely on one of them — which
+# configuration to completion before starting the next lets a thermal ramp land entirely on one of them, which
 # is how a table came out with `fast` assertions slower than `paranoid`. Rotating spreads the machine's mood
 # across all three, and taking the minimum per measurement discards what is left, because noise only adds time.
 for level in paranoid fast off; do

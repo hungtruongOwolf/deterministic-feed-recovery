@@ -1,6 +1,6 @@
 // Shared setup for the OUCH host tests.
 //
-// Two files drive one host — entering and cancelling, then replacing and executing — so the sink and the
+// Two files drive one host(entering and cancelling, then replacing and executing) so the sink and the
 // message builders live here rather than being copied, per docs/STYLE.md §1.10.
 
 #ifndef DFR_TESTS_VENUE_SUPPORT_ORDER_ENTRY_FIXTURE_HPP

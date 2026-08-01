@@ -1,7 +1,7 @@
 # Fuzz targets, and two ways to drive them.
 #
 # Each target is a plain `LLVMFuzzerTestOneInput`. Where the toolchain ships libFuzzer we link it and get
-# coverage-guided exploration; where it does not — the Xcode clang this project is developed on, for one — the
+# coverage-guided exploration; where it does not (the Xcode clang this project is developed on, for one) the
 # portable driver in driver.cpp runs the same target from a seed. Both matter: the first finds more, the second
 # means the person writing a decoder can fuzz it without a CI round trip, and reproduces from two numbers.
 #

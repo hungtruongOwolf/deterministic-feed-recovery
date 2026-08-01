@@ -4,7 +4,7 @@
 // ----------------------------------------------------------
 // This is the whole reason the facility is worth building. Glimpse builds the current book and
 // then transmits it, so the state a client receives reflects the feed as it was when the request
-// arrived — not as it is when the last byte lands. Everything that happened in between is the
+// arrived: not as it is when the last byte lands. Everything that happened in between is the
 // client's problem, and the client is supposed to have been buffering it.
 //
 // A facility that captured its position at reply time would always hand back something at least
@@ -105,7 +105,7 @@ class snapshot_facility {
 
   // Starts building a snapshot.
   //
-  // The position is captured here — see the note at the top of this file. That single line is
+  // The position is captured here: see the note at the top of this file. That single line is
   // the difference between a facility that can lose the race and one that cannot.
   [[nodiscard]] constexpr result<void> request(time_point now) noexcept {
     ++stats_.requests;

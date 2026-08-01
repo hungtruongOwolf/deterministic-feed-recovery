@@ -4,17 +4,17 @@
 // answered by *adding* an explanation. The explanations were true and the page was unreadable: a six-minute
 // read in front of a two-minute film.
 //
-// The material is not the problem — most of it belongs in `docs/`, where it already exists. What was wrong is
+// The material is not the problem: most of it belongs in `docs/`, where it already exists. What was wrong is
 // that all of it was at the same visual weight, so nothing was. This is the fix: one line of the reason, and
 // the rest one click away for whoever wants it.
 //
 // A native `<details>` rather than state and a chevron. It is keyboard-accessible, it survives with CSS off,
-// and Ctrl-F finds text inside a closed one — which a div behind a `useState` does not.
+// and Ctrl-F finds text inside a closed one, which a div behind a `useState` does not.
 
 import type { ReactNode } from "react";
 
 interface Props {
-  /** What is inside, in the reader's terms. Not "more" — that is a word that promises nothing. */
+  /** What is inside, in the reader's terms. Not "more": that is a word that promises nothing. */
   readonly summary: string;
   readonly children: ReactNode;
   readonly open?: boolean;

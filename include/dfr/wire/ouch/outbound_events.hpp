@@ -2,7 +2,7 @@
 //
 // Two counting rules that are easy to invert
 // -----------------------------------------
-// Executed Shares is **incremental** — the shares of *this* fill, not the running total. Canceled's
+// Executed Shares is **incremental**: the shares of *this* fill, not the running total. Canceled's
 // Decrement Shares likewise: §3.5, "This number is incremental, not cumulative." So a client tracking
 // its position accumulates them, and one that assigns them overwrites its own history: three fills of
 // 100 on a 300-share order would read as an order that is still 200 short.
@@ -15,7 +15,7 @@
 // There is no 'too late to cancel' message since by the time you received it, you would already have
 // gotten the execution. Superfluous Cancel Order Messages are silently ignored."
 //
-// So silence after a cancel is not a lost message — it is the exchange telling you the order was
+// So silence after a cancel is not a lost message: it is the exchange telling you the order was
 // already gone. A client that retried on silence would generate cancels forever, and a simulator that
 // answered them would be modelling an exchange that does not exist.
 
@@ -49,7 +49,7 @@ struct executed {
   price execution_price{};
   reason_code liquidity_flag{};
   // "Each match consists of one buy and one sell. The matching buy and sell executions share the same
-  // match number" — so it identifies the trade, not the order, and it is what a Broken Trade refers to.
+  // match number", so it identifies the trade, not the order, and it is what a Broken Trade refers to.
   std::uint64_t match_number{0};
 };
 
@@ -78,7 +78,7 @@ struct broken_trade {
 };
 
 // Cancel Pending and Cancel Reject carry the same two fields. Kept as one type with the kind attached,
-// because a caller does the same thing with both — stop waiting — and differs only in what it may do
+// because a caller does the same thing with both(stop waiting) and differs only in what it may do
 // next.
 struct cancel_notice {
   std::uint64_t timestamp_ns{0};

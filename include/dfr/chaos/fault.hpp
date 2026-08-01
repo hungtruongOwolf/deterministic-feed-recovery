@@ -7,7 +7,7 @@
 // runs, and shrunk by deleting entries. A chain of polymorphic strategy objects
 // can do none of those.
 //
-// Acton's rule applies directly — "where there is one, there are many; try
+// Acton's rule applies directly: "where there is one, there are many; try
 // looking on the time axis". The many here is the schedule; the time axis is the
 // packet index.
 //
@@ -108,7 +108,7 @@ inline constexpr auto kFaultOpCount = static_cast<std::size_t>(fault_op::count_)
   }
   // Every enumerator is listed rather than using a default, so adding one without
   // classifying it is a -Wswitch warning rather than a silent "does not mutate"
-  // — which would make the injector hand a const view to a mutating operation.
+  //, which would make the injector hand a const view to a mutating operation.
   return false;
 }
 
@@ -137,7 +137,7 @@ struct fault {
   //
   // A span rather than an independent probability per packet, because
   // BUILD-GUIDE.md section 5 is emphatic about it: model bursts, not
-  // probabilities. A drop_probability of 0.001 tests almost nothing real —
+  // probabilities. A drop_probability of 0.001 tests almost nothing real:
   // consecutive loss is what actually happens and what actually breaks a
   // receiver's recovery window.
   std::uint32_t packet_count{1};

@@ -1,6 +1,6 @@
 // What it costs: three figures, two tables, and the essays kept in docs/ where they belong.
 //
-// This panel was 538 words — the single largest block of prose on the page. It argued the whole benchmark
+// This panel was 538 words: the single largest block of prose on the page. It argued the whole benchmark
 // method: batch means, the noise floor, why comparing the dev and bench presets is wrong, the three measurement
 // bugs, what padding is worth. Every word of that is worth having and none of it is worth putting between a
 // reader and the numbers.
@@ -41,7 +41,7 @@ export function Performance({ perf, live }: Props) {
 
       <div className="perf__headline">
         <Headline
-          value={hot === undefined ? "—" : nanos(hot.best_ns)}
+          value={hot === undefined ? "n/a" : nanos(hot.best_ns)}
           label="to take in one packet"
           note={hot === undefined ? "" : rate(hot.per_second)}
         />
@@ -52,14 +52,14 @@ export function Performance({ perf, live }: Props) {
           good={perf.shipping.allocations_after_init === 0}
         />
         <Headline
-          value={batched === undefined ? "—" : nanos(batched.ns_per_message)}
+          value={batched === undefined ? "n/a" : nanos(batched.ns_per_message)}
           label="to reach another core"
           note={batched === undefined ? "" : rate(batched.messages_per_second)}
         />
       </div>
 
       <p className="perf__note">
-        Measured natively on a laptop, not in your browser. CPU time in one process — no wire latency is
+        Measured natively on a laptop, not in your browser. CPU time in one process: no wire latency is
         claimed, and tick-to-trade needs hardware a cloud VM does not have.
       </p>
 
@@ -75,7 +75,7 @@ export function Performance({ perf, live }: Props) {
         <tbody>
           {perf.shipping.measurements.map((m: Measurement) => (
             <tr key={m.name}>
-              {/* The unit is a whole sentence and it matters — "one packet plus one poll, while recovering"
+              {/* The unit is a whole sentence and it matters: "one packet plus one poll, while recovering"
                   is what stops a number being meaningless. But printed in all five rows it was more text than
                   the table. On hover, and in the JSON, where somebody checking a figure will look. */}
               <td title={`one operation is ${m.unit}`}>{m.name}</td>
@@ -102,23 +102,23 @@ export function Performance({ perf, live }: Props) {
               <td>{h.name}</td>
               <td className="perf__num mono">{nanos(h.ns_per_message)}</td>
               <td className="perf__num mono">{rate(h.messages_per_second)}</td>
-              <td className="perf__num mono">{h.refused > 0 ? h.refused.toLocaleString() : "—"}</td>
+              <td className="perf__num mono">{h.refused.toLocaleString()}</td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      <Disclosure summary={`what the paranoid assertions cost — ${worst === undefined ? "measured" : `${worst.ratio.toFixed(1)}× at worst, free on the hot path`}`}>
+      <Disclosure summary={`what the paranoid assertions cost: ${worst === undefined ? "measured" : `${worst.ratio.toFixed(1)}× at worst, free on the hot path`}`}>
         <p>
           The library can bounds-check every field read. Holding <code>-O3</code> fixed and moving only that
           setting: {worst === undefined ? "" : `${worst.ratio.toFixed(1)}× on the tightest operation, `}
-          and no measurable difference on {free} of {costs.length} — including the paths that dominate an
+          and no measurable difference on {free} of {costs.length}: including the paths that dominate an
           ingest. <strong>So the checks can stay on in production.</strong>
         </p>
         <ul className="perf__costs">
           {costs.map((c) => (
             <li key={c.name} className={c.significant ? "is-real" : "is-noise"}>
-              <span className="mono">{c.significant ? `${c.ratio.toFixed(1)}×` : "—"}</span> {c.name}
+              <span className="mono">{c.significant ? `${c.ratio.toFixed(1)}×` : "noise"}</span> {c.name}
             </li>
           ))}
         </ul>
@@ -137,7 +137,7 @@ export function Performance({ perf, live }: Props) {
           <strong>batch means</strong>, not over individual operations: a p99 here cannot show one
           ten-microsecond stall inside a batch of a thousand. It shows that some batches ran consistently
           slower than others, which is what scheduler noise looks like. Figures are minima over{" "}
-          {perf.shipping.rounds ?? 1} rounds with the builds run in rotation — benchmark noise only ever adds
+          {perf.shipping.rounds ?? 1} rounds with the builds run in rotation: benchmark noise only ever adds
           time.
         </p>
       </Disclosure>
@@ -146,7 +146,7 @@ export function Performance({ perf, live }: Props) {
         <p>
           The recovery core is single-threaded on purpose: determinism is what the project rests on, and a
           multi-threaded core would make the interleaving part of the input. The concurrency sits at one seam,
-          where real feed handlers put it — a lock-free ring between the thread that owns the protocol and the
+          where real feed handlers put it: a lock-free ring between the thread that owns the protocol and the
           thread that owns the strategy. A full ring refuses and counts it rather than overwriting, because
           overwriting turns a known backlog into a silent hole.
         </p>

@@ -1,15 +1,15 @@
 // Measuring the drawing, because I cannot look at it.
 //
 // The first version of this viewer had a label sitting inside the box it described and a title block that
-// ran past the frame. Both were invisible to a compiler, to a build, and to me — and the only honest fix is
+// ran past the frame. Both were invisible to a compiler, to a build, and to me, and the only honest fix is
 // to *measure* the geometry rather than trust it. So this does three jobs:
 //
-//   1. geometry — no two regions collide, nothing escapes the frame, every part sits inside its parent, and
+//   1. geometry: no two regions collide, nothing escapes the frame, every part sits inside its parent, and
 //      every label fits the box it is drawn in;
-//   2. rendering — the scene draws, and two progress values of one step produce different markup, so the
+//   2. rendering: the scene draws, and two progress values of one step produce different markup, so the
 //      picture actually moves rather than merely existing;
-//   3. language — every step is a sentence, not a field name, and the run that loses data says so in words;
-//   4. the argument — the three acts form one continuous film with nothing to choose, and each act falls one
+//   3. language: every step is a sentence, not a field name, and the run that loses data says so in words;
+//   4. the argument: the three acts form one continuous film with nothing to choose, and each act falls one
 //      layer deeper than the act before it. That last one is the claim the whole page exists to make, so it
 //      is asserted rather than hoped for.
 //
@@ -94,7 +94,7 @@ const contains = (outer: Box, inner: Box) =>
   inner.x >= outer.x && inner.y >= outer.y && inner.x + inner.w <= outer.x + outer.w && inner.y + inner.h <= outer.y + outer.h;
 
 // ---------------------------------------------------------------------------
-// 1. geometry — the same for every run, so measured once
+// 1. geometry: the same for every run, so measured once
 // ---------------------------------------------------------------------------
 
 console.log("geometry");
@@ -162,7 +162,7 @@ console.log("geometry");
 }
 
 // ---------------------------------------------------------------------------
-// 2 and 3 — per trace
+// 2 and 3: per trace
 // ---------------------------------------------------------------------------
 
 function frame(trace: ReturnType<typeof parseTrace>, at: number, progress: number): string {
@@ -193,7 +193,7 @@ function deepestLayer(story: ReturnType<typeof buildStory>): number {
 
 for (const [index, trace] of traces.entries()) {
   const file = ACTS[index]!.file;
-  console.log(`\nact ${ACTS[index]!.ordinal} — ${file}`);
+  console.log(`\nact ${ACTS[index]!.ordinal}: ${file}`);
   const story = buildStory(trace);
 
   check(story.length === trace.events.length, "one step per event");
@@ -236,7 +236,7 @@ for (const [index, trace] of traces.entries()) {
 }
 
 // ---------------------------------------------------------------------------
-// 4. the argument — one film, and it descends
+// 4. the argument: one film, and it descends
 // ---------------------------------------------------------------------------
 
 console.log("\nthe book, which is the point of the message layer");
@@ -264,7 +264,7 @@ console.log("\nthe book, which is the point of the message layer");
     check(one.bid_levels > 1 && one.ask_levels > 0, "the book has real depth, not one level");
   }
 
-  // And it draws, and — the part that was missing — it *states the claim* rather than showing two numbers a reader
+  // And it draws, and(the part that was missing) it *states the claim* rather than showing two numbers a reader
   // has to interpret. A bid and an ask on a page tell nobody that they are looking at the project's central
   // argument.
   const drawn = frame(traces[0]!, 60, 0.5);
@@ -299,7 +299,7 @@ check(film.acts.length === 3, "the film has three acts");
 check(film.acts[0]!.from === 0, "the film starts at the first act");
 check(
   film.acts.every((a, i) => (i === 0 ? true : a.from === film.acts[i - 1]!.to)),
-  "the acts are contiguous — no gap and no overlap between them",
+  "the acts are contiguous: no gap and no overlap between them",
 );
 check(
   film.acts[film.acts.length - 1]!.to === film.moments.length,
@@ -331,7 +331,7 @@ check(strip.includes("strip__fill"), "a single fill crosses the act dividers");
 const runtime = runtimeSeconds(film, BEATS_PER_SECOND);
 check(
   runtime > 90 && runtime < 200,
-  `the film runs ${Math.round(runtime)}s at 1× — watchable in one sitting`,
+  `the film runs ${Math.round(runtime)}s at 1×: watchable in one sitting`,
 );
 
 const midway = renderToStaticMarkup(
@@ -341,7 +341,7 @@ check(midway !== strip, "the strip shows the position moving through the film");
 check(/is-past/.test(midway), "an act already played is marked as behind, not as unchosen");
 
 // ---------------------------------------------------------------------------
-// 5. the name — a reader has to be able to tell that it is one
+// 5. the name: a reader has to be able to tell that it is one
 // ---------------------------------------------------------------------------
 
 console.log("\nthe name");
@@ -374,7 +374,7 @@ for (const [what, line] of [
 }
 
 // ---------------------------------------------------------------------------
-// 6. the order-entry session — the other direction, and the claim it makes
+// 6. the order-entry session: the other direction, and the claim it makes
 // ---------------------------------------------------------------------------
 
 console.log("\nthe order-entry session");
@@ -387,8 +387,8 @@ check(
   "the steps are numbered contiguously from zero",
 );
 
-// The claim the whole section exists to make. Both numbers come from the file — the server assigned one and
-// an independent stream_cursor counted the other — so this asserts agreement rather than computing it.
+// The claim the whole section exists to make. Both numbers come from the file: the server assigned one and
+// an independent stream_cursor counted the other, so this asserts agreement rather than computing it.
 check(
   session.steps.every((step) => step.client_next === step.server_next || step.step === 0),
   "the two sequence counters agree on every step after the login",
@@ -504,7 +504,7 @@ check(
 }
 
 // ---------------------------------------------------------------------------
-// 7. the controls — the page runs the library, and says so honestly
+// 7. the controls: the page runs the library, and says so honestly
 // ---------------------------------------------------------------------------
 
 console.log("\nthe controls");
@@ -532,7 +532,7 @@ console.log("\nthe controls");
     />,
   );
   check(/switched off|WebAssembly/.test(controls_offline_probe), "an inert control says why it is inert");
-  // What used to be checked here — that the words "seed" and "faults" appear — is now checked for its
+  // What used to be checked here(that the words "seed" and "faults" appear) is now checked for its
   // *absence*, in the language section below. A control the reader cannot form an intention about is worse than
   // no control, because the page then looks interactive and is not.
   check(holding.includes("is-holding"), "the verdict reads as holding at the committed settings");
@@ -568,7 +568,7 @@ console.log("\nthe controls");
 }
 
 // ---------------------------------------------------------------------------
-// 8. the performance figures — read, never recomputed, and honest about provenance
+// 8. the performance figures: read, never recomputed, and honest about provenance
 // ---------------------------------------------------------------------------
 
 console.log("\nthe performance figures");
@@ -614,7 +614,7 @@ console.log("\nthe performance figures");
   );
   check(costs.some((c) => c.significant), "at least one operation is measurably slower with assertions on");
 
-  // A plausible browser run: three acts of 300 messages in a few milliseconds. Values, not zeroes — a panel
+  // A plausible browser run: three acts of 300 messages in a few milliseconds. Values, not zeroes: a panel
   // rendered with an absent measurement is the fallback branch, and that is checked separately below.
   const here = ratePerSecond({ elapsedMs: 6.4, messages: 900, runs: 2 });
   const drawn = renderToStaticMarkup(<Performance perf={perf} live={here} />);
@@ -661,7 +661,7 @@ console.log("\nthe performance figures");
 }
 
 // ---------------------------------------------------------------------------
-// 9. the reader's language — no jargon the visitor cannot act on
+// 9. the reader's language: no jargon the visitor cannot act on
 // ---------------------------------------------------------------------------
 
 console.log("\nthe reader's language");
@@ -673,7 +673,7 @@ console.log("\nthe reader's language");
   );
 
   // "seed" was the word this page asked a visitor for, and it is a word they cannot form an intention about.
-  // It is still present — reproducibility is the point of the project — but as a footnote naming this pattern.
+  // It is still present(reproducibility is the point of the project) but as a footnote naming this pattern.
   check(/>damage</.test(controls), "the damage control is named for what it is");
   check(/>length</.test(controls), "so is the length control");
   check(
@@ -684,7 +684,7 @@ console.log("\nthe reader's language");
   // survives in class names and prop names, where it belongs, and must not survive in the text.
   const visible = controls.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
   check(!/seed/i.test(visible), "no visible text asks the reader for a \"seed\"");
-  // Not "the word never appears" — naming the fault injector is informative, and hiding what the thing is
+  // Not "the word never appears": naming the fault injector is informative, and hiding what the thing is
   // called would be a different kind of condescension. The test is that no *control* asks for a count of
   // them: every choice a reader makes is a phrase, and the numbers are behind the phrases.
   const labels = (controls.match(/class="choice__option[^"]*"[^>]*>([^<]+)</g) ?? []).map((m) =>
@@ -706,7 +706,7 @@ console.log("\nthe reader's language");
       live
     />,
   );
-  // The old heading — "The other direction: orders coming in" — assumed the reader already knew there were two
+  // The old heading("The other direction: orders coming in") assumed the reader already knew there were two
   // directions. A heading that needs the thing it introduces is not a heading.
   check(!/The other direction/.test(session), "the session panel no longer carries its own heading essay");
   // The heading moved into App's numbered section, so what this panel must still carry is the one claim the
@@ -715,7 +715,7 @@ console.log("\nthe reader's language");
 }
 
 // ---------------------------------------------------------------------------
-// 10. the page's weight — the failure mode that got it here
+// 10. the page's weight: the failure mode that got it here
 // ---------------------------------------------------------------------------
 //
 // Every criticism of this page was answered by *adding* an explanation, and the explanations were all true. It
@@ -723,8 +723,8 @@ console.log("\nthe reader's language");
 // two-minute film. Prose is the thing this project produces most easily and it is the thing a page can least
 // afford, so the budget is asserted rather than trusted to taste.
 //
-// What is counted is what a reader sees *before opening anything*. Folded detail is not a cost — it is the
-// mechanism that made the cut possible — so the bodies of <details> are removed before counting.
+// What is counted is what a reader sees *before opening anything*. Folded detail is not a cost: it is the
+// mechanism that made the cut possible, so the bodies of <details> are removed before counting.
 
 console.log("\nthe snapshot rebuild");
 
@@ -738,12 +738,12 @@ console.log("\nthe snapshot rebuild");
   check(frames[frames.length - 1]!.matches, "and holds the venue's book by the end");
   check(
     frames.some((f) => f.type === "S" && !f.matches),
-    "with frames in between where it is part-way there — the convergence a reader watches",
+    "with frames in between where it is part-way there: the convergence a reader watches",
   );
 
   // The protocol's shape, in the order it has to be in.
   check(frames[0]!.type === "A", "the session opens with a login");
-  check(frames[1]!.type === "g", "then begin, before any state — so a wrong service is caught first");
+  check(frames[1]!.type === "g", "then begin, before any state, so a wrong service is caught first");
   check(
     frames[frames.length - 2]!.type === "G",
     "the resume sequence arrives second to last, after every level",
@@ -785,7 +785,7 @@ console.log("\nthe snapshot rebuild");
 console.log("\nkeyboard and assistive technology");
 
 {
-  // Symbol-only buttons. `⏮ ◀ ❙❙ ▶` read as nothing to a screen reader, and `title` is not reliably announced — so
+  // Symbol-only buttons. `⏮ ◀ ❙❙ ▶` read as nothing to a screen reader, and `title` is not reliably announced, so
   // the transport was a row of unlabelled controls. Measured rather than assumed, because "it looks obvious" is
   // exactly the reasoning that produces this.
   const all = allSources("src")
@@ -816,7 +816,7 @@ console.log("\nkeyboard and assistive technology");
 console.log("\nthe stylesheet");
 
 {
-  // Colour contrast, measured. `--ink-faint` shipped at 2.49:1 while carrying hints, notes and captions — under
+  // Colour contrast, measured. `--ink-faint` shipped at 2.49:1 while carrying hints, notes and captions, under
   // WCAG AA's 4.5:1 for body text and under even the 3:1 large-text threshold. A lot of the page's explanation was
   // effectively unreadable, and nothing in the build said so.
   //
@@ -854,7 +854,7 @@ console.log("\nthe stylesheet");
 }
 
 {
-  // Twenty-one percent of the stylesheet was rules for components deleted in earlier rewrites — whole blocks for a
+  // Twenty-one percent of the stylesheet was rules for components deleted in earlier rewrites: whole blocks for a
   // `glyph`, a `band` and a `node` that no longer exist. Dead CSS is invisible: it costs bytes, it makes the file
   // unreadable, and grepping for a class name finds a definition that governs nothing.
   //
@@ -864,7 +864,7 @@ console.log("\nthe stylesheet");
   // Every source file under src/, walked rather than listed.
   //
   // The first version had a hardcoded directory list and reported twenty-four false positives the day a new directory
-  // was added — which is precisely the failure a hardcoded list of directories has. A checker that goes stale is worse
+  // was added, which is precisely the failure a hardcoded list of directories has. A checker that goes stale is worse
   // than no checker, because it teaches people to ignore it.
   const sources = allSources("src").map((f) => readFileSync(f, "utf8")).join("\n");
 
@@ -912,7 +912,7 @@ console.log("\nthe page's weight");
 
   // Prose, not data.
   //
-  // A table cell and an SVG label are the *content* — the numbers and the drawing are what a reader came for,
+  // A table cell and an SVG label are the *content*: the numbers and the drawing are what a reader came for,
   // and counting them would push towards a page that says less about less. What this project over-produces is
   // paragraphs, so paragraphs are what is budgeted: <p>, <li>, and anything in a prose container. Folded bodies
   // are excluded, since folding is the mechanism that made the cut possible.
@@ -966,7 +966,7 @@ console.log("\nwhether somebody who does not know the subject can follow it");
 
 {
   // The failure this section exists to prevent: a page that describes what was built, to somebody who already knows
-  // why that was worth building. Measured before it existed — the first screen used nine technical terms before
+  // why that was worth building. Measured before it existed: the first screen used nine technical terms before
   // defining any of them, every heading was written from the builder's point of view, and nothing said why any of it
   // mattered.
   const primer = renderToStaticMarkup(<Primer onWatch={() => {}} />);
@@ -1030,7 +1030,7 @@ console.log("\nwhat a visitor can see");
   );
   const strip = (html: string) => html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
 
-  // Thirty seconds: what it is, that somebody checked it, and where the code is — without pressing anything.
+  // Thirty seconds: what it is, that somebody checked it, and where the code is, without pressing anything.
   check(/broken on purpose/.test(hero), "the first line says what was built");
   check(new RegExp(`>${TEST_COUNT}<`).test(hero), `the test count (${TEST_COUNT}) is visible without opening anything`);
   check(/>3</.test(hero) && /compilers/.test(hero), "so is how many compilers check them");

@@ -1,6 +1,6 @@
 # Deterministic Feed Recovery
 
-**DFR** — a market-data feed broken on purpose, and the C++20 client that puts it back together.
+**DFR**: a market-data feed broken on purpose, and the C++20 client that puts it back together.
 
 A seeded fault injector and a recovery library for exchange market-data feeds. Every run is a deterministic
 function of its seed, so a failure is a number somebody else can type in and see for themselves.
@@ -30,8 +30,8 @@ All nine namespaces are implemented and tested.
 | `dfr::book` | an aggregated order book, and the oracle that turns on it | done |
 | `dfr::wire::glimpse` | the snapshot protocol as bytes, served over SoupBinTCP | done |
 
-**720 tests pass under five configurations** — assertions at paranoid, fast and off, and
-AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer — all with warnings as errors, on **three
+**720 tests pass under five configurations**: assertions at paranoid, fast and off, and
+AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer: all with warnings as errors, on **three
 compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both synthetic streams and real captures.
 
 ## The invariant that needed a message layer
@@ -43,17 +43,17 @@ statement about content, and it is now asserted:
 > **The book after loss and repair is the book that would have existed if nothing had been lost.**
 
 It is now visible in the committed traces rather than only in a test. Act I keeps both lines and act II loses one,
-and both end with **the same book** — bid 20.8700, ask 20.9500, 6,831 shares traded. Act III loses data for good
+and both end with **the same book**: bid 20.8700, ask 20.9500, 6,831 shares traded. Act III loses data for good
 and ends with a different one: 231 shares. The viewer draws the top of book beside the run, and `npm run check`
 asserts that equality and that difference on the committed data.
 
 That is a much harder invariant. It fails if recovery delivers the right messages in the wrong order, applies a
-repair twice, or drops a size-zero deletion — none of which a sequence count can see.
+repair twice, or drops a size-zero deletion: none of which a sequence count can see.
 
 Writing it found something, and not in the library. The first version applied messages in the order the client
 *delivered* them and the books did not match: same 600 messages, same update counts, different book. Recovery
-was right. **While a hole is open the client keeps delivering later messages** — on purpose, because stalling on
-a gap turns one loss into an outage — so a repair arrives *after* higher sequence numbers. An aggregated book is
+was right. **While a hole is open the client keeps delivering later messages**: on purpose, because stalling on
+a gap turns one loss into an outage, so a repair arrives *after* higher sequence numbers. An aggregated book is
 last-write-wins, so applying the older update second leaves the wrong size at that price, permanently.
 
 So a correct consumer of a gap-filling feed must apply in **sequence order, not arrival order**. The client makes
@@ -63,15 +63,15 @@ rediscovers.
 
 ### Where the DEEP field offsets came from
 
-Not a specification — its live URL serves a stub, like IEX-TP's. A real IEX HIST capture (2017-08-26, 20,145
+Not a specification: its live URL serves a stub, like IEX-TP's. A real IEX HIST capture (2017-08-26, 20,145
 packets, 48,635 messages) was tabulated by type and length *before* any of it was written, which gave the eleven
 message types and their exact sizes as observed facts. The layouts were then confirmed semantically:
 
 - every timestamp decodes to 2017-08-26, the capture's own date;
-- the symbols are real tickers — WWE, IEXT, VIAV;
+- the symbols are real tickers: WWE, IEXT, VIAV;
 - a Price Level Buy at **$20.8900** and a Sell at **$20.9000** on the same symbol at the same instant: a valid
   one-cent spread, which a wrong price offset cannot produce by accident;
-- a Trade Report at $20.9000 — the ask — for 100 shares.
+- a Trade Report at $20.9000(the ask) for 100 shares.
 
 All 48,635 messages in the capture decode, with **zero unknown types and zero length mismatches**.
 
@@ -88,7 +88,7 @@ All 48,635 messages in the capture decode, with **zero unknown types and zero le
 That last row is the useful one: **the bounds-checks-everywhere build can ship.** They cost 3× on a header
 decode, which is almost all checks, and nothing measurable on the paths that dominate an ingest.
 
-Not measured, and not measurable here: tick-to-trade, NIC-to-NIC, any wire latency — no NIC timestamping and
+Not measured, and not measurable here: tick-to-trade, NIC-to-NIC, any wire latency, no NIC timestamping and
 no PMU counters on a laptop or a cloud VM. See [docs/BENCHMARKS.md](docs/BENCHMARKS.md) for the three
 measurement bugs found along the way, and [docs/CONCURRENCY.md](docs/CONCURRENCY.md) for the experiment where
 **ThreadSanitizer passes a deliberately broken ring** and a property test on arm64 catches it 12 times out of
@@ -116,7 +116,7 @@ ctest --test-dir build/dev
 ./build/dev/tools/trace --seed 4711 --messages 300 --faults 6 --out /tmp/b.jsonl && diff /tmp/a.jsonl /tmp/b.jsonl
 
 # A snapshot served and rebuilt: the venue's book, and a client that starts from nothing.
-# Both books are printed at every frame — watch the right one converge on the left one.
+# Both books are printed at every frame: watch the right one converge on the left one.
 ./build/dev/tools/glimpse --levels 5
 
 # Against a real capture, if you have an IEX HIST pcap:
@@ -124,7 +124,7 @@ ctest --test-dir build/dev
 ./build/dev/tools/verify   <capture.pcap> --seed 4711 --faults 40
 ```
 
-Or [run it in the browser](https://hungtruongowolf.github.io/deterministic-feed-recovery/) — the page
+Or [run it in the browser](https://hungtruongowolf.github.io/deterministic-feed-recovery/), the page
 compiles this library to WebAssembly, so the seed you type is a run that happens. Not a replay of a
 recording.
 
@@ -134,22 +134,22 @@ recording.
 ./scripts/check-wasm.sh dev
 ```
 
-Two compilers, two targets, one seed. Six shapes of run — one line, two lines, the glimpse race, two session
-scripts — diffed byte for byte. If they ever differ, something in the library depends on its platform and
+Two compilers, two targets, one seed. Six shapes of run: one line, two lines, the glimpse race, two session
+scripts: diffed byte for byte. If they ever differ, something in the library depends on its platform and
 "deterministic" was a word rather than a property, so CI fails on it.
 
 ## What this is meant to be
 
 Three components under the namespace `dfr`, built in this order:
 
-1. **`dfr::chaos`** — a seeded, protocol-aware fault injector for MoldUDP64 / IEX-TP multicast
+1. **`dfr::chaos`**, a seeded, protocol-aware fault injector for MoldUDP64 / IEX-TP multicast
    streams. Burst loss, reordering, duplication, A/B line divergence, sequence resets,
    snapshot/incremental races. A deterministic function of `(seed, packet_index)`, so any
    failure replays exactly.
-2. **`dfr::recovery`** — a client library that survives all of the above: gap detection,
+2. **`dfr::recovery`**, a client library that survives all of the above: gap detection,
    retransmission requests, snapshot-based book reconstruction, A/B arbitration, NAK
    suppression.
-3. **`dfr::venue`** — a mock exchange that speaks the real wire protocols, so `dfr::recovery`
+3. **`dfr::venue`**, a mock exchange that speaks the real wire protocols, so `dfr::recovery`
    can be tested against something that behaves like an exchange rather than a stub. Market data
    out over IEX-TP, retransmission and snapshots that can refuse, and OUCH 4.2 order entry in.
 
@@ -169,8 +169,8 @@ Searched GitHub on 2026-07-29:
 | `glimpse soupbintcp` | **0** |
 | `feed arbitration multicast market data` | 1 (0 stars) |
 
-Feed *decoders* are saturated. The recovery path — the code that runs only when something has
-already gone wrong — has no open-source implementation, and no tool exists to test one.
+Feed *decoders* are saturated. The recovery path: the code that runs only when something has
+already gone wrong: has no open-source implementation, and no tool exists to test one.
 
 Supporting evidence that this is where the bugs are: Yuan et al., OSDI'14 found that 92% of
 catastrophic system failures came from incorrect handling of errors that were explicitly
@@ -192,12 +192,12 @@ what sounded good. Two earlier claims were tried and both were false:
 The two failures are the interesting part.
 
 **"Each act reaches deeper" is false** at any seed where the second act's faults happen to close from a
-retransmit the first act also needed — at seed 7 with six faults, the second act never asks for anything.
+retransmit the first act also needed: at seed 7 with six faults, the second act never asks for anything.
 
 **"Two lines mean fewer round trips" is false in two different ways.** At seed 114 the second line fills the
 *middle* of a hole, splitting one 27-message gap into two of 9 and 15: *more* requests, *fewer* messages.
 And at seed 186 two lines need more messages back than one, because the injector damages each line
-separately — redundancy is not a strict subset of the single-line failure, it is a different one.
+separately: redundancy is not a strict subset of the single-line failure, it is a different one.
 
 So the run summary gained `retransmit_messages` alongside `retransmit_requests`, because the two answer
 different questions, and the page states the third row as a tendency rather than a law. That distinction is
@@ -224,7 +224,7 @@ chained, and the block framing accounted for exactly the declared payload length
 A wrong offset for Stream Offset or Payload Length would have broken on the
 second packet.
 
-The last four rows are a re-verification, run after `chain_checker` was changed —
+The last four rows are a re-verification, run after `chain_checker` was changed,
 because a decoder that has been "verified once" and then edited is a decoder that
 has not been verified.
 
@@ -240,9 +240,9 @@ $ inspect deep.pcap
 stream through `dfr::recovery`, and plays retransmit server from the undamaged
 original. It checks two properties and exits non-zero if either fails:
 
-- **detection** — the messages the client reports missing are exactly the ones that
+- **detection**: the messages the client reports missing are exactly the ones that
   never reached it, no more and no fewer;
-- **repair** — with a retransmit server, nothing is missing at the end and every
+- **repair**: with a retransmit server, nothing is missing at the end and every
   message was delivered exactly once.
 
 ```
@@ -259,7 +259,7 @@ $ verify deep_20170826.pcap --seed 4711
   fully repaired           yes
 ```
 
-Both properties hold across **50 runs** — five captures spanning 2017 to 2024, both
+Both properties hold across **50 runs**: five captures spanning 2017 to 2024, both
 container formats, ten seeds each. The message count matches `inspect`'s independent
 count for the same file, which is a second opinion on the accounting.
 
@@ -281,15 +281,15 @@ Three things the exercise turned up:
   classic pcap. Sampling further killed the theory outright: `20241001` is classic
   pcap too, seven years later, with a snaplen of 262,144 rather than 65,535. The
   format simply varies file to file, so a tool cannot pick a reader by date or by
-  era — it has to try one and fall back, which is what `inspect` does.
+  era: it has to try one and fall back, which is what `inspect` does.
 - **The multicast group, port and session id all vary too** (233.215.21.4:10378 in
   2017, 233.215.21.242:32001 in 2024). Anything hard-coded from one capture is a
   parser that works on exactly one file.
 
 ## Recorded runs
 
-`tools/trace` records a whole run — venue publishing, faults injected, the client's every
-decision — as one JSON object per line. A trace is a deterministic function of the seed, so
+`tools/trace` records a whole run: venue publishing, faults injected, the client's every
+decision: as one JSON object per line. A trace is a deterministic function of the seed, so
 it is committed next to the code rather than regenerated: `traces/` holds five, and
 `diff`ing a fresh run against them is a behavioural regression test a human can read.
 
@@ -301,7 +301,7 @@ $ trace --glimpse --out glimpse.jsonl      # loses the Glimpse race on purpose
 Every event carries the *resulting* client state and headline numbers. That redundancy is
 deliberate: a viewer must be able to draw any moment by reading one line, because a viewer
 that reconstructed state from the event sequence would be a second implementation of the
-state machine — and when the two disagreed, the picture would be wrong with nothing to say
+state machine, and when the two disagreed, the picture would be wrong with nothing to say
 so.
 
 The header also carries a generated `limits` array: which claims this run measured and which
@@ -313,15 +313,15 @@ cannot drift from what the run actually did.
 `viewer/` is a static page that compiles this library to WebAssembly and runs it. Five sections, ordered for
 somebody who has not read any of this:
 
-1. **What goes wrong, and how would you even notice?** — the run itself. Choose how much damage and how long, and
+1. **What goes wrong, and how would you even notice?**: the run itself. Choose how much damage and how long, and
    it re-runs: the packet axis, the client's state as a band, the Glimpse race on a sequence axis, per-line health
    for a redundant pair, and the top of book beside it. The same run is also stated in four plain sentences, so it
    is legible without reading the geometry.
-2. **Starting from nothing** — a snapshot served and rebuilt, the venue's book and the client's side by side.
-3. **The other direction** — an order-entry session, both halves of the wire.
-4. **Where it went wrong while I was building it** — eleven defects, each with how it hid, what caught it, and what
+2. **Starting from nothing**: a snapshot served and rebuilt, the venue's book and the client's side by side.
+3. **The other direction**: an order-entry session, both halves of the wire.
+4. **Where it went wrong while I was building it**: eleven defects, each with how it hid, what caught it, and what
    it changed. For engineers, and placed after the sections that are not.
-5. **What it costs to keep up** — the benchmark tables, led by one figure measured *in your browser* on the run you
+5. **What it costs to keep up**: the benchmark tables, led by one figure measured *in your browser* on the run you
    just caused, with the gap to the native numbers stated rather than left to be discovered.
 
 It opens by saying what goes wrong for somebody rather than what was built, because a reader who does not already
@@ -339,7 +339,7 @@ npm run check        # the drawing checks, the legibility checks and the budgets
 It contains **no domain logic**. Every number drawn is a field the trace already carries; nothing
 is recomputed. A viewer that reconstructed state from the event sequence would be a second
 implementation of the state machine in another language, and when the two disagreed the picture
-would be wrong with nothing to say so — the exact failure this library exists to prevent,
+would be wrong with nothing to say so: the exact failure this library exists to prevent,
 reintroduced in the tool built to display it.
 
 `scripts/regenerate-traces.sh` refreshes the committed fixtures; `git diff traces/` afterwards is a
@@ -349,15 +349,15 @@ behavioural regression report.
 
 Real wire-format captures, free and without registration:
 
-- **IEX HIST** (`iextrading.com/api/1.0/hist`) — pcap with 802.1Q VLAN + IPv4 multicast +
+- **IEX HIST** (`iextrading.com/api/1.0/hist`): pcap with 802.1Q VLAN + IPv4 multicast +
   IEX-TP. Primary corpus.
-- **`Open-Markets-Initiative/omi-data-pcaps`** — genuine NASDAQ MoldUDP64 multicast pcap.
-- **B3 `MBO_EQT_Incremental_FeedA/FeedB`** — the only free A/B redundant capture pair found.
+- **`Open-Markets-Initiative/omi-data-pcaps`**: genuine NASDAQ MoldUDP64 multicast pcap.
+- **B3 `MBO_EQT_Incremental_FeedA/FeedB`**: the only free A/B redundant capture pair found.
 
 Note that NASDAQ's own free samples (`emi.nasdaq.com`) are BinaryFILE format: a 2-byte length
 prefix plus raw ITCH, with the entire transport layer stripped. They carry no MoldUDP64 header,
 no session ID and no packet sequence numbers, so they cannot be used to test gap handling
-without synthesising the transport first — at which point the test exercises the synthesiser.
+without synthesising the transport first: at which point the test exercises the synthesiser.
 
 ## Stated limits
 
@@ -366,8 +366,8 @@ without synthesising the transport first — at which point the test exercises t
   software timestamp and should be read as such.** This project is about correctness and
   determinism, not about tick-to-trade latency.
 - AWS does not support multicast on an ordinary VPC. Local testing is `veth` + network
-  namespaces + `tc netem`, so IGMP snooping and querier behaviour — a common operational cause
-  of a feed going silent — is reasoned about rather than reproduced.
+  namespaces + `tc netem`, so IGMP snooping and querier behaviour: a common operational cause
+  of a feed going silent: is reasoned about rather than reproduced.
 
 ## Building
 
@@ -386,20 +386,20 @@ Other presets: `release` (optimised, assertions still on at the fast level),
 
 **A concurrency test that has passed once has told you almost nothing.** The threaded book test aborted
 intermittently; I read "720 tests passed", pushed, and CI failed. Looked for on purpose it reproduced on the second
-run, so it had never been platform-specific — and the defect was in the *harness*, a Catch2 `REQUIRE` on the
+run, so it had never been platform-specific, and the defect was in the *harness*, a Catch2 `REQUIRE` on the
 consumer thread racing the main thread's result capture. With it planted back, the test fails 4 times in 200 runs;
 the first repetition count I tried, 40, reported success. 400 runs catch it 99.97% of the time and cost six seconds,
 so that is the default and CI runs it on `dev` and `release`.
 
 **A change is not done until all five of `dev`, `release`, `bench`, `asan` and `tsan` pass.** The matrix
 is not decoration: two defects in this repository were invisible in one configuration and fatal in
-another — a dangling `span` into a destroyed temporary that `-O0` had not yet reused the stack for,
+another: a dangling `span` into a destroyed temporary that `-O0` had not yet reused the stack for,
 and a test asserting that a disabled assertion does not evaluate its condition, which the
 assertions-off build reported as an unused declaration.
 
 **What the matrix cannot see: the compiler.** It varies optimisation, assertion level and
 sanitizers, all on one toolchain. On its very first run, CI found five call sites that were an
-error under Linux Clang and silent under Apple Clang — a designated initialiser skipping a field,
+error under Linux Clang and silent under Apple Clang: a designated initialiser skipping a field,
 where `-Wmissing-field-initializers` is implemented by one and not the other. Four local
 configurations could not have caught it, and a verification story that omits what it cannot see is
 the kind of overclaiming this project criticises elsewhere.
@@ -420,27 +420,27 @@ test fails 12 times out of 12. Two architectures, two classes of defect, and dro
 
 ## Documents
 
-- `RESEARCH-DOSSIER.md` — how this problem was selected, and what was ruled out.
-- `BUILD-GUIDE.md` — data sources, protocol specs, test targets, determinism hazards,
+- `RESEARCH-DOSSIER.md`: how this problem was selected, and what was ruled out.
+- `BUILD-GUIDE.md`: data sources, protocol specs, test targets, determinism hazards,
   learning path.
-- `LUAN-GIAI-TIENG-VIET.md` — the same reasoning chain in Vietnamese.
-- `docs/DESIGN.md` — mechanism choices, each with the real project and file that proves it works,
+- `LUAN-GIAI-TIENG-VIET.md`: the same reasoning chain in Vietnamese.
+- `docs/DESIGN.md`: mechanism choices, each with the real project and file that proves it works,
   plus why the two existing open-source MoldUDP64 libraries do not meet these requirements.
-- `docs/BENCHMARKS.md` — the method, the three measurement bugs found by reading numbers that were too good, and
+- `docs/BENCHMARKS.md`: the method, the three measurement bugs found by reading numbers that were too good, and
   why comparing the `dev` and `bench` presets to price assertions is wrong.
-- `docs/CONCURRENCY.md` — the one thread boundary, and the experiment where ThreadSanitizer passes a broken ring.
-- `docs/FUZZING.md` — the four decoders fuzzed, the corpus taken from real packets at three layers, and the planted
+- `docs/CONCURRENCY.md`: the one thread boundary, and the experiment where ThreadSanitizer passes a broken ring.
+- `docs/FUZZING.md`: the four decoders fuzzed, the corpus taken from real packets at three layers, and the planted
   bug that validated the harness.
-- `docs/STYLE.md` — house rules for comments, assertions, file size, aggregate defaults, README and
+- `docs/STYLE.md`: house rules for comments, assertions, file size, aggregate defaults, README and
   commits, calibrated against measured comment and assertion density in Linux, SQLite, TigerBeetle,
   simdjson, quill and others.
-- `viewer/README.md` — the one rule the viewer follows, and why it has no domain logic.
-- `traces/` — recorded runs, committed as fixtures. `scripts/regenerate-traces.sh` then
+- `viewer/README.md`: the one rule the viewer follows, and why it has no domain logic.
+- `traces/`: recorded runs, committed as fixtures. `scripts/regenerate-traces.sh` then
   `git diff traces/` is a behavioural regression report.
 
 ## Licence
 
-[MIT](LICENSE). A portfolio repository with no licence file is legally *all rights reserved* — nobody may copy a
+[MIT](LICENSE). A portfolio repository with no licence file is legally *all rights reserved*: nobody may copy a
 snippet, vendor a header, or safely learn from it in a commercial setting, and some legal departments will not let an
 engineer open it at all. That contradicts the reason this exists, so it is licensed the same way the libraries it
 learns from are: rigtorp's SPSCQueue and max0x7ba's atomic_queue are both MIT.

@@ -3,7 +3,7 @@
 // The injector itself is protocol-agnostic: it decides *which* packets to damage
 // and *how*, and a target says where the fields are. That split is what lets one
 // injector drive both MoldUDP64 and IEX-TP, and it is docs/DESIGN.md's decision
-// for transport handling — a template policy parameter constrained by a concept,
+// for transport handling: a template policy parameter constrained by a concept,
 // monomorphised, with no virtual call in the loop.
 //
 // A target is a stateless type with static functions rather than an object,
@@ -198,7 +198,7 @@ static_assert(fault_target<iextp_target>);
 // The two targets differ in byte order at every field, which is the reason
 // byte_order.hpp puts the order in each accessor's name. Pinned here because a
 // target that read the wrong way round would still compile and would still
-// produce a "corrupted" packet — just not the corruption the schedule asked for.
+// produce a "corrupted" packet: just not the corruption the schedule asked for.
 static_assert(moldudp64_target::kHeaderSize == 20);
 static_assert(iextp_target::kHeaderSize == 40);
 

@@ -34,7 +34,7 @@ TEST_CASE("a VLAN-tagged frame still parses, and reports the tag",
   // The test this file exists for. IEX HIST captures carry VLAN 1013. A reader
   // that assumes the EtherType is at offset 12 finds 0x8100 there, does not
   // recognise it as IPv4, and reports that the file contains no IP traffic at
-  // all — silently, and for every packet.
+  // all: silently, and for every packet.
   const auto f = iex_shaped("payload");
 
   cap::udp_datagram datagram;

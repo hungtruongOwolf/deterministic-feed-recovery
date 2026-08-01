@@ -2,7 +2,7 @@
 //
 // Exists so the mock venue can publish a feed that *means* something. Until now it published
 // `(i + at) & 0xFF`, which was enough to prove every sequence number arrived once and could not prove anything
-// about content — and the invariant worth having is about content: the book after loss and repair must equal
+// about content, and the invariant worth having is about content: the book after loss and repair must equal
 // the book that never lost anything.
 //
 // The encoder is also how the decoder gets a second opinion. The tests decode real capture bytes *and*
@@ -61,7 +61,7 @@ namespace detail {
 
 }  // namespace detail
 
-// One price level update. Returns how many bytes it occupied, which is always `expected_size` for its type —
+// One price level update. Returns how many bytes it occupied, which is always `expected_size` for its type:
 // returned anyway so a caller writing a stream advances by what was written rather than by what it assumed.
 [[nodiscard]] constexpr result<std::size_t> encode_price_level(
     mutable_packet_view out, bool buy, std::string_view symbol, std::uint32_t size, price level,

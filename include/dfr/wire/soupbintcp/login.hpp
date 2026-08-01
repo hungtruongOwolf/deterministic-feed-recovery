@@ -2,7 +2,7 @@
 //
 // Everything about recovery over TCP starts here: Login Accepted names the sequence of the next
 // Sequenced Data Packet, and a client counts from it because nothing later will tell it again. Login
-// Request is how a client asks to resume — the one place in the protocol where a position is chosen
+// Request is how a client asks to resume: the one place in the protocol where a position is chosen
 // rather than observed.
 
 #ifndef DFR_WIRE_SOUPBINTCP_LOGIN_HPP
@@ -31,7 +31,7 @@ struct login_accepted {
     packet_view payload) noexcept {
   if (payload.size() != kLoginAcceptedPayload) DFR_UNLIKELY {
     // Exact, not "at least". A short field would be read as a shorter number, and a long one means
-    // the framing was misread — both worth reporting rather than interpreting.
+    // the framing was misread: both worth reporting rather than interpreting.
     return error::message_length_mismatch;
   }
 

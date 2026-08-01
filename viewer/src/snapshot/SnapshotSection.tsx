@@ -55,7 +55,7 @@ export function SnapshotSection({ trace, settings, onChange, live }: Props) {
         <p>
           The obvious implementation is &ldquo;resend everything from the open&rdquo;, and it is wrong for the reason
           snapshots exist: a client asks for one because it <em>cannot</em> catch up by replay. So the service walks
-          its book and sends one frame per level — O(depth), not O(messages).
+          its book and sends one frame per level: O(depth), not O(messages).
         </p>
         <p>
           The consequence is worth knowing rather than hiding: <strong>a snapshot carries state, not history.</strong>

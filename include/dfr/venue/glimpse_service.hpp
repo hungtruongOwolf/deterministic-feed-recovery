@@ -7,7 +7,7 @@
 // -------------------------------------------
 // The obvious implementation of a snapshot is "resend every message from the start of the day", and it is wrong
 // for the reason snapshots exist: a client asks for one because it *cannot* catch up by replay. So this walks the
-// current book and emits one Price Level Update per level — which is O(depth), not O(messages), and is what makes
+// current book and emits one Price Level Update per level, which is O(depth), not O(messages), and is what makes
 // a snapshot cheap enough to serve to a client that has fallen behind.
 //
 // The consequence is worth stating: **a snapshot carries state, not history.** A client that applies one has the
@@ -17,7 +17,7 @@
 // The race is still here, and still the point
 // ------------------------------------------
 // The position is captured when the request arrives, not when the reply is sent. Everything published in between
-// is *not* in the snapshot and *is* above its sequence — which is exactly the gap a client must fill from its own
+// is *not* in the snapshot and *is* above its sequence, which is exactly the gap a client must fill from its own
 // buffer, and exactly the gap it cannot fill if the buffer did not reach back far enough. That is the Glimpse
 // race, and serving over a real protocol does not soften it.
 
@@ -97,7 +97,7 @@ class glimpse_service {
     }
 
     // The book, bids then asks, best price first on each side. Order within a side matters to nobody applying
-    // it — a book is a set of levels — but emitting them in book order means a reader watching the stream sees
+    // it(a book is a set of levels) but emitting them in book order means a reader watching the stream sees
     // the same shape they will end up with.
     for (const auto& level : state.bids().levels()) {
       if (const auto err = send_level(symbol, /*buy=*/true, level, emit); !err) DFR_UNLIKELY {

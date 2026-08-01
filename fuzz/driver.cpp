@@ -1,7 +1,7 @@
 // A fuzzing driver that works where libFuzzer does not, and finds the same bugs from a seed.
 //
-// libFuzzer's runtime is not shipped with every toolchain — it is absent from the Xcode clang this project is
-// developed on — and "we fuzz in CI" is a poor answer when the person writing the decoder cannot run it. So the
+// libFuzzer's runtime is not shipped with every toolchain: it is absent from the Xcode clang this project is
+// developed on, and "we fuzz in CI" is a poor answer when the person writing the decoder cannot run it. So the
 // targets are plain `LLVMFuzzerTestOneInput` functions and there are two ways to drive them:
 //
 //   * real libFuzzer, coverage-guided, in CI on Linux, where it explores far better than anything here;
@@ -9,11 +9,11 @@
 //
 // The second is not a poor imitation of the first, it is a different tool. Coverage-guided fuzzing finds more,
 // and finds it at inputs nobody can reconstruct without the corpus file. This finds less, and every finding is
-// a seed plus an index — which is the same property the rest of the project is built on, and it means a failure
+// a seed plus an index, which is the same property the rest of the project is built on, and it means a failure
 // can be handed to somebody as two numbers rather than as an attachment.
 //
 // The mutations are deliberately crude: bit flips, byte splices, length truncations, and the interesting values
-// for a length field. A decoder's hostile input is almost never structurally novel — it is a valid packet with a
+// for a length field. A decoder's hostile input is almost never structurally novel: it is a valid packet with a
 // wrong length, which is exactly what these produce.
 
 #include "checks.hpp"
@@ -72,7 +72,7 @@ void mutate(std::vector<std::uint8_t>& bytes, dfr::prng& rng) {
       bytes[at] = static_cast<std::uint8_t>(rng.next() & 0xFF);
       return;
     }
-    case 2: {  // truncate — the single most productive mutation against a framer
+    case 2: {  // truncate, the single most productive mutation against a framer
       const auto keep = dfr::narrowed<std::size_t>(rng.next() % bytes.size());
       bytes.resize(keep);
       return;
@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
     seeds.push_back(std::move(bytes));
   }
   if (seeds.empty()) {
-    // No corpus: start from nothing, which is itself worth trying — an empty input is the case a decoder is
+    // No corpus: start from nothing, which is itself worth trying, an empty input is the case a decoder is
     // most likely to have been written without.
     seeds.emplace_back();
   }
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
     (void)LLVMFuzzerTestOneInput(bytes.data(), bytes.size());
   }
 
-  std::printf("driver: %llu corpus inputs, %llu mutations from seed %llu — no invariant broken\n",
+  std::printf("driver: %llu corpus inputs, %llu mutations from seed %llu, no invariant broken\n",
               static_cast<unsigned long long>(corpus.size()),
               static_cast<unsigned long long>(rounds), static_cast<unsigned long long>(seed));
   return 0;

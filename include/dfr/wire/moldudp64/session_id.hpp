@@ -21,8 +21,8 @@ namespace wire::moldudp64 {
 
 // The 10-byte session identifier, compared byte-exactly.
 //
-// Byte-exact and not trimmed, deliberately. A session change is a fatal error —
-// every sequence number the client holds refers to a different stream — so the
+// Byte-exact and not trimmed, deliberately. A session change is a fatal error:
+// every sequence number the client holds refers to a different stream, so the
 // comparison must not be the place where a subtle equivalence is invented. Two
 // sessions that differ only in padding are two different sessions as far as this
 // type is concerned, and if a publisher ever does that it is a finding, not
@@ -58,7 +58,7 @@ class session_id {
   }
 
   // The identifier with trailing spaces removed, for display only. Never used
-  // for comparison — see the class comment.
+  // for comparison: see the class comment.
   [[nodiscard]] std::string_view text() const noexcept {
     std::size_t length = kSessionSize;
     while (length > 0 && bytes_[length - 1] == static_cast<std::byte>(' ')) {

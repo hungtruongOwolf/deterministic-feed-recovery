@@ -1,4 +1,4 @@
-// IEX-TP — IEX's sequenced multicast transport.
+// IEX-TP: IEX's sequenced multicast transport.
 //
 // Layout, from the IEX Transport Specification. Every field is LITTLE-endian,
 // which is the opposite of MoldUDP64 and the reason byte_order.hpp puts the
@@ -61,7 +61,7 @@
 // every one of them: sequence numbers chained, stream offsets chained, and the
 // block framing accounted for exactly the declared payload length. Three
 // redundant checks agreeing that many times is strong evidence the offsets are
-// right — a wrong Stream Offset or Payload Length offset would have produced a
+// right: a wrong Stream Offset or Payload Length offset would have produced a
 // break on the second packet.
 //
 // Two facts the exercise turned up that are worth keeping:

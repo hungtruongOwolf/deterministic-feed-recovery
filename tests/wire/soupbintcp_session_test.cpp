@@ -31,7 +31,7 @@ walked walk(soup::stream_cursor& cursor, dfr::packet_view stream) {
   for (;;) {
     // Stop when the buffer is exhausted rather than asking the cursor about zero bytes. An empty view
     // genuinely needs more bytes, so calling anyway would report a fully consumed buffer as a partial
-    // packet — the two are different states and a caller tells them apart by what is left over.
+    // packet: the two are different states and a caller tells them apart by what is left over.
     if (at == stream.size()) {
       break;
     }
@@ -61,7 +61,7 @@ walked walk(soup::stream_cursor& cursor, dfr::packet_view stream) {
 TEST_CASE("login accepted names the next sequence, not the last one",
           "[wire][soupbintcp]") {
   // The off-by-one here shifts every message a client will ever number, and nothing later in the
-  // session states a position to disagree with — so it is silent and permanent.
+  // session states a position to disagree with, so it is silent and permanent.
   dfr_test::soup::raw_stream stream;
   stream.login_accepted("SESS01", "12345");
 
@@ -98,7 +98,7 @@ TEST_CASE("login accepted round-trips through the encoder",
 TEST_CASE("a login accepted of the wrong size is reported exactly",
           "[wire][soupbintcp]") {
   // Not "at least thirty bytes". A short field reads as a shorter number and a long one means the
-  // framing was misread — both worth reporting rather than interpreting.
+  // framing was misread: both worth reporting rather than interpreting.
   dfr_test::soup::raw_stream stream;
   stream.frame('A', "SESS01    12345");
 
@@ -131,7 +131,7 @@ TEST_CASE("a login request round-trips, including its two conventions",
 
 TEST_CASE("an empty requested session means the active one",
           "[wire][soupbintcp]") {
-  // All spaces on the wire, and the absence *is* the meaning — so it decodes as empty rather than as
+  // All spaces on the wire, and the absence *is* the meaning, so it decodes as empty rather than as
   // a sentinel a caller has to know about.
   std::array<std::byte, 128> buffer{};
   const dfr::mutable_packet_view out{buffer.data(), buffer.size()};

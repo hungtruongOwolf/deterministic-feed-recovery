@@ -7,7 +7,7 @@
 // return value; recovery is state that has to survive being wrong.
 //
 // Protocol-agnostic on purpose. It takes a session, a first sequence number and a
-// message count — the three things MoldUDP64 and IEX-TP both provide — so the
+// message count(the three things MoldUDP64 and IEX-TP both provide) so the
 // dependency runs from wire adapters into recovery and never back. A tracker that
 // took an iextp::header would need a second copy for MoldUDP64 and a third for the
 // in-memory simulator.
@@ -16,7 +16,7 @@
 // which is the part of that library to imitate: *"The library never performs network
 // I/O itself: when SequenceTracker sees a gap it calls request_retransmit, and the
 // caller is responsible for issuing the actual re-request."* Here even the call is
-// gone — observe() returns what happened and the caller decides, which is
+// gone: observe() returns what happened and the caller decides, which is
 // TIGER_STYLE's *"don't do things directly in reaction to external events"*.
 
 #ifndef DFR_RECOVERY_GAP_TRACKER_HPP
@@ -44,7 +44,7 @@ class gap_tracker {
 
   // Feeds one packet's sequencing fields.
   //
-  // A heartbeat — count 0 — is deliberately not a special case here. It carries the
+  // A heartbeat(count 0) is deliberately not a special case here. It carries the
   // sequence number of the *next* message, so it can legitimately open a gap while
   // delivering nothing, and treating it specially would lose that. The one thing it
   // must not do is advance the expectation past itself, which falls out of the
@@ -94,8 +94,8 @@ class gap_tracker {
   // it can never be filled.
   //
   // The session is a parameter and not an oversight to be fixed later: a snapshot
-  // facility identifies the session it is a snapshot *of* — Glimpse replies carry it,
-  // CME's instrument-definition channel carries it — and a snapshot is the one thing a
+  // facility identifies the session it is a snapshot *of*: Glimpse replies carry it,
+  // CME's instrument-definition channel carries it, and a snapshot is the one thing a
   // receiver may have before it has seen a single live packet. Without it, recovering
   // first and then joining the feed makes the first live packet look like a session
   // change, which is fatal, so the receiver would discard the snapshot it just
@@ -196,7 +196,7 @@ class gap_tracker {
       return err;
     }
 
-    // A packet can start behind the expectation and end past it — a retransmit that
+    // A packet can start behind the expectation and end past it: a retransmit that
     // also carries fresh messages. The tail beyond the expectation is new and
     // contiguous, so the expectation advances and no gap opens.
     if (arrived.end > channel.expected) {

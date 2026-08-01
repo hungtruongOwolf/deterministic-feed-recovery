@@ -63,7 +63,7 @@
 
 /* ------------------------------------------------------------- the act strip
 
-   One bar, three stretches — not three buttons. The fill is a single element that crosses the dividers,
+   One bar, three stretches: not three buttons. The fill is a single element that crosses the dividers,
    because that crossing is the whole argument: the same run continuing under worse conditions. Segments are
    transparent so the fill reads as one object passing underneath them.                                    */
 
@@ -156,7 +156,7 @@
 /* -------------------------------------------------------------- the ledger
 
    "Deliberately not claimed" is a heading, not a warning. It used to be a red tag in a flat list and it
-   read as unfinished work — so the groups carry the meaning and no colour is spent on it.               */
+   read as unfinished work, so the groups carry the meaning and no colour is spent on it.               */
 
 .ledger__group + .ledger__group { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); }
 .ledger__heading { font-size: 10px; letter-spacing: 0.11em; text-transform: uppercase; color: var(--ink); margin: 0; }

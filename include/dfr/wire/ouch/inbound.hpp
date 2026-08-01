@@ -5,7 +5,7 @@
 // Enter Order: the size of the order. Straightforward.
 //
 // Replace Order: **the total shares liable for the whole order/replace chain, inclusive of everything
-// already executed.** §2.2 spells it out — enter 500, execute 100, and a replace with 500 leaves 400
+// already executed.** §2.2 spells it out: enter 500, execute 100, and a replace with 500 leaves 400
 // exposed while a replace with 600 exposes 500. NASDAQ's stated reason is that it "inhibits the risk of
 // double-liability throughout the order/replace chain". An implementation that reads it as "the new
 // open quantity" doubles its exposure on every replace that follows a partial fill, and nothing in the
@@ -20,7 +20,7 @@
 // Modify Order: the total shares liable, like a replace.
 //
 // Because a single wrong reading of that field is a money bug rather than a decode error, the fields
-// are named for their meaning here — `total_shares_liable`, `intended_order_size` — and not `shares`.
+// are named for their meaning here(`total_shares_liable`, `intended_order_size`) and not `shares`.
 
 #ifndef DFR_WIRE_OUCH_INBOUND_HPP
 #define DFR_WIRE_OUCH_INBOUND_HPP
@@ -57,7 +57,7 @@ struct enter_order {
   std::uint8_t customer_type{' '};
 
   // Whether the exchange would accept it on the numbers alone. Not a substitute for the exchange's
-  // answer — a rejection can come for reasons no client can predict — but the checks the specification
+  // answer(a rejection can come for reasons no client can predict) but the checks the specification
   // states outright, so a simulator rejects for the documented reason rather than an invented one.
   [[nodiscard]] constexpr result<void> validate() const noexcept {
     if (!is_valid_share_count(shares)) {
@@ -76,7 +76,7 @@ struct enter_order {
       return error::invalid_argument;
     }
     // A minimum quantity above the order size can never be satisfied, so the order would rest
-    // unfillable — reported here rather than left to be discovered as a mystery non-execution.
+    // unfillable: reported here rather than left to be discovered as a mystery non-execution.
     if (minimum_quantity > shares) {
       return error::invalid_argument;
     }
@@ -104,7 +104,7 @@ struct replace_order {
     if (!is_valid_time_in_force(time_in_force)) {
       return error::invalid_argument;
     }
-    // §2.2: "replacement Order Tokens may not be the same as Tokens sent in Enter Order Messages" — and
+    // §2.2: "replacement Order Tokens may not be the same as Tokens sent in Enter Order Messages", and
     // in particular a replace onto its own token is not a no-op, it is malformed.
     if (replacement_token == existing_token) {
       return error::invalid_argument;

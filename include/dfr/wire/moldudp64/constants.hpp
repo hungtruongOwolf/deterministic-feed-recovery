@@ -17,8 +17,8 @@ namespace wire::moldudp64 {
 //
 // Field offsets are named constants with accessors, rather than a packed
 // struct. A packed struct over a received datagram requires either a
-// reinterpret_cast at an arbitrary alignment — undefined behaviour that happens
-// to work on x86 — or a memcpy that then needs per-field byte swapping anyway.
+// reinterpret_cast at an arbitrary alignment: undefined behaviour that happens
+// to work on x86, or a memcpy that then needs per-field byte swapping anyway.
 //
 // The static_asserts below give the same guarantee a `static_assert(sizeof(T))`
 // plus `offsetof` per field would, and arguably a stronger one: they check that

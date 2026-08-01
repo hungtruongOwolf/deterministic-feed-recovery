@@ -3,7 +3,7 @@
 // Everything else in tests/chaos checks that the injector does what it was told.
 // This file checks the property the whole library exists to provide, which is
 // stronger and harder: for a stream that went through the injector, the number of
-// inconsistencies a receiver reports must equal the number actually present — no
+// inconsistencies a receiver reports must equal the number actually present: no
 // false positives, no misses.
 //
 // The trick is having a second opinion that does not come from the code under
@@ -12,7 +12,7 @@
 // structural: every path through chain_checker::observe() resynchronises its
 // expectation from the packet it just saw, so a report on packet i is a statement
 // about the *pair* (i-1, i) and nothing else. That means the count of reports must
-// equal the count of adjacent pairs that disagree — which can be computed from
+// equal the count of adjacent pairs that disagree, which can be computed from
 // decoded header fields with arithmetic written out longhand, sharing no code with
 // the checker at all.
 //
@@ -51,7 +51,7 @@ dfr::packet_view view_of(const captured& c) {
 
 // The second opinion. Counts adjacent pairs of delivered packets that disagree,
 // using the three chain rules written out longhand rather than calling the
-// header's next_sequence()/next_stream_offset() helpers — the point is to share no
+// header's next_sequence()/next_stream_offset() helpers: the point is to share no
 // code with what is being checked.
 //
 // Returns -1 if any header failed to decode, which is the caller's signal that the
@@ -177,7 +177,7 @@ TEST_CASE("the receiver reports exactly the breaks a drop creates",
 
 TEST_CASE("the receiver reports exactly the breaks a duplicate creates",
           "[chaos][oracle]") {
-  // One break, not two — and the reason is worth writing down, because two is the
+  // One break, not two, and the reason is worth writing down, because two is the
   // intuitive answer. The duplicate arrives immediately after the original, so it
   // regresses by exactly the original's message count; resynchronising from the
   // duplicate lands on the same expectation the original had already set. The

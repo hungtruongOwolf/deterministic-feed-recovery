@@ -8,7 +8,7 @@
 // LIFETIME CONTRACT: an emitted view is valid only until the next call to offer()
 // or flush(). A mutated packet lives in the injector's scratch buffer, which the
 // next call overwrites. A caller that needs to keep a packet must copy it. This is
-// the same contract Aeron's flyweights have and for the same reason — it is what
+// the same contract Aeron's flyweights have and for the same reason: it is what
 // makes the zero-copy path possible for the packets that were not damaged at all.
 //
 // Nothing is allocated after construction. The delay queue and the scratch buffer
@@ -69,7 +69,7 @@ struct injection_stats {
   std::uint64_t delayed{0};
   std::uint64_t mutated{0};
 
-  // A fault the schedule asked for that the packet could not carry — too short
+  // A fault the schedule asked for that the packet could not carry: too short
   // for the field, or a delay queue already full. Counted rather than ignored,
   // because a test asserting "the receiver saw exactly the injected faults" must
   // know the difference between a fault that was applied and one that was not.
@@ -122,7 +122,7 @@ class injector {
   // Releases everything still delayed, in the order it was queued.
   //
   // Called at the end of a stream. Without it, a packet delayed past the last
-  // index would simply vanish — which is a drop, not a reorder, and would make
+  // index would simply vanish, which is a drop, not a reorder, and would make
   // the oracle expect the wrong thing.
   template <typename Emit>
   [[nodiscard]] result<void> flush(Emit&& emit) noexcept {
@@ -220,7 +220,7 @@ class injector {
     if (delayed_count_ >= kMaxDelayedPackets ||
         source.size() > kMaxPacketBytes) DFR_UNLIKELY {
       // Cannot hold it. Delivering it on time rather than dropping it, and
-      // counting the fault as not applied — a silent drop here would be a
+      // counting the fault as not applied: a silent drop here would be a
       // different fault from the one the schedule named.
       ++stats_.not_applicable;
       deliver(emit, emission{.packet = source, .source_index = index});

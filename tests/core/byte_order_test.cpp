@@ -50,7 +50,7 @@ TEST_CASE("the conversions agree with a known byte layout",
           "[core][byte_order]") {
   // Pinning against an explicit byte pattern rather than against the platform,
   // so this test would fail on a big-endian machine if the direction were
-  // reversed — which a round-trip test alone cannot catch.
+  // reversed, which a round-trip test alone cannot catch.
   const std::uint32_t host = 0x0102'0304;
 
   const std::uint32_t big = dfr::to_big_endian(host);
@@ -73,7 +73,7 @@ TEST_CASE("only the non-native path swaps", "[core][byte_order]") {
   // untaken branch only inside a template; in a plain function both branches
   // are still parsed and their static_asserts still evaluated, so a
   // STATIC_REQUIRE here would fail on every platform. The values are still
-  // computed at compile time — only the assertion is deferred.
+  // computed at compile time: only the assertion is deferred.
   constexpr std::uint32_t host = 0x1234'5678;
   constexpr std::uint32_t swapped = 0x7856'3412;
 

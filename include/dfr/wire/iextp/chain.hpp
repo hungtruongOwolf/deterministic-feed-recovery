@@ -39,14 +39,14 @@ class chain_checker {
   // Detection and resynchronisation are deliberately separate: inconsistency() is
   // const and decides nothing else, and the expectation is then rebuilt from this
   // packet unconditionally, on every path, exactly once. That structure carries an
-  // invariant the rest of the library depends on — **a report is a statement about
-  // one adjacent pair of packets and nothing more** — which is what lets
+  // invariant the rest of the library depends on: **a report is a statement about
+  // one adjacent pair of packets and nothing more**, which is what lets
   // tests/chaos/oracle_test.cpp count breaks independently and demand the numbers
   // match.
   //
   // Writing it as four returns, each doing its own resynchronisation, is how this
   // was written first, and one of the four forgot the sequence expectation. The
-  // consequence was a spurious gap on the packet *after* an offset break — blamed
+  // consequence was a spurious gap on the packet *after* an offset break: blamed
   // on a packet that was perfectly correct, and enough to make a receiver ask for a
   // retransmit it did not need. Structure, not vigilance.
   [[nodiscard]] constexpr result<void> observe(const header& value) noexcept {
@@ -82,7 +82,7 @@ class chain_checker {
   // The order matters and is not arbitrary. A session change is checked first
   // because it makes both other checks meaningless: every sequence number and
   // stream offset held refers to the old session. The offset check comes last
-  // because it is the one with no counterpart in MoldUDP64 — reaching it means the
+  // because it is the one with no counterpart in MoldUDP64: reaching it means the
   // sequence numbers chained perfectly and the byte positions did not, which is
   // what a corrupted Payload Length looks like and what neither check alone can
   // see.

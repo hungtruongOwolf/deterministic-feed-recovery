@@ -229,7 +229,7 @@ TEST_CASE("walking a block sequence catches an overstated block count",
   // This reproduces the shape of the penberg/helix defect
   // (moldudp64.hh:106-115): a header declares a block count, and the loop
   // trusts it. Here the datagram carries a 2-byte count of 4, then only two
-  // 1-byte blocks — each prefixed by its own 2-byte length, as MoldUDP64 does.
+  // 1-byte blocks: each prefixed by its own 2-byte length, as MoldUDP64 does.
   //
   // A decoder that trusts the count reads past the end. One that slices through
   // subview() gets an error on the third iteration instead.

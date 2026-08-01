@@ -2,7 +2,7 @@
 # Keeps the test count on the page equal to the test count in the build.
 #
 # A number typed into a component is a number that becomes a lie the next time a suite is added, and the viewer
-# cannot run ctest to find out. So it is generated, and this script is what CI runs to check it did not drift —
+# cannot run ctest to find out. So it is generated, and this script is what CI runs to check it did not drift,
 # which makes the page's most useful sentence self-maintaining rather than a claim somebody has to remember.
 set -euo pipefail
 
