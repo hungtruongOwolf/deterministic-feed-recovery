@@ -115,6 +115,15 @@ else
   failures=$((failures + 1))
 fi
 
+# Same defect, a second table: docs/CONCURRENCY.md's numbers drifted from bench/handoff.json after a rerun
+# regenerated the JSON but nobody touched the doc's hand-formatted table to match.
+if python3 "${here}/scripts/sync-concurrency-table.py" --check >/dev/null 2>&1; then
+  say "✓" "the concurrency table matches bench/handoff.json"
+else
+  say "✗" "docs/CONCURRENCY.md disagrees with bench/handoff.json: run scripts/sync-concurrency-table.py"
+  failures=$((failures + 1))
+fi
+
 # Namespace count, which the README got wrong by two.
 namespaces="$(find "${here}/include/dfr" -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')"
 words=(zero one two three four five six seven eight nine ten eleven twelve)
@@ -144,7 +153,7 @@ else
 fi
 
 # The viewer README has to mention what the page actually opens with. It once described a deleted heading.
-for token in hero Findings "What broke"; do
+for token in hero Findings "while I was building"; do
   if ! grep -qiF "${token}" "${here}/viewer/README.md"; then
     say "✗" "viewer/README.md does not mention \"${token}\", which is on the page"
     failures=$((failures + 1))

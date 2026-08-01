@@ -31,21 +31,21 @@ Apple M-series, two cores of one machine, `-O3 -flto`, 6–8 million messages pe
 
 | | ns per message | messages/s |
 |---|---|---|
-| 272-byte records, one `pop` each | ~26 | ~38 M |
-| 272-byte records, `pop_batch` of 64 | **~13** | **~76 M** |
-| 8-byte records, padded indices | ~39 | ~26 M |
-| 8-byte records, indices sharing a line | ~45 | ~22 M |
-| consumer deliberately too slow | ~350 | ~2.8 M, **10.3 M refused** |
+| 272-byte records, one `pop` each | ~29.6 | ~33.8 M |
+| 272-byte records, `pop_batch` of 64 | **~13.0** | **~77.1 M** |
+| 8-byte records, padded indices | ~41.2 | ~24.3 M |
+| 8-byte records, indices sharing a line | ~44.5 | ~22.5 M |
+| consumer deliberately too slow | ~288.1 | ~3.5 M, **7.78 M refused** |
 
-The last row is the design decision working: the producer was refused ten million times and the ring can say
-so. A dropping ring would have reported the same throughput and lost the same data silently.
+The last row is the design decision working: the producer was refused about 7.8 million times and the ring
+can say so. A dropping ring would have reported the same throughput and lost the same data silently.
 
 ### Two things the measurements changed
 
-**Padding is worth 10–25%, not an order of magnitude.** I wrote "the single most expensive mistake available
+**Padding is worth about 8%, not an order of magnitude.** I wrote "the single most expensive mistake available
 here, costs an order of magnitude" in the header before measuring it, because that is what the received wisdom
-says. Measured, an unpadded ring is consistently slower(in all three runs, on both record sizes) by 10% to
-25%. Real, worth having, and not the number I would have quoted from memory.
+says. Measured, an unpadded ring is consistently slower, by about 8% on both record sizes (7.8% at 272 bytes,
+7.9% at 8 bytes). Real, worth having, and a smaller number than I would have quoted from memory.
 
 **And the first attempt at measuring it found the unpadded ring *faster*,** which was not a result about
 padding at all. With 272-byte records, copying the record costs more than the cache line the two indices fight

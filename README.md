@@ -501,7 +501,11 @@ the kind of overclaiming this project criticises elsewhere.
 
 `.github/workflows/ci.yml` runs the same five presets under Linux Clang **and the whole suite under GCC 14**,
 fuzzes every decoder, checks the WebAssembly build matches native byte for byte, checks the committed traces still
-reproduce byte-for-byte, hammers the threaded tests, and builds the viewer.
+reproduce byte-for-byte, hammers the threaded tests, builds the viewer, builds at the shipping configuration to
+assert nothing allocates after start-up, and runs `tools/verify` against a real capture (see
+[The end-to-end oracle](#the-end-to-end-oracle)). A separate `clang-tidy` job runs exploratorily
+(`continue-on-error`, so a new finding is visible without blocking a merge) and is where most of the false-positive
+annotations in this codebase's `.clang-tidy` earned their documented reasons.
 
 GCC was added because the local matrix cannot see the compiler, and it paid for itself over four rounds: it rejected
 `hardware_destructive_interference_size` as an ABI dependency in two separate places, three functions marked
@@ -525,7 +529,7 @@ test fails 12 times out of 12. Two architectures, two classes of defect, and dro
 - `docs/CONCURRENCY.md`: the one thread boundary, and the experiment where ThreadSanitizer passes a broken ring.
 - `docs/FUZZING.md`: six decoders fuzzed from a corpus of real packets at three layers, a seventh target that
   reads its input as a program rather than a packet, and the three library defects it found.
-- `docs/COVERAGE.md`: what "736 tests pass" cannot say, and the two functions that had never run despite it.
+- `docs/COVERAGE.md`: what "736 tests pass" cannot say, and the two gaps, nine functions, that had never run despite it.
 - `docs/STYLE.md`: house rules for comments, assertions, file size, aggregate defaults, README and
   commits, calibrated against measured comment and assertion density in Linux, SQLite, TigerBeetle,
   simdjson, quill and others.

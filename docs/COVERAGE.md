@@ -77,7 +77,7 @@ flush-before-abort mechanism whose only customer is the coverage report. Neither
 
 ## A tooling limitation worth naming
 
-`llvm-cov report` prints `warning: 495 functions have mismatched data` on this codebase, and it is not noise.
+`llvm-cov report` prints `warning: 502 functions have mismatched data` on this codebase, and it is not noise.
 `capture/pcapng/constants.hpp`'s `pad4()` reported flat 0% coverage on the first run of this tool, and the grep
 that should have settled the question the other way did: `tests/capture/pcapng_reader_test.cpp` calls
 `minimal("x", true, /*tsresol=*/6)` and `/*tsresol=*/9`, both of which require padding a one-byte option and so
@@ -103,5 +103,5 @@ recorded here so the next reading of this report does not repeat the investigati
 Region and branch coverage barely moved, expected, since the fixes closed two specific, narrow gaps rather
 than chasing every low number, and the file recording the largest untouched gaps (`DFR_UNREACHABLE` branches)
 is exactly the file that should not move. Function coverage is the number that mattered here: it went from
-"four real functions and two real functions have never run" to zero such functions found, which is the actual
+"four real functions and five real functions have never run" to zero such functions found, which is the actual
 claim this pass set out to check.

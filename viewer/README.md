@@ -17,31 +17,38 @@ a benchmark panel. The strongest material in the repository was the most hidden 
 ## The shape
 
 ```
-hero    one sentence · four numbers · a link to the code · "running in your browser"
-1       What broke, and what caught it
-2       Watch a feed break and recover
-3       What it costs
-4       The same exchange, taking orders
+primer  three plain sentences: what a feed is, what goes wrong, why "confidently wrong" is the failure that costs money
+hero    four numbers · a link to the code · "running in your browser"
+1       What goes wrong, and how would you even notice? (the film: three acts, straight through)
+2       Starting from nothing: rebuilding the whole price list (a snapshot, served and rebuilt)
+3       The other direction: sending orders in (an OUCH session, both halves of the wire)
+4       Where it went wrong while I was building it (the defect gallery)
+5       What it costs to keep up
 ```
 
-**The hero** answers the thirty-second question without anybody pressing anything. The film used to be first,
-behind a play button: a toll gate in front of everything, for a visitor who will not press it.
+**The primer and hero** answer the thirty-second question without anybody pressing anything. The film used to be
+first, behind a play button: a toll gate in front of everything, for a visitor who will not press it.
 
-**Section 1 is the defect gallery** (`panels/Findings.tsx`, from `model/findings.ts`), because a hard bug found and correctly explained is the only real evidence of
-judgement. Each card carries *how it hid*, *what caught it*, *what it changed*. Several are the author's own
-mistakes, deliberately: a list of things that went right is a list of things nobody checked. The hardest one is
-first, and `npm run check` asserts that it is.
+**Section 1 is the film**, still the best thing here, and it is the entrance rather than something behind a fold.
 
-**Section 2 is the film**, still the best thing here. It is just no longer the entrance.
+**Section 2 exists because the film alone left a defence unproven.** The film shows two lines and retransmission;
+the third defence, a snapshot rebuild from nothing, needed its own section to be shown actually working rather
+than only claimed.
+
+**Section 4 is the defect gallery** (`panels/Findings.tsx`, from `model/findings.ts`), because a hard bug found and
+correctly explained is the only real evidence of judgement. Each card carries *how it hid*, *what caught it*, *what
+it changed*. Several are the author's own mistakes, deliberately: a list of things that went right is a list of
+things nobody checked. It is deliberately fourth, not first: for engineers, and placed after the sections that are
+not, per `npm run check`'s own assertion about where it may sit.
 
 ## Three stacked planes, because the defences are layers
 
 The drawing is an axonometric stack, back to front:
 
 ```
-plane 1   two multicast paths, running in parallel across the depth of the plane
-plane 2   the TCP retransmit service: reached only when both paths above missed
-plane 3   the snapshot service: reached only when the retransmit came too late
+plane 0   two multicast paths, running in parallel across the depth of the plane
+plane 1   the TCP retransmit service: reached only when both paths above missed
+plane 2   the snapshot service: reached only when the retransmit came too late
 ```
 
 A stack, because that is what they are: a ladder a packet *descends* when the layer above fails. A flat drawing has

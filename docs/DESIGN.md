@@ -173,23 +173,33 @@ they were.
 ```
 include/dfr/
   core/        packet_view, mutable_packet_view, result<T>, error, assert, attributes, rng, clock
-  wire/        moldudp64/, iextp/, soupbintcp/, ouch/   (constants · header · cursor · encode, per protocol)
+  wire/        moldudp64/, iextp/, soupbintcp/, ouch/, deep/, glimpse/  (constants · header · cursor ·
+               encode, per protocol; deep/ and glimpse/ are IEX-specific formats, not generic transports)
   capture/     pcap, pcapng/, ethernet, frame           (not planned; the corpus made it necessary)
   chaos/       fault, schedule, target, injector<Target>
   recovery/    gap, gap_set, gap_tracker, requester, arbiter, replay_buffer, snapshot, client
   venue/       publisher<Clock, Target>, retransmit_facility, snapshot_facility, order_entry
   trace/       event, recorder                          (not planned; the viewer needed a format)
-tools/         inspect, verify, trace
+  concurrent/  spsc_ring, delivery, publisher            (not planned; see docs/CONCURRENCY.md)
+  book/        order_book<N>, the oracle in tests/integration/book_oracle_test.cpp turns on it
+tools/         inspect, verify, trace, session, glimpse, corpus_gen
 viewer/        static page over a trace, no domain logic
 ```
 
-Three departures from the plan worth recording, because each was forced rather than chosen:
+Five departures from the plan worth recording, because each was forced rather than chosen:
 
 - **`capture/` was not in the plan.** Verifying the IEX-TP layout against real data required reading pcap
   and pcapng, and the corpus turned out to contain both with no date boundary between them.
 - **`trace/` was not either.** It exists because a viewer needs a format, and because the alternative:
   a viewer that reconstructed state from an event sequence: would have been a second implementation of
   the recovery state machine in another language. See §7b.
+- **`concurrent/` came after the library otherwise worked.** A recovery core that never leaves its own
+  thread is not a feed handler; the one seam a real consumer needs was added once that was clear rather
+  than designed in from the start. See docs/CONCURRENCY.md.
+- **`book/` came last, and drove the strongest test in the repository.** Every invariant before it was
+  about bookkeeping (a sequence number arrived once); an aggregated order book is what let the project
+  state and check the invariant that actually matters: the book after loss and repair equals the book
+  that lost nothing.
 - **No `src/dfr.cc`, no amalgamation, no module markers.** Header-only throughout, and the compiled-TU
   mechanism below was never needed. Left in the document because the reasoning still applies if a
   compile-time problem ever appears, but nothing in the repository does it today, and a design document

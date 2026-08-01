@@ -105,9 +105,10 @@ spread with the *first* run the slowest: a cold WebAssembly instance and an unwa
 Reporting the latest run would make the opening figure the worst one and lurch on every keystroke. Per message rather
 than per run, because the length control changes how much work a run is.
 
-The figure lands roughly **100× below** the native ingest number, and the page states that factor itself rather than
-leaving a reader to compute it and mistrust both. The gap is not an embarrassment; it is the reason these tables
-exist:
+The figure lands well below the native ingest number, by a factor the page computes live from the run a
+visitor just caused (observed around 100–200×, varying with the same cold-start effect the paragraph above
+measures) rather than a number fixed here that would drift from what somebody actually sees. The gap is not
+an embarrassment; it is the reason these tables exist:
 
 - WebAssembly, single-threaded, in a browser sandbox;
 - every event serialised to JSONL as it runs, which is most of what is being timed: the trace format is the
