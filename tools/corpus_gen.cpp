@@ -13,6 +13,7 @@
 // rather than only variety in field values within one flow.
 
 #include <dfr/venue/order_session.hpp>
+#include <dfr/wire/itch.hpp>
 #include <dfr/wire/ouch.hpp>
 #include <dfr/wire/soupbintcp.hpp>
 
@@ -24,6 +25,7 @@
 #include <vector>
 
 namespace ouch = dfr::wire::ouch;
+namespace itch = dfr::wire::itch;
 namespace soup = dfr::wire::soupbintcp;
 namespace venue = dfr::venue;
 namespace fs = std::filesystem;
@@ -150,6 +152,7 @@ int main(int argc, char** argv) {
   const fs::path root = argc > 1 ? argv[1] : "fuzz/corpus";
   corpus_writer soup_out(root / "soupbintcp");
   corpus_writer ouch_out(root / "ouch");
+  corpus_writer itch_out(root / "itch");
 
   // 1. The baseline flow: login, three orders on different sides and symbols, a cancel, a logout.
   {
@@ -224,7 +227,32 @@ int main(int argc, char** argv) {
     s.host.close(s.clock.now(), emit);
   }
 
-  std::printf("corpus_gen: %zu soupbintcp seeds, %zu ouch seeds, under %s\n", soup_out.count(),
-             ouch_out.count(), root.string().c_str());
+  // 5. Every supported TotalView-ITCH order lifecycle shape. There is no committed private order-level
+  // capture, so these start the fuzzer from the library's own encoder output rather than hand-written bytes.
+  {
+    constexpr itch::header_fields fields{
+        .timestamp_ns = 1'000, .stock_locate = 7, .tracking_number = 11};
+    const auto write = [&](auto&& encode) {
+      itch_out.write(encode_into(encode, 64));
+    };
+    write([&](dfr::mutable_packet_view out) {
+      return itch::encode_add_order(out, fields, 1001, 'B', 500, "IEXT", 208'900);
+    });
+    write([&](dfr::mutable_packet_view out) {
+      return itch::encode_order_executed(out, fields, 1001, 100, 9001);
+    });
+    write([&](dfr::mutable_packet_view out) {
+      return itch::encode_order_cancel(out, fields, 1001, 50);
+    });
+    write([&](dfr::mutable_packet_view out) {
+      return itch::encode_order_replace(out, fields, 1001, 1002, 300, 209'000);
+    });
+    write([&](dfr::mutable_packet_view out) {
+      return itch::encode_order_delete(out, fields, 1002);
+    });
+  }
+
+  std::printf("corpus_gen: %zu soupbintcp, %zu ouch, %zu itch seeds, under %s\n",
+              soup_out.count(), ouch_out.count(), itch_out.count(), root.string().c_str());
   return 0;
 }

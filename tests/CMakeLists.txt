@@ -95,7 +95,9 @@ dfr_add_test_suite(dfr_trace_tests SOURCES
 # and a reader looking for either should not have to compile the other.
 dfr_add_test_suite(dfr_book_tests SOURCES
   wire/deep_messages_test.cpp
+  wire/itch_messages_test.cpp
   book/order_book_test.cpp
+  book/order_level_book_test.cpp
 )
 
 dfr_add_test_suite(dfr_concurrent_tests SOURCES

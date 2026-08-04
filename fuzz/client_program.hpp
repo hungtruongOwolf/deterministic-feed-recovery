@@ -2,7 +2,7 @@
 //
 // Every operation here is one a real caller performs, and the fuzzer's job is to find an order of them that
 // breaks something. Nothing malformed is offered on purpose: a client that mishandles a malformed packet is a
-// decoder bug, and there are six targets for that already. What is being explored is the state machine.
+// decoder bug, and there are seven targets for that already. What is being explored is the state machine.
 //
 // The step cap is not a safety net, it is part of the contract. A fuzz input has to reproduce in bounded time or
 // the crash report is useless, and an input that ran for a million steps would take a million to shrink.

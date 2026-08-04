@@ -8,11 +8,11 @@ function of its seed, so a failure is a number somebody else can type in and see
 [![ci](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml)
 [![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
-![tests](https://img.shields.io/badge/tests-737%20across%205%20configurations-brightgreen.svg)
+![tests](https://img.shields.io/badge/tests-748%20across%205%20configurations-brightgreen.svg)
 
 **[Watch a run →](https://hungtruongowolf.github.io/deterministic-feed-recovery/)**
 
-<img src="docs/assets/screenshots/hero.png" alt="The viewer's opening screen: a three-step plain-language explanation of what goes wrong on a market-data feed and why, headline figures reading 737 tests, 3 compilers, 0 allocations after start-up and 41.5 ns to take in one packet, and the start of the run visualization.">
+<img src="docs/assets/screenshots/hero.png" alt="The viewer's opening screen: a three-step plain-language explanation of what goes wrong on a market-data feed and why, headline figures reading 748 tests, 3 compilers, 0 allocations after start-up and 41.5 ns to take in one packet, and the start of the run visualization.">
 
 ## Engineering proof at a glance
 
@@ -190,15 +190,17 @@ decision, and is the only component the viewer reads from. The viewer contains n
 [Viewer](#viewer) below) specifically so that this recording stays the single source of truth for
 what a run did.
 
-### Six protocols, three transports
+### Seven protocols, three transports
 
-<img src="docs/assets/diagrams/protocol-stack.svg" alt="Message layers DEEP, an untyped payload, OUCH and Glimpse each ride on one of three transports: IEX-TP and MoldUDP64, both UDP multicast, and SoupBinTCP, a TCP session. The same fault injector template attacks both datagram transports, since moldudp64_target and iextp_target are its only two specializations.">
+<img src="docs/assets/diagrams/protocol-stack.svg" alt="Message layers DEEP, ITCH, OUCH and Glimpse each ride on one of three transports: IEX-TP and MoldUDP64, both UDP multicast, and SoupBinTCP, a TCP session. The same fault injector template attacks both datagram transports, since moldudp64_target and iextp_target are its only two specializations.">
 
 `dfr::wire` decodes each message layer independently of the transport underneath it: `deep/` never calls
 into `iextp/`, it only receives the bytes IEX-TP already validated as a message body. That separation is
 what lets `chaos::injector<Target>` be a template with exactly two specializations, `moldudp64_target` and
 `iextp_target`, rather than one fault-injection implementation per message type: a fault op like *drop* or
-*corrupt* is written once against the transport shape and applies to every message layer riding on it.
+*corrupt* is written once against the transport shape and applies to every message layer riding on it. The
+same boundary now carries Nasdaq ITCH order lifecycle messages over MoldUDP64 without adding an ITCH-specific
+branch to recovery.
 
 ### The one thread boundary
 
@@ -256,7 +258,7 @@ cmake -S . -B build/dev && cmake --build build/dev -j8
 # The last three lines are the point: the client counted the sequence itself.
 ./build/dev/tools/session
 
-# All 737 tests, assertions at paranoid.
+# All 748 tests, assertions at paranoid.
 ctest --test-dir build/dev
 
 # A run recorded as JSONL. The same seed gives byte-identical output; a different seed does not.
@@ -267,7 +269,7 @@ ctest --test-dir build/dev
 # Both books are printed at every frame: watch the right one converge on the left one.
 ./build/dev/tools/glimpse --levels 5
 
-# The seventh fuzz target reads its input as a program of legal calls, not as a packet.
+# The eighth fuzz target reads its input as a program of legal calls, not as a packet.
 # It found a session-change defect in seven bytes; docs/FUZZING.md has the account.
 cmake -S . -B build/fuzz -DCMAKE_BUILD_TYPE=RelWithDebInfo && cmake --build build/fuzz -j8
 ./build/fuzz/fuzz/fuzz_client --seed 1 --rounds 200000 fuzz/corpus/client/*
@@ -502,7 +504,7 @@ without synthesising the transport first: at which point the test exercises the 
 
 ## Building
 
-**737 tests pass under five configurations**: assertions at paranoid, fast and off, and
+**748 tests pass under five configurations**: assertions at paranoid, fast and off, and
 AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer: all with warnings as errors, on **three
 compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both
 synthetic streams and real captures.
@@ -578,9 +580,9 @@ test fails 12 times out of 12. Two architectures, two classes of defect, and dro
 - `docs/BENCHMARKS.md`: the method, the three measurement bugs found by reading numbers that were too good, and
   why comparing the `dev` and `bench` presets to price assertions is wrong.
 - `docs/CONCURRENCY.md`: the one thread boundary, and the experiment where ThreadSanitizer passes a broken ring.
-- `docs/FUZZING.md`: six decoders fuzzed from a corpus of real packets at three layers, a seventh target that
+- `docs/FUZZING.md`: seven decoders fuzzed from real packets or encoder output, and an eighth target that
   reads its input as a program rather than a packet, and the three library defects it found.
-- `docs/COVERAGE.md`: what "737 tests pass" cannot say, and the two gaps, nine functions, that had never run despite it.
+- `docs/COVERAGE.md`: what "748 tests pass" cannot say, and the two gaps, nine functions, that had never run despite it.
 - `docs/STYLE.md`: house rules for comments, assertions, file size, aggregate defaults, README and
   commits, calibrated against measured comment and assertion density in Linux, SQLite, TigerBeetle,
   simdjson, quill and others.

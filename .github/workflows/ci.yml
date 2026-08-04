@@ -233,7 +233,8 @@ jobs:
           cmake -S . -B build/fuzz -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DDFR_ASSERTIONS=paranoid -DDFR_WARNINGS_AS_ERRORS=ON
           cmake --build build/fuzz -j 4 --target dfr_fuzz_iextp dfr_fuzz_moldudp64 \
-            dfr_fuzz_soupbintcp dfr_fuzz_ouch dfr_fuzz_deep dfr_fuzz_capture dfr_fuzz_client \
+            dfr_fuzz_soupbintcp dfr_fuzz_ouch dfr_fuzz_deep dfr_fuzz_itch dfr_fuzz_capture \
+            dfr_fuzz_client \
             dfr_corpus_gen
 
       # The OUCH/SoupBinTCP corpus is a deterministic function of tools/corpus_gen, the same way a trace is a
@@ -243,12 +244,12 @@ jobs:
       - name: The generated corpus matches what is committed
         run: |
           ./build/fuzz/tools/corpus_gen fuzz/corpus
-          git diff --exit-code -- fuzz/corpus/ouch fuzz/corpus/soupbintcp
+          git diff --exit-code -- fuzz/corpus/ouch fuzz/corpus/soupbintcp fuzz/corpus/itch
 
       # Where libFuzzer is available the targets take its flags, so the invocation is libFuzzer's own.
       - name: Fuzz each target
         run: |
-          for target in iextp moldudp64 soupbintcp ouch deep capture client; do
+          for target in iextp moldudp64 soupbintcp ouch deep itch capture client; do
             echo "── ${target} ─────────────────────────────────────"
             if ./build/fuzz/fuzz/fuzz_${target} -help=1 >/dev/null 2>&1; then
               ./build/fuzz/fuzz/fuzz_${target} "fuzz/corpus/${target}" \

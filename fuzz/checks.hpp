@@ -33,6 +33,7 @@
 #include <dfr/wire/iextp/chain.hpp>
 #include <dfr/wire/iextp/cursor.hpp>
 #include <dfr/wire/iextp/header.hpp>
+#include <dfr/wire/itch.hpp>
 #include <dfr/wire/moldudp64/cursor.hpp>
 #include <dfr/wire/moldudp64/header.hpp>
 #include <dfr/wire/ouch.hpp>
@@ -218,6 +219,32 @@ inline void fuzz_deep(dfr::packet_view input) {
   (void)deep::decode_system_event(input).get(event);
   deep::other_message other;
   (void)deep::decode_other(input).get(other);
+}
+
+// ---------------------------------------------------------------------------
+// ITCH: order identity makes every successful layout worth checking
+// ---------------------------------------------------------------------------
+
+inline void fuzz_itch(dfr::packet_view input) {
+  namespace itch = dfr::wire::itch;
+
+  itch::header head;
+  if (itch::decode_header(input).get(head) != dfr::error::ok) {
+    return;
+  }
+  require(input.size() == itch::expected_size(head.type),
+          "an ITCH header succeeded on a length that does not match its type");
+
+  itch::add_order added;
+  (void)itch::decode_add_order(input).get(added);
+  itch::order_executed executed;
+  (void)itch::decode_order_executed(input).get(executed);
+  itch::order_cancel canceled;
+  (void)itch::decode_order_cancel(input).get(canceled);
+  itch::order_delete deleted;
+  (void)itch::decode_order_delete(input).get(deleted);
+  itch::order_replace replaced;
+  (void)itch::decode_order_replace(input).get(replaced);
 }
 
 // ---------------------------------------------------------------------------

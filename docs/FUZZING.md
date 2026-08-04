@@ -12,7 +12,7 @@ cmake --build build/fuzz -j8
 ./build/fuzz/fuzz/fuzz_deep --seed 1 --rounds 250000 fuzz/corpus/deep/*
 ```
 
-Six targets: `iextp`, `moldudp64`, `soupbintcp`, `ouch`, `deep`, `capture`. Address and undefined sanitizers are
+Seven decoder targets: `iextp`, `moldudp64`, `soupbintcp`, `ouch`, `deep`, `itch`, `capture`. Address and undefined sanitizers are
 always on: a fuzzer without them checks that a decoder does not segfault, which is the least interesting of its
 three jobs.
 
@@ -59,7 +59,7 @@ Two of the corpora are deliberately the wrong protocol on top of that: the OUCH 
 seeded with DEEP messages, because well-formed bytes from *another* protocol are exactly the shape of input a
 dispatcher hands the wrong decoder when a type byte is hostile.
 
-331 files, 1.3 MB, committed. Every mutation therefore starts from a packet that **actually parses**, which is
+336 files, 1.3 MB, committed. Every mutation therefore starts from a packet that **actually parses**, which is
 where the interesting failures are: not random noise that every decoder rejects at the first byte.
 
 ## The three checks
@@ -80,8 +80,9 @@ asserting semantics would mostly assert the fuzzer's own idea of the protocol.
 
 ## What it found
 
-**Nothing, across 6 million mutations**: six targets, four seeds each, 250,000 rounds per seed, with ASan and
-UBSan on.
+**Nothing, across 6 million mutations** in the six-decoder campaign that preceded the ITCH target: four seeds
+each, 250,000 rounds per seed, with ASan and UBSan on. The ITCH target is guarded by the same checks and starts
+from one encoder-produced seed for each supported order lifecycle message.
 
 That sentence is worth nothing on its own, so it was checked. The length check in the DEEP header decoder was
 deliberately removed, making the decoder genuinely wrong: a truncated message would then be decoded against the
@@ -104,9 +105,9 @@ all, and it is why "no crashes" was never the claim.
   another venue, would have shapes this corpus does not.
 
 
-## The seventh target reads a program, not a packet
+## The eighth target reads a program, not a packet
 
-The six decoder targets take bytes off a wire. `recovery::client` is where the hard defects are, and mutating a
+The seven decoder targets take bytes off a wire. `recovery::client` is where the hard defects are, and mutating a
 packet cannot reach them: it is a state machine with four states, a retransmit timer, a reorder buffer and a
 snapshot that can arrive at any moment, and its failures are *sequences of legal calls*. No amount of byte
 flipping produces "a session change lands while a hole is open and a snapshot is replaying".

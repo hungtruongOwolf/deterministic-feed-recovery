@@ -10,9 +10,9 @@
 
 include(CheckCXXSourceCompiles)
 
-# `client` is the odd one out and deliberately so: the other six take bytes off a wire, and it takes a program.
+# `client` is the odd one out and deliberately so: the other seven take bytes off a wire, and it takes a program.
 # See fuzz/program.hpp for why mutating a packet cannot reach the defects in a state machine.
-set(DFR_FUZZ_TARGETS iextp moldudp64 soupbintcp ouch deep capture client)
+set(DFR_FUZZ_TARGETS iextp moldudp64 soupbintcp ouch deep itch capture client)
 
 set(CMAKE_REQUIRED_FLAGS "-fsanitize=fuzzer")
 check_cxx_source_compiles(

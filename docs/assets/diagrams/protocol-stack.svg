@@ -4,7 +4,7 @@
 <marker id="arrow-6d675c" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6d675c"/></marker>
   </defs>
   <rect x="0" y="0" width="1500" height="520" fill="#f1ece1"/>
-<text x="40.0" y="34.0" text-anchor="start" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="17" font-weight="600" fill="#1b1a17">dfr::wire  -  six protocols, three transports</text>
+<text x="40.0" y="34.0" text-anchor="start" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="17" font-weight="600" fill="#1b1a17">dfr::wire  -  seven protocols, three transports</text>
 <text x="40.0" y="56.0" text-anchor="start" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#6d675c" font-style="italic">each message layer is decoded independently of the transport that carries it; only the umbrella</text>
 <text x="40.0" y="72.0" text-anchor="start" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#6d675c" font-style="italic">header for each transport knows which message headers ride on it.</text>
 <rect x="80.0" y="120.0" width="260.0" height="67.0" rx="3" fill="#e7e0d2" stroke="#92876f" stroke-width="1.4"/>
@@ -12,9 +12,9 @@
 <text x="210.0" y="158.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">DEEP 1.0</text>
 <text x="210.0" y="175.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">market data, IEX</text>
 <rect x="400.0" y="120.0" width="260.0" height="67.0" rx="3" fill="#e7e0d2" stroke="#92876f" stroke-width="1.4"/>
-<text x="530.0" y="141.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="13.5" font-weight="600" fill="#1b1a17">(opaque payload)</text>
-<text x="530.0" y="158.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">tested generically</text>
-<text x="530.0" y="175.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">ITCH-shaped, not decoded here</text>
+<text x="530.0" y="141.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="13.5" font-weight="600" fill="#1b1a17">itch/</text>
+<text x="530.0" y="158.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">TotalView-ITCH 5.0</text>
+<text x="530.0" y="175.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">order-level market data</text>
 <rect x="760.0" y="120.0" width="260.0" height="67.0" rx="3" fill="#e7e0d2" stroke="#92876f" stroke-width="1.4"/>
 <text x="890.0" y="141.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="13.5" font-weight="600" fill="#1b1a17">ouch/</text>
 <text x="890.0" y="158.3" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace" font-size="12.5" font-weight="400" fill="#1b1a17">OUCH 4.2</text>

@@ -1,6 +1,6 @@
 // A fuzz input read as a program, not as a packet.
 //
-// The six existing targets fuzz decoders: bytes in, does it crash, is the answer self-consistent. That covers the
+// The seven decoder targets fuzz bytes: does it crash, and is the answer self-consistent. That covers the
 // layer where hostile input actually arrives, and it does not touch the part of this library most likely to be
 // wrong. `recovery::client` is a state machine with four states, a retransmit timer, a reorder buffer and a
 // snapshot path that can arrive at any moment, and its defects are *sequences of legal calls* rather than
