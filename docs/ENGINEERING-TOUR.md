@@ -99,8 +99,14 @@ CHECK(through.books == reference.books);
 The negative control applies repairs in arrival order. It delivers the same number of messages and
 builds a different book, proving that a sequence count alone is not the invariant.
 
+A second oracle keeps individual Nasdaq ITCH order identity rather than only aggregate price
+levels. It drives 560 Add, Execute, Cancel, Replace and Delete messages through MoldUDP64 loss,
+delay, duplication, retransmission and ordered delivery, then compares the complete live-order set
+with a loss-free replay.
+
 ```sh
 ./build/dev/tests/dfr_integration_tests "applying a gap-filling feed in arrival order*"
+./build/dev/tests/dfr_integration_tests "[integration][order-level]"
 ```
 
 ## 7. The same decisions become an inspectable trace

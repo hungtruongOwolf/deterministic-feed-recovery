@@ -8,11 +8,11 @@ function of its seed, so a failure is a number somebody else can type in and see
 [![ci](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml)
 [![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
-![tests](https://img.shields.io/badge/tests-748%20across%205%20configurations-brightgreen.svg)
+![tests](https://img.shields.io/badge/tests-749%20across%205%20configurations-brightgreen.svg)
 
 **[Watch a run →](https://hungtruongowolf.github.io/deterministic-feed-recovery/)**
 
-<img src="docs/assets/screenshots/hero.png" alt="The viewer's opening screen: a three-step plain-language explanation of what goes wrong on a market-data feed and why, headline figures reading 748 tests, 3 compilers, 0 allocations after start-up and 41.5 ns to take in one packet, and the start of the run visualization.">
+<img src="docs/assets/screenshots/hero.png" alt="The viewer's opening screen: a three-step plain-language explanation of what goes wrong on a market-data feed and why, headline figures reading 749 tests, 3 compilers, 0 allocations after start-up and 41.5 ns to take in one packet, and the start of the run visualization.">
 
 ## Engineering proof at a glance
 
@@ -22,6 +22,7 @@ The page explains the failure. These are the checks behind it, kept next to the 
 |---|---|---|
 | every real-feed message is detected and repaired exactly once | `tools/verify` over the committed IEX capture | `gunzip -c captures/20170826-iex-deep.pcap.gz >/tmp/deep.pcap && ./build/dev/tools/verify /tmp/deep.pcap` |
 | the repaired book equals the book that lost nothing | `tests/integration/book_oracle_test.cpp` | `./build/dev/tests/dfr_integration_tests "the book survives loss and repair*"` |
+| order identity survives loss, reordering and repair | 560 ITCH Add/Execute/Cancel/Replace/Delete messages compared with a loss-free book | `./build/dev/tests/dfr_integration_tests "[integration][order-level]"` |
 | the book stays correct across the thread boundary | `tests/integration/threaded_book_test.cpp` | `./build/dev/tests/dfr_integration_tests "the book built across*"` |
 | the stateful fuzzer reaches the recovery state machine | seven committed client programs and eight invariants | `./build/fuzz/fuzz/fuzz_client --seed 1 --rounds 200000 fuzz/corpus/client/*` |
 | nothing allocates after initialisation | global allocation counter in `recovery_bench` | `./build/bench/bench/recovery_bench --samples 40` |
@@ -258,7 +259,7 @@ cmake -S . -B build/dev && cmake --build build/dev -j8
 # The last three lines are the point: the client counted the sequence itself.
 ./build/dev/tools/session
 
-# All 748 tests, assertions at paranoid.
+# All 749 tests, assertions at paranoid.
 ctest --test-dir build/dev
 
 # A run recorded as JSONL. The same seed gives byte-identical output; a different seed does not.
@@ -504,7 +505,7 @@ without synthesising the transport first: at which point the test exercises the 
 
 ## Building
 
-**748 tests pass under five configurations**: assertions at paranoid, fast and off, and
+**749 tests pass under five configurations**: assertions at paranoid, fast and off, and
 AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer: all with warnings as errors, on **three
 compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both
 synthetic streams and real captures.
@@ -582,7 +583,7 @@ test fails 12 times out of 12. Two architectures, two classes of defect, and dro
 - `docs/CONCURRENCY.md`: the one thread boundary, and the experiment where ThreadSanitizer passes a broken ring.
 - `docs/FUZZING.md`: seven decoders fuzzed from real packets or encoder output, and an eighth target that
   reads its input as a program rather than a packet, and the three library defects it found.
-- `docs/COVERAGE.md`: what "748 tests pass" cannot say, and the two gaps, nine functions, that had never run despite it.
+- `docs/COVERAGE.md`: what "749 tests pass" cannot say, and the two gaps, nine functions, that had never run despite it.
 - `docs/STYLE.md`: house rules for comments, assertions, file size, aggregate defaults, README and
   commits, calibrated against measured comment and assertion density in Linux, SQLite, TigerBeetle,
   simdjson, quill and others.
