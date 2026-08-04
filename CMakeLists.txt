@@ -53,20 +53,51 @@ endif()
 # (docs/DESIGN.md section 4) without changing this target's name or usage.
 # ---------------------------------------------------------------------------
 
+string(TOUPPER "${DFR_ASSERTIONS}" _dfr_assert_upper)
+
+# One target per source-level component. They are INTERFACE libraries because dfr is
+# header-only, but the targets still matter: an installed consumer can ask for only
+# `dfr::recovery`, and the transitive graph below makes the architectural boundaries
+# visible to CMake instead of leaving them as a directory naming convention.
+function(dfr_add_component name)
+  add_library(dfr_component_${name} INTERFACE)
+  add_library(dfr::${name} ALIAS dfr_component_${name})
+  set_target_properties(dfr_component_${name} PROPERTIES EXPORT_NAME ${name})
+  target_compile_features(dfr_component_${name} INTERFACE cxx_std_20)
+  target_include_directories(dfr_component_${name} INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  target_compile_definitions(dfr_component_${name} INTERFACE
+    DFR_ASSERTION_LEVEL=DFR_ASSERTION_LEVEL_${_dfr_assert_upper}
+    $<$<BOOL:${DFR_RECORD_CHOICES}>:DFR_RECORD_CHOICES=1>
+  )
+endfunction()
+
+foreach(component IN ITEMS core wire capture chaos recovery book concurrent trace venue)
+  dfr_add_component(${component})
+endforeach()
+
+# Direct public-header dependencies, checked independently by
+# scripts/check-component-dependencies.py. Keep this list flat and readable: it is
+# the architecture a package consumer sees.
+target_link_libraries(dfr_component_wire       INTERFACE dfr::core)
+target_link_libraries(dfr_component_capture    INTERFACE dfr::core)
+target_link_libraries(dfr_component_chaos      INTERFACE dfr::core dfr::wire)
+target_link_libraries(dfr_component_recovery   INTERFACE dfr::core)
+target_link_libraries(dfr_component_book       INTERFACE dfr::core dfr::wire)
+target_link_libraries(dfr_component_concurrent INTERFACE dfr::core)
+target_link_libraries(dfr_component_trace      INTERFACE dfr::core dfr::recovery)
+target_link_libraries(dfr_component_venue      INTERFACE dfr::core dfr::wire dfr::recovery dfr::book)
+
+# Compatibility and convenience umbrella. Existing consumers keep linking
+# `dfr::dfr`; focused consumers can now name the smaller contract they need.
 add_library(dfr INTERFACE)
 add_library(dfr::dfr ALIAS dfr)
-
-target_compile_features(dfr INTERFACE cxx_std_20)
-
-target_include_directories(dfr INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-
-string(TOUPPER "${DFR_ASSERTIONS}" _dfr_assert_upper)
-target_compile_definitions(dfr INTERFACE
-  DFR_ASSERTION_LEVEL=DFR_ASSERTION_LEVEL_${_dfr_assert_upper}
-  $<$<BOOL:${DFR_RECORD_CHOICES}>:DFR_RECORD_CHOICES=1>
+set_target_properties(dfr PROPERTIES EXPORT_NAME dfr)
+target_link_libraries(dfr INTERFACE
+  dfr::core dfr::wire dfr::capture dfr::chaos dfr::recovery dfr::book
+  dfr::concurrent dfr::trace dfr::venue
 )
 
 # ---------------------------------------------------------------------------
@@ -171,7 +202,12 @@ if(PROJECT_IS_TOP_LEVEL)
   include(GNUInstallDirs)
   include(CMakePackageConfigHelpers)
 
-  install(TARGETS dfr EXPORT dfrTargets)
+  install(TARGETS
+    dfr dfr_component_core dfr_component_wire dfr_component_capture
+    dfr_component_chaos dfr_component_recovery dfr_component_book
+    dfr_component_concurrent dfr_component_trace dfr_component_venue
+    EXPORT dfrTargets
+  )
   install(DIRECTORY include/dfr DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
   install(EXPORT dfrTargets

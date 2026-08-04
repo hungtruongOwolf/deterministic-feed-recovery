@@ -16,6 +16,12 @@ FetchContent_MakeAvailable(Catch2)
 list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/extras)
 include(Catch)
 
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+add_test(
+  NAME dfr_component_dependencies
+  COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/check-component-dependencies.py
+)
+
 # ---------------------------------------------------------------------------
 # One test binary per component, so a failure names the component in CI output
 # and so a slow component can be run alone.
