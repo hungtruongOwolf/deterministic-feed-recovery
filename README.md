@@ -8,11 +8,27 @@ function of its seed, so a failure is a number somebody else can type in and see
 [![ci](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml/badge.svg)](https://github.com/hungtruongOwolf/deterministic-feed-recovery/actions/workflows/ci.yml)
 [![licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 ![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)
-![tests](https://img.shields.io/badge/tests-736%20across%205%20configurations-brightgreen.svg)
+![tests](https://img.shields.io/badge/tests-737%20across%205%20configurations-brightgreen.svg)
 
 **[Watch a run →](https://hungtruongowolf.github.io/deterministic-feed-recovery/)**
 
-<img src="docs/assets/screenshots/hero.png" alt="The viewer's opening screen: a three-step plain-language explanation of what goes wrong on a market-data feed and why, headline figures reading 736 tests, 3 compilers, 0 allocations after start-up and 41.5 ns to take in one packet, and the start of the run visualization.">
+<img src="docs/assets/screenshots/hero.png" alt="The viewer's opening screen: a three-step plain-language explanation of what goes wrong on a market-data feed and why, headline figures reading 737 tests, 3 compilers, 0 allocations after start-up and 41.5 ns to take in one packet, and the start of the run visualization.">
+
+## Engineering proof at a glance
+
+The page explains the failure. These are the checks behind it, kept next to the code they judge:
+
+| claim | executable evidence | reproduce |
+|---|---|---|
+| every real-feed message is detected and repaired exactly once | `tools/verify` over the committed IEX capture | `gunzip -c captures/20170826-iex-deep.pcap.gz >/tmp/deep.pcap && ./build/dev/tools/verify /tmp/deep.pcap` |
+| the repaired book equals the book that lost nothing | `tests/integration/book_oracle_test.cpp` | `./build/dev/tests/dfr_integration_tests "the book survives loss and repair*"` |
+| the book stays correct across the thread boundary | `tests/integration/threaded_book_test.cpp` | `./build/dev/tests/dfr_integration_tests "the book built across*"` |
+| the stateful fuzzer reaches the recovery state machine | seven committed client programs and eight invariants | `./build/fuzz/fuzz/fuzz_client --seed 1 --rounds 200000 fuzz/corpus/client/*` |
+| nothing allocates after initialisation | global allocation counter in `recovery_bench` | `./build/bench/bench/recovery_bench --samples 40` |
+| browser and terminal runs are the same computation | native and WebAssembly JSONL compared byte for byte | `./scripts/check-wasm.sh dev` |
+
+For one packet's whole path through those components, read the
+**[three-minute engineering tour](docs/ENGINEERING-TOUR.md)**.
 
 ## Why this problem
 
@@ -240,7 +256,7 @@ cmake -S . -B build/dev && cmake --build build/dev -j8
 # The last three lines are the point: the client counted the sequence itself.
 ./build/dev/tools/session
 
-# All 736 tests, assertions at paranoid.
+# All 737 tests, assertions at paranoid.
 ctest --test-dir build/dev
 
 # A run recorded as JSONL. The same seed gives byte-identical output; a different seed does not.
@@ -486,7 +502,7 @@ without synthesising the transport first: at which point the test exercises the 
 
 ## Building
 
-**736 tests pass under five configurations**: assertions at paranoid, fast and off, and
+**737 tests pass under five configurations**: assertions at paranoid, fast and off, and
 AddressSanitizer + UndefinedBehaviorSanitizer + ThreadSanitizer: all with warnings as errors, on **three
 compilers**: Apple Clang locally, Linux Clang and GCC 14 in CI. There is an end-to-end oracle over both
 synthetic streams and real captures.
@@ -499,6 +515,16 @@ ctest --preset dev
 
 Other presets: `release` (optimised, assertions still on at the fast level),
 `bench` (assertions off, for measuring what they cost), `asan`, `tsan`.
+
+The installed package has no third-party dependency and exports focused header-only targets:
+`dfr::core`, `dfr::wire`, `dfr::capture`, `dfr::chaos`, `dfr::recovery`, `dfr::book`,
+`dfr::concurrent`, `dfr::trace` and `dfr::venue`. `dfr::dfr` remains the umbrella target.
+Their dependency direction is checked by `scripts/check-component-dependencies.py`.
+
+C++20 is used for constraints, not only selected as a compiler mode: concepts define the clock and
+protocol policies, `std::span` backs the non-owning packet views, `std::endian` makes wire conversion
+explicit, and `std::source_location` gives assertions their call site. Catch2 is test-only, pinned, and
+may come from an installed package or the declared `FetchContent` fallback.
 
 ```sh
 ./scripts/hammer-concurrency.sh dev 400   # the threaded tests, four hundred times
@@ -554,10 +580,12 @@ test fails 12 times out of 12. Two architectures, two classes of defect, and dro
 - `docs/CONCURRENCY.md`: the one thread boundary, and the experiment where ThreadSanitizer passes a broken ring.
 - `docs/FUZZING.md`: six decoders fuzzed from a corpus of real packets at three layers, a seventh target that
   reads its input as a program rather than a packet, and the three library defects it found.
-- `docs/COVERAGE.md`: what "736 tests pass" cannot say, and the two gaps, nine functions, that had never run despite it.
+- `docs/COVERAGE.md`: what "737 tests pass" cannot say, and the two gaps, nine functions, that had never run despite it.
 - `docs/STYLE.md`: house rules for comments, assertions, file size, aggregate defaults, README and
   commits, calibrated against measured comment and assertion density in Linux, SQLite, TigerBeetle,
   simdjson, quill and others.
+- `docs/ENGINEERING-TOUR.md`: one damaged packet followed through the production-shaped pipeline,
+  with the invariant and reproducing command at every boundary.
 - `viewer/README.md`: the one rule the viewer follows, and why it has no domain logic.
 - `traces/`: recorded runs, committed as fixtures. `scripts/regenerate-traces.sh` then
   `git diff traces/` is a behavioural regression report.
